@@ -490,12 +490,12 @@ const App = () => {
                               return { ...r, player };
                             })
                             .filter(r => r.player)
-                            .sort((a, b) => b.birilli - a.birilli)
-                            .map((r, index) => {
+                            .sort((a, b) => (a.posizione || 999) - (b.posizione || 999))
+                            .map((r) => {
                               const media = r.partite > 0 ? (r.birilli / r.partite).toFixed(2) : '0.00';
                               return (
                                 <tr key={r.id} className="group hover:bg-white/5 transition-colors">
-                                  <td className="py-4 pl-4 font-black text-blue-400 text-lg">#{index + 1}</td>
+                                  <td className="py-4 pl-4 font-black text-blue-400 text-lg">#{r.posizione || '-'}</td>
                                   <td className="py-4 font-bold">{r.player.nome} {r.player.cognome}</td>
                                   <td className="py-4 text-center font-mono text-green-400 font-bold">{r.birilli}</td>
                                   <td className="py-4 text-center font-mono">{r.partite}</td>
