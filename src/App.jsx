@@ -40,17 +40,26 @@ const App = () => {
 
   // Fetch Data
   const fetchData = async () => {
-    setLoading(true);
-    const { data: p } = await supabase.from('players').select('*');
-    const { data: t } = await supabase.from('tournaments').select('*');
-    const { data: r } = await supabase.from('results').select('*');
-    const { data: trx } = await supabase.from('transactions').select('*');
+    try {
+      setLoading(true);
+      const { data: p, error: ep } = await supabase.from('players').select('*');
+      const { data: t, error: et } = await supabase.from('tournaments').select('*');
+      const { data: r, error: er } = await supabase.from('results').select('*');
+      const { data: trx, error: etrx } = await supabase.from('transactions').select('*');
 
-    if (p) setPlayers(p);
-    if (t) setTournaments(t);
-    if (r) setResults(r);
-    if (trx) setTransactions(trx);
-    setLoading(false);
+      if (ep || et || er || etrx) {
+        console.error('Fetch Error:', { ep, et, er, etrx });
+      }
+
+      if (p) setPlayers(p);
+      if (t) setTournaments(t);
+      if (r) setResults(r);
+      if (trx) setTransactions(trx);
+    } catch (err) {
+      console.error('System Error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -114,6 +123,16 @@ const App = () => {
     else { fetchData(); setShowResultForm(false); }
   };
 
+  const handleLogin = async () => {
+    const email = prompt('Inserisci Email Admin:');
+    if (!email) return;
+    const password = prompt('Inserisci Password Admin:');
+    if (!password) return;
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) alert('Errore di accesso: ' + error.message);
+  };
+
   if (selectedPlayerForDetail) {
     return (
       <div className="min-h-screen bg-background text-gray-200 p-8">
@@ -159,7 +178,7 @@ const App = () => {
                 <LogOut className="w-6 h-6" /> <span className="text-xs md:text-base">Logout</span>
               </button>
             ) : (
-              <button className="w-full flex flex-col md:flex-row items-center gap-3 p-4 rounded-xl neumorphic-btn text-green-400">
+              <button onClick={handleLogin} className="w-full flex flex-col md:flex-row items-center gap-3 p-4 rounded-xl neumorphic-btn text-green-400">
                 <LogIn className="w-6 h-6" /> <span className="text-xs md:text-base text-center">Admin Login</span>
               </button>
             )}
