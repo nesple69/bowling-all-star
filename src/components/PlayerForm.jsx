@@ -17,6 +17,7 @@ const PlayerForm = ({ player, onSave, onCancel }) => {
         nome_azienda: '',
         settore_seniores: false,
         fascia_seniores: '',
+        numero_tessera: '',
         data_scadenza_medica: '',
         certificato_url: ''
     });
@@ -89,6 +90,21 @@ const PlayerForm = ({ player, onSave, onCancel }) => {
                         onChange={(e) => setFormData({ ...formData, cognome: e.target.value })}
                         className="w-full px-4 py-3 rounded-xl neumorphic-in focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                         placeholder="Esempio: Rossi"
+                    />
+                </div>
+            </div>
+
+            {/* Numero Tessera */}
+            <div className="space-y-2">
+                <label className="text-sm font-medium ml-4 text-gray-400">Numero Tessera FISB</label>
+                <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                        type="text"
+                        value={formData.numero_tessera}
+                        onChange={(e) => setFormData({ ...formData, numero_tessera: e.target.value })}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl neumorphic-in focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        placeholder="Esempio: 01/2345"
                     />
                 </div>
             </div>

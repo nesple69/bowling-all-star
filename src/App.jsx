@@ -100,13 +100,15 @@ const App = () => {
       const pResults = results.filter(r => r.id_giocatore === p.id);
       const totalPins = pResults.reduce((sum, r) => sum + r.birilli, 0);
       const totalGames = pResults.reduce((sum, r) => sum + r.partite, 0);
+      const totalTournaments = new Set(pResults.map(r => r.id_torneo)).size;
       return {
         ...p,
         media: totalGames > 0 ? (totalPins / totalGames).toFixed(2) : '0.00',
         totaleBirilli: totalPins,
-        totalePartite: totalGames
+        totalePartite: totalGames,
+        totaleTornei: totalTournaments
       };
-    }).sort((a, b) => b.media - a.media);
+    }).sort((a, b) => b.cognome.localeCompare(a.cognome));
   }, [players, results]);
 
   // Handlers
@@ -299,26 +301,57 @@ const App = () => {
             {/* Players Area */}
             {activeTab === 'players' && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {players.map(p => (
-                    <div key={p.id} onClick={() => setSelectedPlayerForDetail(p)} className="p-6 rounded-3xl neumorphic-out group cursor-pointer hover:scale-[1.02] transition-all">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-xl font-bold">{p.nome} {p.cognome}</h3>
-                          <p className="text-sm text-gray-400">{p.categoria}</p>
-                        </div>
-                        {isAdmin && (
-                          <button onClick={(e) => { e.stopPropagation(); setEditingPlayer(p); setShowPlayerForm(true); }} className="p-2 rounded-lg neumorphic-btn opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Plus className="w-4 h-4 rotate-45" />
-                          </button>
-                        )}
-                      </div>
-                      <div className="mt-4 space-y-1">
-                        {p.settore_aziendale && <div className="text-[10px] text-purple-400 flex items-center gap-1 uppercase"><MapPin className="w-3 h-3" /> {p.nome_azienda}</div>}
-                        {p.settore_seniores && <div className="text-[10px] text-yellow-500 flex items-center gap-1 uppercase"><Trophy className="w-3 h-3" /> {p.fascia_seniores}</div>}
-                      </div>
-                    </div>
-                  ))}
+                <div className="p-8 rounded-3xl neumorphic-out overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-gray-400 border-b border-white/5">
+                        <th className="pb-4 pl-4 font-medium text-xs">Atleta</th>
+                        <th className="pb-4 font-medium text-xs text-center">Tessera</th>
+                        <th className="pb-4 font-medium text-xs text-center">Cat.</th>
+                        <th className="pb-4 font-medium text-xs text-center">Tornei</th>
+                        <th className="pb-4 font-medium text-xs text-center">Birilli</th>
+                        <th className="pb-4 font-medium text-xs text-center">Media</th>
+                        <th className="pb-4 font-medium text-xs text-center">Senior</th>
+                        <th className="pb-4 font-medium text-xs text-center">Aziendale</th>
+                        {isAdmin && <th className="pb-4 pr-4 text-right"></th>}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {playersWithStats.map((p) => (
+                        <tr key={p.id} className="group hover:bg-white/5 transition-colors cursor-pointer" onClick={() => setSelectedPlayerForDetail(p)}>
+                          <td className="py-4 pl-4 font-bold">{p.nome} {p.cognome}</td>
+                          <td className="py-4 text-center font-mono text-sm text-gray-400">{p.numero_tessera || '-'}</td>
+                          <td className="py-4 text-center text-xs font-bold text-blue-400">{p.categoria}</td>
+                          <td className="py-4 text-center font-mono">{p.totaleTornei}</td>
+                          <td className="py-4 text-center font-mono">{p.totaleBirilli}</td>
+                          <td className="py-4 text-center font-black text-blue-400">{p.media}</td>
+                          <td className="py-4 text-center">
+                            {p.settore_seniores ? <span className="text-[10px] bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded-lg border border-yellow-500/20">SI</span> : '-'}
+                          </td>
+                          <td className="py-4 text-center">
+                            {p.settore_aziendale ? <span className="text-[10px] bg-purple-500/10 text-purple-500 px-2 py-1 rounded-lg border border-purple-500/20">SI</span> : '-'}
+                          </td>
+                          {isAdmin && (
+                            <td className="py-4 pr-4 text-right">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setEditingPlayer(p); setShowPlayerForm(true); }}
+                                className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
+                              >
+                                <Plus className="w-4 h-4 rotate-45" />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                      {playersWithStats.length === 0 && (
+                        <tr>
+                          <td colSpan={isAdmin ? 9 : 8} className="py-12 text-center text-gray-500 italic">
+                            Nessun atleta registrato.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
