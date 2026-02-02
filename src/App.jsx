@@ -249,7 +249,12 @@ const App = () => {
             </button>
           )}
 
-          <div className="md:mt-auto">
+          {/* TEAM LOGO */}
+          <div className="flex-1 hidden md:flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity">
+            <img src="/team-logo.png" alt="All Star Team Logo" className="w-full max-w-[140px] object-contain drop-shadow-2xl" />
+          </div>
+
+          <div className="md:mt-0">
             {isAdmin ? (
               <button onClick={() => supabase.auth.signOut()} className="w-full flex flex-col md:flex-row items-center gap-3 p-4 rounded-xl neumorphic-btn text-red-400">
                 <LogOut className="w-6 h-6" /> <span className="text-xs md:text-base">Logout</span>
