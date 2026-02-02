@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Trophy, Hash, Target, TrendingUp, Calendar, MapPin, FileText, Pencil } from 'lucide-react';
 
-const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteResult }) => {
+const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteResult, onEditResult }) => {
     // Filter results for this player
     const playerResults = results.filter(r => r.id_giocatore === player.id);
 
@@ -90,6 +90,13 @@ const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteR
                                     {isAdmin && (
                                         <td className="py-4 pr-4">
                                             <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => onEditResult(h)}
+                                                    className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
+                                                    title="Modifica Punteggio"
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                </button>
                                                 <button
                                                     onClick={() => onDeleteResult(h.id)}
                                                     className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"

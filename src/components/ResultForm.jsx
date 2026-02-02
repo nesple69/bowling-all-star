@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Target, Hash, Save, X, Trophy, User } from 'lucide-react';
 
-const ResultForm = ({ players, tournaments, onSave, onCancel }) => {
+const ResultForm = ({ result, players, tournaments, onSave, onCancel }) => {
     const [formData, setFormData] = useState({
-        id_giocatore: '',
-        id_torneo: '',
-        birilli: '',
-        partite: ''
+        id_giocatore: result?.id_giocatore || '',
+        id_torneo: result?.id_torneo || '',
+        birilli: result?.birilli || '',
+        partite: result?.partite || ''
     });
 
-    // Automatically update the number of games when a tournament is selected
+    // Automatically update the number of games when a tournament is selected (only for new results)
     useEffect(() => {
-        if (formData.id_torneo) {
+        if (formData.id_torneo && !result) {
             const tournament = tournaments.find(t => t.id === formData.id_torneo);
             if (tournament) {
                 setFormData(prev => ({ ...prev, partite: tournament.numero_partite }));
             }
         }
-    }, [formData.id_torneo, tournaments]);
+    }, [formData.id_torneo, tournaments, result]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -30,7 +30,7 @@ const ResultForm = ({ players, tournaments, onSave, onCancel }) => {
             ...formData,
             birilli: parseInt(formData.birilli),
             partite: parseInt(formData.partite),
-            data: new Date().toISOString()
+            data: result?.data || new Date().toISOString()
         });
     };
 
@@ -38,7 +38,7 @@ const ResultForm = ({ players, tournaments, onSave, onCancel }) => {
         <form onSubmit={handleSubmit} className="p-8 rounded-3xl neumorphic-out max-w-2xl mx-auto space-y-6">
             <h2 className="text-2xl font-bold text-center mb-8 flex items-center justify-center gap-2">
                 <Target className="w-6 h-6 text-purple-400" />
-                Inserisci Risultato Torneo
+                {result ? 'Modifica Risultato' : 'Inserisci Risultato Torneo'}
             </h2>
 
             {/* Selezione Giocatore */}

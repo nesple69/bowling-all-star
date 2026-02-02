@@ -4,6 +4,7 @@ import PlayerForm from './components/PlayerForm';
 import TournamentForm from './components/TournamentForm';
 import PlayerDetail from './components/PlayerDetail';
 import ResultForm from './components/ResultForm';
+import TransactionForm from './components/TransactionForm';
 import {
   LayoutDashboard, Users, Trophy, Wallet, LogIn, LogOut,
   AlertTriangle, Plus, Search, TrendingUp, Target, MapPin,
@@ -26,6 +27,9 @@ const App = () => {
   const [showTournamentForm, setShowTournamentForm] = useState(false);
   const [editingTournament, setEditingTournament] = useState(null);
   const [showResultForm, setShowResultForm] = useState(false);
+  const [editingResult, setEditingResult] = useState(null);
+  const [showTransactionForm, setShowTransactionForm] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const [selectedPlayerForDetail, setSelectedPlayerForDetail] = useState(null);
 
   // Auth State
@@ -145,9 +149,19 @@ const App = () => {
   };
 
   const handleSaveResult = async (formData) => {
-    const { error } = await supabase.from('results').insert([formData]);
+    const { error } = editingResult
+      ? await supabase.from('results').update(formData).eq('id', editingResult.id)
+      : await supabase.from('results').insert([formData]);
     if (error) alert(error.message);
-    else { fetchData(); setShowResultForm(false); }
+    else { fetchData(); setShowResultForm(false); setEditingResult(null); }
+  };
+
+  const handleSaveTransaction = async (formData) => {
+    const { error } = editingTransaction
+      ? await supabase.from('transactions').update(formData).eq('id', editingTransaction.id)
+      : await supabase.from('transactions').insert([formData]);
+    if (error) alert(error.message);
+    else { fetchData(); setShowTransactionForm(false); setEditingTransaction(null); }
   };
 
   const handleDeletePlayer = async (id) => {
@@ -199,6 +213,7 @@ const App = () => {
           onBack={() => setSelectedPlayerForDetail(null)}
           isAdmin={isAdmin}
           onDeleteResult={handleDeleteResult}
+          onEditResult={(r) => { setEditingResult(r); setShowResultForm(true); }}
         />
       </div>
     );
@@ -509,13 +524,22 @@ const App = () => {
                         <p className={`font-black ${t.tipo === 'entrate' ? 'text-green-400' : 'text-red-400'}`}>
                           {t.tipo === 'entrate' ? '+' : '-'} €{t.importo}
                         </p>
-                        <button
-                          onClick={() => handleDeleteTransaction(t.id)}
-                          className="p-2 ml-4 rounded-lg neumorphic-btn text-red-500"
-                          title="Elimina"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => { setEditingTransaction(t); setShowTransactionForm(true); }}
+                            className="p-2 rounded-lg neumorphic-btn text-blue-400"
+                            title="Modifica"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTransaction(t.id)}
+                            className="p-2 rounded-lg neumorphic-btn text-red-500"
+                            title="Elimina"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -532,26 +556,28 @@ const App = () => {
       `}</style>
 
       {/* GLOBAL ADD BUTTON (FIXED BOTTOM RIGHT) */}
-      {isAdmin && (activeTab === 'players' || activeTab === 'tournaments' || activeTab === 'ranking') && (
+      {isAdmin && (activeTab === 'players' || activeTab === 'tournaments' || activeTab === 'ranking' || activeTab === 'accounting') && (
         <button
           onClick={() => {
             if (activeTab === 'players') { setEditingPlayer(null); setShowPlayerForm(true); }
             if (activeTab === 'tournaments') { setEditingTournament(null); setShowTournamentForm(true); }
-            if (activeTab === 'ranking') setShowResultForm(true);
+            if (activeTab === 'ranking') { setEditingResult(null); setShowResultForm(true); }
+            if (activeTab === 'accounting') { setEditingTransaction(null); setShowTransactionForm(true); }
           }}
           className="fixed bottom-8 right-8 z-[60] p-4 rounded-xl neumorphic-btn text-blue-400 font-bold flex items-center gap-2 shadow-2xl scale-90 md:scale-100"
         >
-          <Plus className="w-5 h-5" /> <span>{activeTab === 'ranking' ? 'Punteggio' : 'Aggiungi'}</span>
+          <Plus className="w-5 h-5" /> <span>{activeTab === 'ranking' ? 'Punteggio' : (activeTab === 'accounting' ? 'Operazione' : 'Aggiungi')}</span>
         </button>
       )}
 
       {/* MODALS */}
-      {(showPlayerForm || showTournamentForm || showResultForm) && (
+      {(showPlayerForm || showTournamentForm || showResultForm || showTransactionForm) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => {
             setShowPlayerForm(false);
             setShowTournamentForm(false);
             setShowResultForm(false);
+            setShowTransactionForm(false);
           }}></div>
           <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             {showPlayerForm && (
@@ -562,10 +588,18 @@ const App = () => {
             )}
             {showResultForm && (
               <ResultForm
+                result={editingResult}
                 players={players}
                 tournaments={tournaments}
                 onSave={handleSaveResult}
                 onCancel={() => setShowResultForm(false)}
+              />
+            )}
+            {showTransactionForm && (
+              <TransactionForm
+                transaction={editingTransaction}
+                onSave={handleSaveTransaction}
+                onCancel={() => setShowTransactionForm(false)}
               />
             )}
           </div>
