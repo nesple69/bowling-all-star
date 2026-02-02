@@ -205,18 +205,6 @@ const App = () => {
       <main className="pb-24 md:pb-0 md:pl-8 p-4 md:p-8 w-full">
         <header className="flex justify-between items-center mb-12">
           <h2 className="text-3xl font-bold capitalize">{activeTab}</h2>
-          {isAdmin && (activeTab === 'players' || activeTab === 'tournaments' || activeTab === 'ranking') && (
-            <button
-              onClick={() => {
-                if (activeTab === 'players') { setEditingPlayer(null); setShowPlayerForm(true); }
-                if (activeTab === 'tournaments') { setEditingTournament(null); setShowTournamentForm(true); }
-                if (activeTab === 'ranking') setShowResultForm(true);
-              }}
-              className="p-4 rounded-xl neumorphic-btn text-blue-400 font-bold flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" /> {activeTab === 'ranking' ? 'Inserisci Punteggio' : 'Aggiungi'}
-            </button>
-          )}
         </header>
 
         {loading ? (
@@ -401,6 +389,20 @@ const App = () => {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
       `}</style>
+
+      {/* GLOBAL ADD BUTTON (FIXED TOP RIGHT) */}
+      {isAdmin && (activeTab === 'players' || activeTab === 'tournaments' || activeTab === 'ranking') && (
+        <button
+          onClick={() => {
+            if (activeTab === 'players') { setEditingPlayer(null); setShowPlayerForm(true); }
+            if (activeTab === 'tournaments') { setEditingTournament(null); setShowTournamentForm(true); }
+            if (activeTab === 'ranking') setShowResultForm(true);
+          }}
+          className="fixed top-4 right-4 md:top-8 md:right-8 z-[60] p-4 rounded-xl neumorphic-btn text-blue-400 font-bold flex items-center gap-2 shadow-2xl scale-90 md:scale-100"
+        >
+          <Plus className="w-5 h-5" /> <span>{activeTab === 'ranking' ? 'Punteggio' : 'Aggiungi'}</span>
+        </button>
+      )}
 
       {/* MODALS */}
       {(showPlayerForm || showTournamentForm || showResultForm) && (
