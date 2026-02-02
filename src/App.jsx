@@ -7,7 +7,7 @@ import ResultForm from './components/ResultForm';
 import {
   LayoutDashboard, Users, Trophy, Wallet, LogIn, LogOut,
   AlertTriangle, Plus, Search, TrendingUp, Target, MapPin,
-  ArrowUpCircle, ArrowDownCircle, FileText, Pencil, Trash2, X, Calendar
+  ArrowUpCircle, ArrowDownCircle, FileText, Pencil, X, Calendar
 } from 'lucide-react';
 
 const App = () => {
@@ -172,6 +172,13 @@ const App = () => {
     else fetchData();
   };
 
+  const handleDeleteTransaction = async (id) => {
+    if (!window.confirm('Eliminare definitivamente questa operazione?')) return;
+    const { error } = await supabase.from('transactions').delete().eq('id', id);
+    if (error) alert(error.message);
+    else fetchData();
+  };
+
   const handleLogin = async () => {
     const email = prompt('Inserisci Email Admin:');
     if (!email) return;
@@ -254,7 +261,17 @@ const App = () => {
                       {expiringCertificates.map(p => (
                         <div key={p.id} className="p-4 rounded-xl neumorphic-in flex justify-between items-center">
                           <p className="font-bold">{p.nome} {p.cognome}</p>
-                          <p className="text-xs text-red-500">{new Date(p.data_scadenza_medica).toLocaleDateString('it-IT')}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs text-red-500">{new Date(p.data_scadenza_medica).toLocaleDateString('it-IT')}</p>
+                            {isAdmin && (
+                              <button
+                                onClick={() => { setEditingPlayer(p); setShowPlayerForm(true); }}
+                                className="p-1.5 rounded-lg neumorphic-btn text-blue-400"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -316,10 +333,10 @@ const App = () => {
                                 </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleDeletePlayer(p.id); }}
-                                  className="p-2 rounded-lg neumorphic-btn text-red-400 hover:scale-110 transition-transform"
+                                  className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"
                                   title="Elimina"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <X className="w-4 h-4" />
                                 </button>
                               </div>
                             </td>
@@ -384,10 +401,10 @@ const App = () => {
                                 </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleDeletePlayer(p.id); }}
-                                  className="p-2 rounded-lg neumorphic-btn text-red-400 hover:scale-110 transition-transform"
+                                  className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"
                                   title="Elimina"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <X className="w-4 h-4" />
                                 </button>
                               </div>
                             </td>
@@ -444,8 +461,8 @@ const App = () => {
                                 <button onClick={() => { setEditingTournament(t); setShowTournamentForm(true); }} className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform">
                                   <Pencil className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => handleDeleteTournament(t.id)} className="p-2 rounded-lg neumorphic-btn text-red-400 hover:scale-110 transition-transform">
-                                  <Trash2 className="w-4 h-4" />
+                                <button onClick={() => handleDeleteTournament(t.id)} className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform">
+                                  <X className="w-4 h-4" />
                                 </button>
                               </div>
                             </td>
@@ -492,6 +509,13 @@ const App = () => {
                         <p className={`font-black ${t.tipo === 'entrate' ? 'text-green-400' : 'text-red-400'}`}>
                           {t.tipo === 'entrate' ? '+' : '-'} €{t.importo}
                         </p>
+                        <button
+                          onClick={() => handleDeleteTransaction(t.id)}
+                          className="p-2 ml-4 rounded-lg neumorphic-btn text-red-500"
+                          title="Elimina"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
                     ))}
                   </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Trophy, Hash, Target, TrendingUp, Calendar, MapPin, FileText, Pencil, Trash2 } from 'lucide-react';
+import { X, Trophy, Hash, Target, TrendingUp, Calendar, MapPin, FileText, Pencil } from 'lucide-react';
 
 const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteResult }) => {
     // Filter results for this player
@@ -92,10 +92,10 @@ const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteR
                                             <div className="flex justify-end gap-2">
                                                 <button
                                                     onClick={() => onDeleteResult(h.id)}
-                                                    className="p-2 rounded-lg neumorphic-btn text-red-400 hover:scale-110 transition-transform"
+                                                    className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"
                                                     title="Elimina Punteggio"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <X className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>
