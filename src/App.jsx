@@ -326,12 +326,12 @@ const App = () => {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="text-gray-400 border-b border-white/5">
-                        <th className="pb-4 pl-4 font-medium text-xs">Pos.</th>
-                        <th className="pb-4 font-medium text-xs">Atleta</th>
-                        <th className="pb-4 font-medium text-xs text-center">Cat.</th>
-                        <th className="pb-4 font-medium text-xs text-center">P.</th>
-                        <th className="pb-4 font-medium text-xs text-center">Birilli</th>
-                        <th className="pb-4 font-medium text-xs text-center">Media</th>
+                        <th className="pb-4 pl-4 font-medium text-xs md:text-base">Pos.</th>
+                        <th className="pb-4 font-medium text-xs md:text-base">Atleta</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Cat.</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">P.</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Birilli</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Media</th>
                         {isAdmin && <th className="pb-4 pr-4 text-right"></th>}
                       </tr>
                     </thead>
@@ -386,14 +386,14 @@ const App = () => {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="text-gray-400 border-b border-white/5">
-                        <th className="pb-4 pl-4 font-medium text-xs">Atleta</th>
-                        <th className="pb-4 font-medium text-xs text-center">Tessera</th>
-                        <th className="pb-4 font-medium text-xs text-center">Cat.</th>
-                        <th className="pb-4 font-medium text-xs text-center">Tornei</th>
-                        <th className="pb-4 font-medium text-xs text-center">Birilli</th>
-                        <th className="pb-4 font-medium text-xs text-center">Media</th>
-                        <th className="pb-4 font-medium text-xs text-center">Senior</th>
-                        <th className="pb-4 font-medium text-xs text-center">Aziendale</th>
+                        <th className="pb-4 pl-4 font-medium text-xs md:text-base">Atleta</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Tessera</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Cat.</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Tornei</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Birilli</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Media</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Senior</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Aziendale</th>
                         {isAdmin && <th className="pb-4 pr-4 text-right"></th>}
                       </tr>
                     </thead>
@@ -454,11 +454,11 @@ const App = () => {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="text-gray-400 border-b border-white/5">
-                        <th className="pb-4 pl-4 font-medium text-xs">Torneo</th>
-                        <th className="pb-4 font-medium text-xs text-center">Data</th>
-                        <th className="pb-4 font-medium text-xs text-center">Sede</th>
-                        <th className="pb-4 font-medium text-xs text-center">Partite</th>
-                        <th className="pb-4 font-medium text-xs text-center text-blue-400">PDF</th>
+                        <th className="pb-4 pl-4 font-medium text-xs md:text-base">Torneo</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Data</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Sede</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center">Partite</th>
+                        <th className="pb-4 font-medium text-xs md:text-base text-center text-blue-400">PDF</th>
                         {isAdmin && <th className="pb-4 pr-4"></th>}
                       </tr>
                     </thead>
@@ -521,9 +521,8 @@ const App = () => {
                     <table className="w-full text-left">
                       <thead>
                         <tr className="text-gray-400 border-b border-white/5">
-                          <th className="pb-4 pl-4 font-medium text-xs">Atleta</th>
-                          <th className="pb-4 font-medium text-xs text-center">Tessera</th>
-                          <th className="pb-4 font-medium text-xs text-right pr-4">Saldo</th>
+                          <th className="pb-4 pl-4 font-medium text-xs md:text-base">Atleta</th>
+                          <th className="pb-4 font-medium text-xs md:text-base text-right pr-4">Saldo</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
@@ -535,7 +534,6 @@ const App = () => {
                           return (
                             <tr key={p.id} onClick={() => setSelectedAccountingPlayer(p)} className="group hover:bg-white/5 transition-colors cursor-pointer">
                               <td className="py-4 pl-4 font-bold">{p.nome} {p.cognome}</td>
-                              <td className="py-4 text-center font-mono text-gray-500">{p.numero_tessera}</td>
                               <td className={`py-4 pr-4 text-right font-black font-mono ${balance < 10 ? 'text-red-500' : 'text-green-500'}`}>
                                 € {balance.toFixed(2)}
                               </td>

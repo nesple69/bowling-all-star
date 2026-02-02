@@ -59,11 +59,11 @@ const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteR
                     <table className="w-full text-left">
                         <thead>
                             <tr className="text-gray-400 border-b border-white/5">
-                                <th className="pb-4 pl-4 font-medium uppercase text-xs">Data</th>
-                                <th className="pb-4 font-medium uppercase text-xs">Torneo / Sede</th>
-                                <th className="pb-4 font-medium uppercase text-xs text-center">Partite</th>
-                                <th className="pb-4 font-medium uppercase text-xs text-center">Birilli</th>
-                                <th className="pb-4 font-medium uppercase text-xs text-center">Media</th>
+                                <th className="pb-4 pl-4 font-medium uppercase text-xs md:text-base">Data</th>
+                                <th className="pb-4 font-medium uppercase text-xs md:text-base">Torneo / Sede</th>
+                                <th className="pb-4 font-medium uppercase text-xs md:text-base text-center">Partite</th>
+                                <th className="pb-4 font-medium uppercase text-xs md:text-base text-center">Birilli</th>
+                                <th className="pb-4 font-medium uppercase text-xs md:text-base text-center">Media</th>
                                 {isAdmin && <th className="pb-4 pr-4"></th>}
                             </tr>
                         </thead>
