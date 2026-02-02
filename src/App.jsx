@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 const App = () => {
+  useEffect(() => { console.log('All Star Project - UI v1.6 (Absolute Top)'); }, []);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [players, setPlayers] = useState([]);
