@@ -171,7 +171,7 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background text-gray-200">
+    <div className="min-h-screen bg-background text-gray-200 md:flex">
       {/* Sidebar Navigation */}
       <nav className="fixed bottom-0 left-0 w-full md:relative md:w-64 md:h-screen p-4 bg-background z-50">
         <div className="h-full rounded-3xl neumorphic-out flex flex-col md:p-6 p-2 justify-around md:justify-start gap-6">
@@ -210,7 +210,7 @@ const App = () => {
         </div>
       </nav>
 
-      <main className="pb-24 md:pb-0 md:pl-8 p-4 md:pt-6 md:px-8 w-full">
+      <main className="pb-24 md:pb-0 md:pl-8 p-4 md:pt-4 md:px-8 w-full">
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
