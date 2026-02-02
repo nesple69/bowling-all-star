@@ -210,9 +210,9 @@ const App = () => {
         </div>
       </nav>
 
-      <main className="pb-24 md:pb-0 md:pl-8 p-4 md:pt-6 md:px-8 w-full">
-        <header className="flex justify-between items-center mb-2">
-          <h2 className="text-2xl font-bold capitalize text-gray-400">{activeTab}</h2>
+      <main className="pb-24 md:pb-0 md:pl-8 p-4 md:pt-0 md:px-8 w-full">
+        <header className="flex justify-between items-center pt-4 mb-2">
+          <h2 className="text-xl font-bold capitalize text-gray-500 tracking-tight">{activeTab}</h2>
         </header>
 
         {loading ? (
