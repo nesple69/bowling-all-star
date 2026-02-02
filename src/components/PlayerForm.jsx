@@ -18,6 +18,9 @@ const PlayerForm = ({ player, onSave, onCancel }) => {
         settore_seniores: false,
         fascia_seniores: '',
         numero_tessera: '',
+        data_nascita: '',
+        email: '',
+        telefono: '',
         data_scadenza_medica: '',
         certificato_url: ''
     });
@@ -105,6 +108,43 @@ const PlayerForm = ({ player, onSave, onCancel }) => {
                         onChange={(e) => setFormData({ ...formData, numero_tessera: e.target.value })}
                         className="w-full pl-10 pr-4 py-3 rounded-xl neumorphic-in focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                         placeholder="Esempio: 01/2345"
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Data di Nascita */}
+                <div className="space-y-2">
+                    <label className="text-sm font-medium ml-4 text-gray-400">Data di Nascita</label>
+                    <input
+                        type="date"
+                        value={formData.data_nascita}
+                        onChange={(e) => setFormData({ ...formData, data_nascita: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl neumorphic-in focus:outline-none invert brightness-90 grayscale"
+                    />
+                </div>
+
+                {/* Email */}
+                <div className="space-y-2">
+                    <label className="text-sm font-medium ml-4 text-gray-400">Email</label>
+                    <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl neumorphic-in focus:outline-none"
+                        placeholder="esempio@email.it"
+                    />
+                </div>
+
+                {/* Telefono */}
+                <div className="space-y-2">
+                    <label className="text-sm font-medium ml-4 text-gray-400">Telefono</label>
+                    <input
+                        type="tel"
+                        value={formData.telefono}
+                        onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl neumorphic-in focus:outline-none"
+                        placeholder="333 1234567"
                     />
                 </div>
             </div>
