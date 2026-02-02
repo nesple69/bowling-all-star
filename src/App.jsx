@@ -558,17 +558,16 @@ const App = () => {
       `}</style>
 
       {/* GLOBAL ADD BUTTON (FIXED BOTTOM RIGHT) */}
-      {isAdmin && (activeTab === 'players' || activeTab === 'tournaments' || activeTab === 'ranking' || activeTab === 'accounting') && (
+      {isAdmin && (activeTab === 'players' || activeTab === 'tournaments' || activeTab === 'ranking') && (
         <button
           onClick={() => {
             if (activeTab === 'players') { setEditingPlayer(null); setShowPlayerForm(true); }
             if (activeTab === 'tournaments') { setEditingTournament(null); setShowTournamentForm(true); }
             if (activeTab === 'ranking') { setEditingResult(null); setShowResultForm(true); }
-            if (activeTab === 'accounting') { setEditingTransaction(null); setShowTransactionForm(true); }
           }}
           className="fixed bottom-8 right-8 z-[60] p-4 rounded-xl neumorphic-btn text-blue-400 font-bold flex items-center gap-2 shadow-2xl scale-90 md:scale-100"
         >
-          <Plus className="w-5 h-5" /> <span>{activeTab === 'ranking' ? 'Punteggio' : (activeTab === 'accounting' ? 'Operazione' : 'Aggiungi')}</span>
+          <Plus className="w-5 h-5" /> <span>{activeTab === 'ranking' ? 'Punteggio' : 'Aggiungi'}</span>
         </button>
       )}
 
