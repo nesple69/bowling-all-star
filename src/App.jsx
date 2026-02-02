@@ -7,7 +7,7 @@ import ResultForm from './components/ResultForm';
 import {
   LayoutDashboard, Users, Trophy, Wallet, LogIn, LogOut,
   AlertTriangle, Plus, Search, TrendingUp, Target, MapPin,
-  ArrowUpCircle, ArrowDownCircle, FileText
+  ArrowUpCircle, ArrowDownCircle, FileText, Pencil, Trash2, X, Calendar
 } from 'lucide-react';
 
 const App = () => {
@@ -150,6 +150,28 @@ const App = () => {
     else { fetchData(); setShowResultForm(false); }
   };
 
+  const handleDeletePlayer = async (id) => {
+    if (!window.confirm('Eliminare definitivamente questo giocatore?')) return;
+    const { error } = await supabase.from('players').delete().eq('id', id);
+    if (error) alert(error.message);
+    else fetchData();
+  };
+
+  const handleDeleteTournament = async (id) => {
+    if (!window.confirm('Eliminare definitivamente questo torneo?')) return;
+    const { error } = await supabase.from('tournaments').delete().eq('id', id);
+    if (error) alert(error.message);
+    else fetchData();
+  };
+
+  const handleDeleteResult = async (id, e) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm('Eliminare questo punteggio?')) return;
+    const { error } = await supabase.from('results').delete().eq('id', id);
+    if (error) alert(error.message);
+    else fetchData();
+  };
+
   const handleLogin = async () => {
     const email = prompt('Inserisci Email Admin:');
     if (!email) return;
@@ -168,6 +190,8 @@ const App = () => {
           results={results}
           tournaments={tournaments}
           onBack={() => setSelectedPlayerForDetail(null)}
+          isAdmin={isAdmin}
+          onDeleteResult={handleDeleteResult}
         />
       </div>
     );
@@ -209,7 +233,7 @@ const App = () => {
         </div>
       </nav>
 
-      <main className="flex-1 pb-24 md:pb-0 p-0 md:pt-0 md:px-6 min-w-0 tracking-tight">
+      <main className="flex-1 pb-32 md:pb-32 p-0 md:pt-0 md:px-6 min-w-0 tracking-tight">
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -267,7 +291,8 @@ const App = () => {
                         <th className="pb-4 font-medium text-xs text-center">Cat.</th>
                         <th className="pb-4 font-medium text-xs text-center">P.</th>
                         <th className="pb-4 font-medium text-xs text-center">Birilli</th>
-                        <th className="pb-4 font-medium text-xs text-right pr-4">Media</th>
+                        <th className="pb-4 font-medium text-xs text-center">Media</th>
+                        {isAdmin && <th className="pb-4 pr-4 text-right"></th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -278,12 +303,32 @@ const App = () => {
                           <td className="py-4 text-center text-xs font-bold text-blue-400">{p.categoria}</td>
                           <td className="py-4 text-center font-mono">{p.totalePartite}</td>
                           <td className="py-4 text-center font-mono">{p.totaleBirilli}</td>
-                          <td className="py-4 text-right pr-4 font-black text-blue-400">{p.media}</td>
+                          <td className="py-4 text-center font-black text-blue-400">{p.media}</td>
+                          {isAdmin && (
+                            <td className="py-4 pr-4">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setEditingPlayer(p); setShowPlayerForm(true); }}
+                                  className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
+                                  title="Modifica"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeletePlayer(p.id); }}
+                                  className="p-2 rounded-lg neumorphic-btn text-red-400 hover:scale-110 transition-transform"
+                                  title="Elimina"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))}
                       {playersWithStats.length === 0 && (
                         <tr>
-                          <td colSpan="6" className="py-12 text-center text-gray-500 italic">
+                          <td colSpan={isAdmin ? 7 : 6} className="py-12 text-center text-gray-500 italic">
                             Nessun atleta trovato nel database.
                           </td>
                         </tr>
@@ -328,13 +373,23 @@ const App = () => {
                             {p.settore_aziendale ? <span className="text-[10px] bg-purple-500/10 text-purple-500 px-2 py-1 rounded-lg border border-purple-500/20">SI</span> : '-'}
                           </td>
                           {isAdmin && (
-                            <td className="py-4 pr-4 text-right">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setEditingPlayer(p); setShowPlayerForm(true); }}
-                                className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
-                              >
-                                <Plus className="w-4 h-4 rotate-45" />
-                              </button>
+                            <td className="py-4 pr-4">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setEditingPlayer(p); setShowPlayerForm(true); }}
+                                  className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
+                                  title="Modifica"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeletePlayer(p.id); }}
+                                  className="p-2 rounded-lg neumorphic-btn text-red-400 hover:scale-110 transition-transform"
+                                  title="Elimina"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </td>
                           )}
                         </tr>
@@ -355,30 +410,57 @@ const App = () => {
             {/* Tournaments Area */}
             {activeTab === 'tournaments' && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {tournaments.sort((a, b) => new Date(b.data_inizio) - new Date(a.data_inizio)).map(t => (
-                    <div key={t.id} className="p-6 rounded-3xl neumorphic-out relative group">
-                      <div className="flex justify-between items-start mb-4">
-                        <Trophy className="w-8 h-8 text-yellow-500" />
-                        {isAdmin && (
-                          <button onClick={() => { setEditingTournament(t); setShowTournamentForm(true); }} className="p-2 rounded-lg neumorphic-btn">
-                            <Plus className="w-4 h-4 rotate-45" />
-                          </button>
-                        )}
-                      </div>
-                      <h3 className="text-lg font-bold mb-2">{t.nome}</h3>
-                      <div className="space-y-2 text-sm text-gray-400">
-                        <p className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {new Date(t.data_inizio).toLocaleDateString()} - {new Date(t.data_fine).toLocaleDateString()}</p>
-                        <p className="flex items-center gap-2"><MapPin className="w-4 h-4" /> {t.sede}</p>
-                        <p className="flex items-center gap-2"><Target className="w-4 h-4" /> {t.numero_partite} Partite</p>
-                      </div>
-                      {t.locandina_url && (
-                        <a href={t.locandina_url} target="_blank" rel="noreferrer" className="mt-4 block py-2 text-center rounded-xl bg-blue-500/10 text-blue-400 text-xs font-bold border border-blue-400/20 hover:bg-blue-500/20 transition-all">
-                          SFOGLIA LOCANDINA PDF
-                        </a>
+                <div className="p-4 md:p-6 rounded-3xl neumorphic-out overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-gray-400 border-b border-white/5">
+                        <th className="pb-4 pl-4 font-medium text-xs">Torneo</th>
+                        <th className="pb-4 font-medium text-xs text-center">Data</th>
+                        <th className="pb-4 font-medium text-xs text-center">Sede</th>
+                        <th className="pb-4 font-medium text-xs text-center">Partite</th>
+                        <th className="pb-4 font-medium text-xs text-center text-blue-400">PDF</th>
+                        {isAdmin && <th className="pb-4 pr-4"></th>}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {tournaments.sort((a, b) => new Date(b.data_inizio) - new Date(a.data_inizio)).map(t => (
+                        <tr key={t.id} className="group hover:bg-white/5 transition-colors">
+                          <td className="py-4 pl-4 font-bold">{t.nome}</td>
+                          <td className="py-4 text-center font-mono text-xs">
+                            {new Date(t.data_inizio).toLocaleDateString()}
+                          </td>
+                          <td className="py-4 text-center text-sm text-gray-400">{t.sede}</td>
+                          <td className="py-4 text-center font-mono">{t.numero_partite}</td>
+                          <td className="py-4 text-center">
+                            {t.locandina_url ? (
+                              <a href={t.locandina_url} target="_blank" rel="noreferrer" className="p-2 inline-block rounded-lg neumorphic-btn text-blue-400 scale-75">
+                                <FileText className="w-4 h-4" />
+                              </a>
+                            ) : '-'}
+                          </td>
+                          {isAdmin && (
+                            <td className="py-4 pr-4">
+                              <div className="flex justify-end gap-2">
+                                <button onClick={() => { setEditingTournament(t); setShowTournamentForm(true); }} className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform">
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => handleDeleteTournament(t.id)} className="p-2 rounded-lg neumorphic-btn text-red-400 hover:scale-110 transition-transform">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                      {tournaments.length === 0 && (
+                        <tr>
+                          <td colSpan={isAdmin ? 6 : 5} className="py-12 text-center text-gray-500 italic">
+                            Nessun torneo registrato.
+                          </td>
+                        </tr>
                       )}
-                    </div>
-                  ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
@@ -425,7 +507,7 @@ const App = () => {
         .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
       `}</style>
 
-      {/* GLOBAL ADD BUTTON (FIXED TOP RIGHT) */}
+      {/* GLOBAL ADD BUTTON (FIXED BOTTOM RIGHT) */}
       {isAdmin && (activeTab === 'players' || activeTab === 'tournaments' || activeTab === 'ranking') && (
         <button
           onClick={() => {
@@ -433,7 +515,7 @@ const App = () => {
             if (activeTab === 'tournaments') { setEditingTournament(null); setShowTournamentForm(true); }
             if (activeTab === 'ranking') setShowResultForm(true);
           }}
-          className="fixed top-4 right-4 md:top-8 md:right-8 z-[60] p-4 rounded-xl neumorphic-btn text-blue-400 font-bold flex items-center gap-2 shadow-2xl scale-90 md:scale-100"
+          className="fixed bottom-8 right-8 z-[60] p-4 rounded-xl neumorphic-btn text-blue-400 font-bold flex items-center gap-2 shadow-2xl scale-90 md:scale-100"
         >
           <Plus className="w-5 h-5" /> <span>{activeTab === 'ranking' ? 'Punteggio' : 'Aggiungi'}</span>
         </button>

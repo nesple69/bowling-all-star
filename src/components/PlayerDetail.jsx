@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, Trophy, Hash, Target, TrendingUp, Calendar, MapPin, FileText } from 'lucide-react';
+import { X, Trophy, Hash, Target, TrendingUp, Calendar, MapPin, FileText, Pencil, Trash2 } from 'lucide-react';
 
-const PlayerDetail = ({ player, results, tournaments, onBack }) => {
+const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteResult }) => {
     // Filter results for this player
     const playerResults = results.filter(r => r.id_giocatore === player.id);
 
@@ -63,7 +63,8 @@ const PlayerDetail = ({ player, results, tournaments, onBack }) => {
                                 <th className="pb-4 font-medium uppercase text-xs">Torneo / Sede</th>
                                 <th className="pb-4 font-medium uppercase text-xs text-center">Partite</th>
                                 <th className="pb-4 font-medium uppercase text-xs text-center">Birilli</th>
-                                <th className="pb-4 font-medium uppercase text-xs text-right pr-4">Media</th>
+                                <th className="pb-4 font-medium uppercase text-xs text-center">Media</th>
+                                {isAdmin && <th className="pb-4 pr-4"></th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -85,12 +86,25 @@ const PlayerDetail = ({ player, results, tournaments, onBack }) => {
                                     </td>
                                     <td className="py-4 text-center font-mono">{h.partite}</td>
                                     <td className="py-4 text-center font-mono">{h.birilli}</td>
-                                    <td className="py-4 text-right pr-4 font-black text-blue-400">{h.media}</td>
+                                    <td className="py-4 text-center font-black text-blue-400">{h.media}</td>
+                                    {isAdmin && (
+                                        <td className="py-4 pr-4">
+                                            <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => onDeleteResult(h.id)}
+                                                    className="p-2 rounded-lg neumorphic-btn text-red-400 hover:scale-110 transition-transform"
+                                                    title="Elimina Punteggio"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                             {tournamentHistory.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="py-8 text-center text-gray-500 italic">
+                                    <td colSpan={isAdmin ? 6 : 5} className="py-8 text-center text-gray-500 italic">
                                         Nessun torneo registrato per questo atleta.
                                     </td>
                                 </tr>
