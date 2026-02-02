@@ -114,10 +114,12 @@ const App = () => {
 
   // Handlers
   const handleSavePlayer = async (formData) => {
-    // Clean dates to avoid "invalid input syntax for type date: \"\""
+    // Rimuoviamo i campi calcolati (media, totaleBirilli, etc.) che non esistono nel database
+    const { media, totaleBirilli, totalePartite, totaleTornei, ...dbData } = formData;
+
     const cleanedData = {
-      ...formData,
-      data_scadenza_medica: formData.data_scadenza_medica === '' ? null : formData.data_scadenza_medica
+      ...dbData,
+      data_scadenza_medica: dbData.data_scadenza_medica === '' ? null : dbData.data_scadenza_medica
     };
 
     const { error } = editingPlayer
@@ -207,8 +209,7 @@ const App = () => {
         </div>
       </nav>
 
-      <main className="flex-1 pb-24 md:pb-0 p-0 md:pt-0 md:px-6 min-w-0">
-        <div className="text-[10px] text-red-500 font-mono pl-4 opacity-50">v1.7-TOP-ALIGN</div>
+      <main className="flex-1 pb-24 md:pb-0 p-0 md:pt-0 md:px-6 min-w-0 tracking-tight">
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
