@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Trophy, Hash, Target, TrendingUp, Calendar, MapPin, FileText, Pencil } from 'lucide-react';
+import { X, Trophy, Hash, Target, TrendingUp, Calendar, MapPin, FileText, Pencil, ArrowLeft } from 'lucide-react';
 
 const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteResult, onEditResult }) => {
     // Filter results for this player
@@ -26,7 +26,7 @@ const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteR
         <div className="space-y-8 animate-fadeIn">
             <div className="flex justify-between items-center">
                 <button onClick={onBack} className="flex items-center gap-2 p-3 rounded-xl neumorphic-btn text-gray-400">
-                    <X className="w-5 h-5" /> Indietro
+                    <ArrowLeft className="w-5 h-5" /> Indietro
                 </button>
                 <h2 className="text-2xl font-bold text-blue-400">{player.nome} {player.cognome}</h2>
             </div>

@@ -205,7 +205,7 @@ const App = () => {
 
   if (selectedPlayerForDetail) {
     return (
-      <div className="min-h-screen bg-background text-gray-200 p-8">
+      <div className="min-h-screen bg-background text-gray-200 p-4 pt-10 md:p-10">
         <PlayerDetail
           player={selectedPlayerForDetail}
           results={results}
@@ -255,7 +255,7 @@ const App = () => {
         </div>
       </nav>
 
-      <main className="flex-1 pb-32 md:pb-32 p-0 md:pt-0 md:px-6 min-w-0 tracking-tight">
+      <main className="flex-1 pb-32 md:pb-32 p-0 md:pt-10 md:px-6 min-w-0 tracking-tight">
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
