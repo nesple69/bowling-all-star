@@ -40,6 +40,11 @@ const App = () => {
 
   // Fetch Data
   const fetchData = async () => {
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      alert('ATTENZIONE: Le chiavi di Supabase non sono configurate su Vercel! Controlla le Environment Variables.');
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const { data: p, error: ep } = await supabase.from('players').select('*');
