@@ -270,6 +270,7 @@ const App = () => {
             isAdmin={isAdmin}
             onDeleteResult={handleDeleteResult}
             onEditResult={(r) => { setEditingResult(r); setShowResultForm(true); }}
+            onEditPlayer={(p) => { setEditingPlayer(p); setShowPlayerForm(true); }}
           />
         ) : loading ? (
           <div className="flex justify-center items-center h-64">

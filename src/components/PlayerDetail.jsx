@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Trophy, Hash, Target, TrendingUp, Calendar, MapPin, FileText, Pencil, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 
-const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteResult, onEditResult }) => {
+const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteResult, onEditResult, onEditPlayer }) => {
     // Filter results for this player
     const playerResults = results.filter(r => r.id_giocatore === player.id);
 
@@ -37,7 +37,18 @@ const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteR
                 <button onClick={onBack} className="flex items-center gap-2 p-3 rounded-xl neumorphic-btn text-gray-400">
                     <ArrowLeft className="w-5 h-5" /> Indietro
                 </button>
-                <h2 className="text-2xl font-bold text-blue-400">{player.nome} {player.cognome}</h2>
+                <div className="flex items-center gap-4">
+                    <h2 className="text-2xl font-bold text-blue-400">{player.nome} {player.cognome}</h2>
+                    {isAdmin && (
+                        <button
+                            onClick={() => onEditPlayer(player)}
+                            className="p-3 rounded-xl neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
+                            title="Modifica Anagrafica"
+                        >
+                            <Pencil className="w-5 h-5" />
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Stats Summary Area */}
