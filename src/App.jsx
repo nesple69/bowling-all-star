@@ -13,7 +13,9 @@ import {
 } from 'lucide-react';
 
 const App = () => {
-  useEffect(() => { console.log('All Star Project - UI v1.6 (Absolute Top)'); }, []);
+  useEffect(() => {
+    console.log('All Star Project - UI v1.7 (Dashboard Updated)');
+  }, []);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [players, setPlayers] = useState([]);
@@ -34,6 +36,7 @@ const App = () => {
   const [selectedPlayerForDetail, setSelectedPlayerForDetail] = useState(null);
   const [selectedAccountingPlayer, setSelectedAccountingPlayer] = useState(null);
   const [selectedTournament, setSelectedTournament] = useState(null);
+  const [selectedDashboardCategory, setSelectedDashboardCategory] = useState(null);
 
   // Auth State
   useEffect(() => {
@@ -123,6 +126,35 @@ const App = () => {
       return b.totaleBirilli - a.totaleBirilli;
     });
   }, [players, results]);
+
+  // Dashboard Stats - Last 2 Tournaments
+  const recentTournamentsStats = useMemo(() => {
+    const sortedT = [...tournaments].sort((a, b) => new Date(b.data_inizio) - new Date(a.data_inizio));
+    const lastTwo = sortedT.slice(0, 2);
+
+    return lastTwo.map(t => {
+      const tResults = results
+        .filter(r => r.id_torneo === t.id)
+        .map(r => {
+          const player = players.find(p => p.id === r.id_giocatore);
+          return { ...r, player };
+        })
+        .filter(r => r.player)
+        .sort((a, b) => (a.posizione || 999) - (b.posizione || 999))
+        .slice(0, 3); // Top 3
+
+      return { ...t, topResults: tResults };
+    });
+  }, [tournaments, results, players]);
+
+  // Dashboard Stats - Categories
+  const categoryStats = useMemo(() => {
+    const categories = ['M/A', 'M/B', 'M/C', 'M/D', 'F/A', 'F/B', 'F/C', 'F/D', 'M/ES', 'F/ES', 'M/DS', 'F/DS'];
+    return categories.map(cat => ({
+      name: cat,
+      count: players.filter(p => p.categoria === cat).length
+    })).filter(c => c.count > 0);
+  }, [players]);
 
   // Handlers
   const handleSavePlayer = async (formData) => {
@@ -337,9 +369,76 @@ const App = () => {
                     </div>
                   </div>
                 )}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {recentTournamentsStats.map(t => (
+                    <div key={t.id} className="p-6 rounded-3xl neumorphic-out">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-bold text-blue-400">{t.nome}</h3>
+                        <span className="text-xs text-gray-400">{new Date(t.data_inizio).toLocaleDateString()}</span>
+                      </div>
+                      <div className="space-y-3">
+                        {t.topResults.map((r, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 rounded-xl neumorphic-in">
+                            <div className="flex items-center gap-3">
+                              <span className={`text-lg font-black ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : 'text-orange-600'}`}>#{idx + 1}</span>
+                              <span className="font-bold">{r.player.nome} {r.player.cognome}</span>
+                            </div>
+                            <span className="font-black text-blue-400">{r.birilli} <span className="text-[10px] text-gray-500 font-normal">pts</span></span>
+                          </div>
+                        ))}
+                        {t.topResults.length === 0 && (
+                          <p className="text-center text-gray-500 italic text-sm py-4">Nessun risultato registrato</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {categoryStats.map(cat => (
+                      <button
+                        key={cat.name}
+                        onClick={() => setSelectedDashboardCategory(selectedDashboardCategory === cat.name ? null : cat.name)}
+                        className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${selectedDashboardCategory === cat.name ? 'neumorphic-in text-blue-400 border border-blue-400/20' : 'neumorphic-btn'}`}
+                      >
+                        <span className="font-bold text-sm">{cat.name}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${selectedDashboardCategory === cat.name ? 'bg-blue-400 text-background' : 'bg-gray-700 text-gray-400'}`}>
+                          {cat.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {selectedDashboardCategory && (
+                    <div className="p-6 rounded-3xl neumorphic-out animate-fadeIn">
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-bold text-blue-400">Atleti Categoria {selectedDashboardCategory}</h3>
+                        <button onClick={() => setSelectedDashboardCategory(null)} className="p-2 rounded-lg neumorphic-btn text-gray-400">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {playersWithStats
+                          .filter(p => p.categoria === selectedDashboardCategory)
+                          .map(p => (
+                            <div
+                              key={p.id}
+                              onClick={() => setSelectedPlayerForDetail(p)}
+                              className="p-4 rounded-xl neumorphic-in flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
+                            >
+                              <span className="font-bold">{p.nome} {p.cognome}</span>
+                              <span className="text-blue-400 font-black">{p.media}</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-center">
                   <div className="p-6 rounded-3xl neumorphic-out text-center w-full max-w-sm">
-                    <p className="text-gray-400 text-[10px] uppercase tracking-widest mb-1">Atleti</p>
+                    <p className="text-gray-400 text-[10px] uppercase tracking-widest mb-1">Totale Atleti</p>
                     <p className="text-4xl font-black text-blue-400">{players.length}</p>
                   </div>
                 </div>

@@ -9,19 +9,27 @@
 }
 
 @layer components {
+
+  /* Using plain CSS for these to avoid @apply conflicts in production builds */
   .neumorphic-out {
-    @apply shadow-neumorphicout bg-background;
+    background-color: #121212;
+    box-shadow: 8px 8px 16px #0b0b0b, -8px -8px 16px #191919;
   }
 
   .neumorphic-in {
-    @apply shadow-neumorphicin bg-background;
+    background-color: #121212;
+    box-shadow: inset 8px 8px 16px #0b0b0b, inset -8px -8px 16px #191919;
   }
 
   .neumorphic-btn {
-    @apply neumorphic-out transition-all duration-300 active:scale-95;
+    @apply transition-all duration-300 active:scale-95;
+    background-color: #121212;
+    box-shadow: 8px 8px 16px #0b0b0b, -8px -8px 16px #191919;
+    border-radius: 0.75rem;
+    /* rounded-xl */
   }
 
   .neumorphic-btn:hover {
-    @apply shadow-neumorphicin;
+    box-shadow: inset 8px 8px 16px #0b0b0b, inset -8px -8px 16px #191919;
   }
 }
