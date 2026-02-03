@@ -406,7 +406,7 @@ const App = () => {
                     </div>
                   </div>
                 )}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                   {recentTournamentsStats.map(t => (
                     <div key={t.id} className="p-7 rounded-[2.5rem] glass-card relative overflow-hidden group">
                       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/40 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
@@ -446,24 +446,52 @@ const App = () => {
                       </div>
                     </div>
                   ))}
+
+                  {/* Category Summary Card */}
+                  <div className="p-7 rounded-[2.5rem] glass-card relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500/0 via-purple-500/40 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                    <div className="flex justify-between items-center mb-6">
+                      <div>
+                        <h3 className="text-xl font-black text-white tracking-tight group-hover:text-purple-400 transition-colors">Riepilogo Squadra</h3>
+                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1">Giocatori Iscritti</p>
+                      </div>
+                      <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] text-purple-400 font-bold uppercase tracking-tighter">
+                        {players.length} Atleti
+                      </div>
+                    </div>
+                    <div className="space-y-2.5 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
+                      {categoryStats.map(cat => (
+                        <div
+                          key={cat.name}
+                          onClick={() => setSelectedDashboardCategory(selectedDashboardCategory === cat.name ? null : cat.name)}
+                          className={`flex items-center justify-between p-3.5 rounded-2xl transition-all duration-300 cursor-pointer group/row border ${selectedDashboardCategory === cat.name
+                              ? 'bg-purple-500/20 border-purple-500/40'
+                              : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
+                            }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-inner transition-transform group-hover/row:scale-110 ${selectedDashboardCategory === cat.name ? 'bg-purple-500 text-white' : 'bg-white/5 text-gray-400'
+                              }`}>
+                              {cat.name.split('/')[0]}
+                            </div>
+                            <span className={`font-bold tracking-tight transition-colors ${selectedDashboardCategory === cat.name ? 'text-purple-300' : 'text-gray-200'}`}>
+                              Categoria {cat.name}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-lg font-black leading-none transition-colors ${selectedDashboardCategory === cat.name ? 'text-white' : 'text-purple-400'}`}>
+                              {cat.count}
+                            </span>
+                            <span className="block text-[9px] text-gray-500 font-bold uppercase tracking-widest">elementi</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-6">
-                  <h3 className="text-center text-xs font-black tracking-[0.2em] uppercase text-gradient-premium opacity-80 mb-2">Giocatori iscritti</h3>
-                  <div className="flex flex-wrap gap-2.5 justify-center">
-                    {categoryStats.map(cat => (
-                      <button
-                        key={cat.name}
-                        onClick={() => setSelectedDashboardCategory(selectedDashboardCategory === cat.name ? null : cat.name)}
-                        className={`px-5 py-2.5 rounded-2xl transition-all duration-500 flex items-center gap-2.5 ${selectedDashboardCategory === cat.name ? 'glass-btn bg-blue-500/20 text-blue-400 border-blue-400/40 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'glass-btn text-gray-400 hover:text-gray-200'}`}
-                      >
-                        <span className="font-bold text-xs tracking-wide">{cat.name}</span>
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${selectedDashboardCategory === cat.name ? 'bg-blue-400 text-slate-900' : 'bg-white/10 text-gray-500'}`}>
-                          {cat.count}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                  {/* The category buttons row has been replaced by the card above */}
 
                   {selectedDashboardCategory && (
                     <div className="p-8 rounded-[2.5rem] glass-card animate-fadeIn shadow-2xl relative overflow-hidden">
