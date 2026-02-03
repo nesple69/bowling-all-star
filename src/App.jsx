@@ -37,6 +37,10 @@ const App = () => {
   const [selectedAccountingPlayer, setSelectedAccountingPlayer] = useState(null);
   const [selectedTournament, setSelectedTournament] = useState(null);
   const [selectedDashboardCategory, setSelectedDashboardCategory] = useState(null);
+  const [searchPlayers, setSearchPlayers] = useState('');
+  const [searchAccounting, setSearchAccounting] = useState('');
+  const [searchTournaments, setSearchTournaments] = useState('');
+  const [searchTournamentResults, setSearchTournamentResults] = useState('');
 
   // Auth State
   useEffect(() => {
@@ -508,6 +512,16 @@ const App = () => {
             {/* Players Area */}
             {activeTab === 'players' && (
               <div className="space-y-6 pt-0">
+                <div className="relative max-w-md mx-auto md:mx-0">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Cerca atleta..."
+                    value={searchPlayers}
+                    onChange={(e) => setSearchPlayers(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl neumorphic-in focus:outline-none"
+                  />
+                </div>
                 <div className="p-4 md:p-6 rounded-3xl neumorphic-out overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
@@ -524,49 +538,57 @@ const App = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {playersWithStats.map((p) => (
-                        <tr key={p.id} className="group hover:bg-white/5 transition-colors cursor-pointer" onClick={() => setSelectedPlayerForDetail(p)}>
-                          <td className="py-4 pl-4 font-bold">{p.nome} {p.cognome}</td>
-                          <td className="py-4 text-center font-mono text-sm text-gray-400">{p.numero_tessera || '-'}</td>
-                          <td className="py-4 text-center text-xs font-bold text-blue-400">{p.categoria}</td>
-                          <td className="py-4 text-center font-mono">{p.totaleTornei}</td>
-                          <td className="py-4 text-center font-mono">{p.totaleBirilli}</td>
-                          <td className="py-4 text-center font-black text-blue-400">{p.media}</td>
-                          <td className="py-4 text-center">
-                            {p.settore_seniores ? <span className="text-[10px] bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded-lg border border-yellow-500/20">SI</span> : '-'}
-                          </td>
-                          <td className="py-4 text-center">
-                            {p.settore_aziendale ? <span className="text-[10px] bg-purple-500/10 text-purple-500 px-2 py-1 rounded-lg border border-purple-500/20">SI</span> : '-'}
-                          </td>
-                          {isAdmin && (
-                            <td className="py-4 pr-4">
-                              <div className="flex justify-end gap-2">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setEditingPlayer(p); setShowPlayerForm(true); }}
-                                  className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
-                                  title="Modifica"
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleDeletePlayer(p.id); }}
-                                  className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"
-                                  title="Elimina"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
+                      {playersWithStats
+                        .filter(p => {
+                          const search = searchPlayers.toLowerCase();
+                          return p.nome.toLowerCase().includes(search) || p.cognome.toLowerCase().includes(search);
+                        })
+                        .map((p) => (
+                          <tr key={p.id} className="group hover:bg-white/5 transition-colors cursor-pointer" onClick={() => setSelectedPlayerForDetail(p)}>
+                            <td className="py-4 pl-4 font-bold">{p.nome} {p.cognome}</td>
+                            <td className="py-4 text-center font-mono text-sm text-gray-400">{p.numero_tessera || '-'}</td>
+                            <td className="py-4 text-center text-xs font-bold text-blue-400">{p.categoria}</td>
+                            <td className="py-4 text-center font-mono">{p.totaleTornei}</td>
+                            <td className="py-4 text-center font-mono">{p.totaleBirilli}</td>
+                            <td className="py-4 text-center font-black text-blue-400">{p.media}</td>
+                            <td className="py-4 text-center">
+                              {p.settore_seniores ? <span className="text-[10px] bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded-lg border border-yellow-500/20">SI</span> : '-'}
                             </td>
-                          )}
-                        </tr>
-                      ))}
-                      {playersWithStats.length === 0 && (
-                        <tr>
-                          <td colSpan={isAdmin ? 9 : 8} className="py-12 text-center text-gray-500 italic">
-                            Nessun atleta registrato.
-                          </td>
-                        </tr>
-                      )}
+                            <td className="py-4 text-center">
+                              {p.settore_aziendale ? <span className="text-[10px] bg-purple-500/10 text-purple-500 px-2 py-1 rounded-lg border border-purple-500/20">SI</span> : '-'}
+                            </td>
+                            {isAdmin && (
+                              <td className="py-4 pr-4">
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setEditingPlayer(p); setShowPlayerForm(true); }}
+                                    className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
+                                    title="Modifica"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeletePlayer(p.id); }}
+                                    className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"
+                                    title="Elimina"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      {playersWithStats.filter(p => {
+                        const search = searchPlayers.toLowerCase();
+                        return p.nome.toLowerCase().includes(search) || p.cognome.toLowerCase().includes(search);
+                      }).length === 0 && (
+                          <tr>
+                            <td colSpan={isAdmin ? 9 : 8} className="py-12 text-center text-gray-500 italic">
+                              Nessun atleta trovato {searchPlayers ? 'per questa ricerca' : 'registrato'}.
+                            </td>
+                          </tr>
+                        )}
                     </tbody>
                   </table>
                 </div>
@@ -577,12 +599,24 @@ const App = () => {
             {activeTab === 'tournaments' && (
               selectedTournament ? (
                 <div className="space-y-6">
-                  <button
-                    onClick={() => setSelectedTournament(null)}
-                    className="mb-4 px-4 py-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-105 transition-transform flex items-center gap-2"
-                  >
-                    ← Torna ai Tornei
-                  </button>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                    <button
+                      onClick={() => { setSelectedTournament(null); setSearchTournamentResults(''); }}
+                      className="px-4 py-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-105 transition-transform flex items-center gap-2 w-fit"
+                    >
+                      ← Torna ai Tornei
+                    </button>
+                    <div className="relative flex-1 max-w-xs">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Cerca atleta..."
+                        value={searchTournamentResults}
+                        onChange={(e) => setSearchTournamentResults(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 rounded-xl neumorphic-in focus:outline-none text-sm"
+                      />
+                    </div>
+                  </div>
                   <div className="p-4 md:p-6 rounded-3xl neumorphic-out">
                     <h2 className="text-2xl font-bold mb-6 text-blue-400">{selectedTournament.nome}</h2>
                     <div className="text-sm text-gray-400 mb-6 flex gap-6">
@@ -611,6 +645,10 @@ const App = () => {
                             })
                             .filter(r => r.player)
                             .sort((a, b) => (a.posizione || 999) - (b.posizione || 999))
+                            .filter(r => {
+                              const search = searchTournamentResults.toLowerCase();
+                              return r.player.nome.toLowerCase().includes(search) || r.player.cognome.toLowerCase().includes(search);
+                            })
                             .map((r) => {
                               const media = r.partite > 0 ? (r.birilli / r.partite).toFixed(2) : '0.00';
                               return (
@@ -626,13 +664,18 @@ const App = () => {
                                 </tr>
                               );
                             })}
-                          {results.filter(r => r.id_torneo === selectedTournament.id).length === 0 && (
-                            <tr>
-                              <td colSpan="6" className="py-12 text-center text-gray-500 italic">
-                                Nessun risultato registrato per questo torneo.
-                              </td>
-                            </tr>
-                          )}
+                          {results.filter(r => r.id_torneo === selectedTournament.id).filter(r => {
+                            const p = players.find(player => player.id === r.id_giocatore);
+                            if (!p) return false;
+                            const search = searchTournamentResults.toLowerCase();
+                            return p.nome.toLowerCase().includes(search) || p.cognome.toLowerCase().includes(search);
+                          }).length === 0 && (
+                              <tr>
+                                <td colSpan="6" className="py-12 text-center text-gray-500 italic">
+                                  Nessun risultato trovato {searchTournamentResults ? 'per questa ricerca' : 'registrato'}.
+                                </td>
+                              </tr>
+                            )}
                         </tbody>
                       </table>
                     </div>
@@ -640,6 +683,16 @@ const App = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
+                  <div className="relative max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Cerca torneo..."
+                      value={searchTournaments}
+                      onChange={(e) => setSearchTournaments(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl neumorphic-in focus:outline-none"
+                    />
+                  </div>
                   <div className="p-4 md:p-6 rounded-3xl neumorphic-out overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
@@ -653,55 +706,57 @@ const App = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {tournaments.sort((a, b) => new Date(b.data_inizio) - new Date(a.data_inizio)).map(t => (
-                          <tr
-                            key={t.id}
-                            className="group hover:bg-white/5 transition-colors cursor-pointer"
-                            onClick={() => setSelectedTournament(t)}
-                          >
-                            <td className="py-4 pl-4 font-bold">{t.nome}</td>
-                            <td className="py-4 text-center font-mono text-xs">
-                              {new Date(t.data_inizio).toLocaleDateString()}
-                            </td>
-                            <td className="py-4 text-center text-sm text-gray-400">{t.sede}</td>
-                            <td className="py-4 text-center font-mono">{t.numero_partite}</td>
-                            <td className="py-4 text-center">
-                              {t.locandina_url ? (
-                                <a
-                                  href={t.locandina_url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="p-2 inline-block rounded-lg neumorphic-btn text-blue-400 scale-75"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <FileText className="w-4 h-4" />
-                                </a>
-                              ) : '-'}
-                            </td>
-                            {isAdmin && (
-                              <td className="py-4 pr-4">
-                                <div className="flex justify-end gap-2">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); setEditingTournament(t); setShowTournamentForm(true); }}
-                                    className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
-                                  >
-                                    <Pencil className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteTournament(t.id); }}
-                                    className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                </div>
+                        {tournaments
+                          .filter(t => t.nome.toLowerCase().includes(searchTournaments.toLowerCase()))
+                          .sort((a, b) => new Date(b.data_inizio) - new Date(a.data_inizio)).map(t => (
+                            <tr
+                              key={t.id}
+                              className="group hover:bg-white/5 transition-colors cursor-pointer"
+                              onClick={() => setSelectedTournament(t)}
+                            >
+                              <td className="py-4 pl-4 font-bold">{t.nome}</td>
+                              <td className="py-4 text-center font-mono text-xs">
+                                {new Date(t.data_inizio).toLocaleDateString()}
                               </td>
-                            )}
-                          </tr>
-                        ))}
-                        {tournaments.length === 0 && (
+                              <td className="py-4 text-center text-sm text-gray-400">{t.sede}</td>
+                              <td className="py-4 text-center font-mono">{t.numero_partite}</td>
+                              <td className="py-4 text-center">
+                                {t.locandina_url ? (
+                                  <a
+                                    href={t.locandina_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-2 inline-block rounded-lg neumorphic-btn text-blue-400 scale-75"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <FileText className="w-4 h-4" />
+                                  </a>
+                                ) : '-'}
+                              </td>
+                              {isAdmin && (
+                                <td className="py-4 pr-4">
+                                  <div className="flex justify-end gap-2">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setEditingTournament(t); setShowTournamentForm(true); }}
+                                      className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
+                                    >
+                                      <Pencil className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteTournament(t.id); }}
+                                      className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                        {tournaments.filter(t => t.nome.toLowerCase().includes(searchTournaments.toLowerCase())).length === 0 && (
                           <tr>
                             <td colSpan={isAdmin ? 6 : 5} className="py-12 text-center text-gray-500 italic">
-                              Nessun torneo registrato.
+                              Nessun torneo trovato {searchTournaments ? 'per questa ricerca' : 'registrato'}.
                             </td>
                           </tr>
                         )}
@@ -724,6 +779,16 @@ const App = () => {
                 />
               ) : (
                 <div className="space-y-6">
+                  <div className="relative max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Cerca atleta..."
+                      value={searchAccounting}
+                      onChange={(e) => setSearchAccounting(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl neumorphic-in focus:outline-none"
+                    />
+                  </div>
                   <div className="p-4 md:p-6 rounded-3xl neumorphic-out overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
@@ -734,7 +799,10 @@ const App = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {players.map(p => {
+                        {players.filter(p => {
+                          const search = searchAccounting.toLowerCase();
+                          return p.nome.toLowerCase().includes(search) || p.cognome.toLowerCase().includes(search);
+                        }).map(p => {
                           const balance = transactions
                             .filter(t => t.id_giocatore === p.id)
                             .reduce((acc, t) => t.tipo === 'entrate' ? acc + t.importo : acc - t.importo, 0);
@@ -783,6 +851,17 @@ const App = () => {
                             </tr>
                           );
                         })}
+                        {players.filter(p => {
+                          const search = searchAccounting.toLowerCase();
+                          return p.nome.toLowerCase().includes(search) || p.cognome.toLowerCase().includes(search);
+                        }).length === 0 && (
+                            <tr>
+                              <td colSpan="3" className="py-12 text-center text-gray-500 italic">
+                                Nessun atleta trovato {searchAccounting ? 'per questa ricerca' : 'registrato'}.
+                              </td>
+                            </tr>
+                          )
+                        }
                       </tbody>
                     </table>
                   </div>
