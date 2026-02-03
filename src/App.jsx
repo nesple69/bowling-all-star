@@ -527,12 +527,6 @@ const App = () => {
                   )}
                 </div>
 
-                <div className="flex justify-center">
-                  <div className="p-6 rounded-3xl neumorphic-out text-center w-full max-w-sm">
-                    <p className="text-gray-400 text-[10px] uppercase tracking-widest mb-1">Totale Atleti</p>
-                    <p className="text-4xl font-black text-blue-400">{players.length}</p>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -974,8 +968,9 @@ const App = () => {
               )
             )}
           </div>
-        )}
-      </main>
+        )
+        }
+      </main >
 
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -983,75 +978,79 @@ const App = () => {
       `}</style>
 
       {/* GLOBAL ADD BUTTON (FIXED BOTTOM RIGHT) */}
-      {isAdmin && (activeTab === 'players' || activeTab === 'tournaments' || activeTab === 'ranking') && (
-        <div className="fixed bottom-8 right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
-          {activeTab === 'tournaments' && (
+      {
+        isAdmin && (activeTab === 'players' || activeTab === 'tournaments' || activeTab === 'ranking') && (
+          <div className="fixed bottom-8 right-8 z-[60] flex flex-col items-end gap-3 pointer-events-none">
+            {activeTab === 'tournaments' && (
+              <button
+                onClick={() => setShowTournamentImportForm(true)}
+                className="pointer-events-auto p-4 rounded-xl neumorphic-btn text-green-400 font-bold flex items-center gap-2 shadow-2xl scale-90 md:scale-100"
+                title="Importa Risultati FISB"
+              >
+                <Upload className="w-5 h-5" /> <span>+ aggiungi torneo</span>
+              </button>
+            )}
             <button
-              onClick={() => setShowTournamentImportForm(true)}
-              className="pointer-events-auto p-4 rounded-xl neumorphic-btn text-green-400 font-bold flex items-center gap-2 shadow-2xl scale-90 md:scale-100"
-              title="Importa Risultati FISB"
+              onClick={() => {
+                if (activeTab === 'players') { setEditingPlayer(null); setShowPlayerForm(true); }
+                if (activeTab === 'tournaments') { setEditingTournament(null); setShowTournamentForm(true); }
+                if (activeTab === 'ranking') { setEditingResult(null); setShowResultForm(true); }
+              }}
+              className="pointer-events-auto p-4 rounded-xl neumorphic-btn text-blue-400 font-bold flex items-center gap-2 shadow-2xl scale-90 md:scale-100"
             >
-              <Upload className="w-5 h-5" /> <span>+ aggiungi torneo</span>
+              <Plus className="w-5 h-5" /> <span>{activeTab === 'ranking' ? 'Punteggio' : 'Aggiungi'}</span>
             </button>
-          )}
-          <button
-            onClick={() => {
-              if (activeTab === 'players') { setEditingPlayer(null); setShowPlayerForm(true); }
-              if (activeTab === 'tournaments') { setEditingTournament(null); setShowTournamentForm(true); }
-              if (activeTab === 'ranking') { setEditingResult(null); setShowResultForm(true); }
-            }}
-            className="pointer-events-auto p-4 rounded-xl neumorphic-btn text-blue-400 font-bold flex items-center gap-2 shadow-2xl scale-90 md:scale-100"
-          >
-            <Plus className="w-5 h-5" /> <span>{activeTab === 'ranking' ? 'Punteggio' : 'Aggiungi'}</span>
-          </button>
-        </div>
-      )}
+          </div>
+        )
+      }
 
       {/* MODALS */}
-      {(showPlayerForm || showTournamentForm || showResultForm || showTransactionForm || showTournamentImportForm) && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => {
-            setShowPlayerForm(false);
-            setShowTournamentForm(false);
-            setShowResultForm(false);
-            setShowTransactionForm(false);
-            setShowTournamentImportForm(false);
-          }}></div>
-          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            {showTournamentImportForm && (
-              <TournamentImportForm
-                players={players}
-                tournaments={tournaments}
-                onSave={handleSaveImportedResults}
-                onCancel={() => setShowTournamentImportForm(false)}
-              />
-            )}
-            {showPlayerForm && (
-              <PlayerForm player={editingPlayer} onSave={handleSavePlayer} onCancel={() => setShowPlayerForm(false)} />
-            )}
-            {showTournamentForm && (
-              <TournamentForm tournament={editingTournament} onSave={handleSaveTournament} onCancel={() => setShowTournamentForm(false)} />
-            )}
-            {showResultForm && (
-              <ResultForm
-                result={editingResult}
-                players={players}
-                tournaments={tournaments}
-                onSave={handleSaveResult}
-                onCancel={() => setShowResultForm(false)}
-              />
-            )}
-            {showTransactionForm && (
-              <TransactionForm
-                transaction={editingTransaction}
-                onSave={handleSaveTransaction}
-                onCancel={() => setShowTransactionForm(false)}
-              />
-            )}
+      {
+        (showPlayerForm || showTournamentForm || showResultForm || showTransactionForm || showTournamentImportForm) && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => {
+              setShowPlayerForm(false);
+              setShowTournamentForm(false);
+              setShowResultForm(false);
+              setShowTransactionForm(false);
+              setShowTournamentImportForm(false);
+            }}></div>
+            <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              {showTournamentImportForm && (
+                <TournamentImportForm
+                  players={players}
+                  tournaments={tournaments}
+                  onSave={handleSaveImportedResults}
+                  onCancel={() => setShowTournamentImportForm(false)}
+                />
+              )}
+              {showPlayerForm && (
+                <PlayerForm player={editingPlayer} onSave={handleSavePlayer} onCancel={() => setShowPlayerForm(false)} />
+              )}
+              {showTournamentForm && (
+                <TournamentForm tournament={editingTournament} onSave={handleSaveTournament} onCancel={() => setShowTournamentForm(false)} />
+              )}
+              {showResultForm && (
+                <ResultForm
+                  result={editingResult}
+                  players={players}
+                  tournaments={tournaments}
+                  onSave={handleSaveResult}
+                  onCancel={() => setShowResultForm(false)}
+                />
+              )}
+              {showTransactionForm && (
+                <TransactionForm
+                  transaction={editingTransaction}
+                  onSave={handleSaveTransaction}
+                  onCancel={() => setShowTransactionForm(false)}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 
