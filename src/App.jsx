@@ -289,9 +289,9 @@ const App = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {expiringCertificates.map(p => {
                         const expiryDate = new Date(p.data_scadenza_medica).toLocaleDateString('it-IT');
-                        const message = `Ciao ${p.nome}, il giorno ${expiryDate} ti scadrà il certificato medico. Per poter continuare la tua attività sportiva devi avere un certificato medico in corso di validità. Ti prego di prendere un appuntamento, aggiornare il tuo certificato e di farmelo avere. Grazie per la collaborazione.\n\nIl Presidente\nNedo Splendiani`;
+                        const message = `Ciao ${p.nome}, il giorno ${expiryDate} ti scadrà il certificato medico. Per poter continuare la tua attività sportiva devi avere un certificato medico in corso di validità. Ti prego di prendere un appuntamento per aggiornare il tuo certificato e di farmelo avere. Grazie per la collaborazione.\n\nIl Presidente\nNedo Splendiani`;
                         const emailSubject = 'Scadenza Certificato Medico';
-                        const emailBody = `Ciao ${p.nome},\n\nIl giorno ${expiryDate} ti scadrà il certificato medico. Per poter continuare la tua attività sportiva devi avere un certificato medico in corso di validità.\n\nTi prego di prendere un appuntamento, aggiornare il tuo certificato e di farmelo avere.\n\nGrazie per la collaborazione.\n\nIl Presidente\nNedo Splendiani`;
+                        const emailBody = `Ciao ${p.nome},\n\nIl giorno ${expiryDate} ti scadrà il certificato medico. Per poter continuare la tua attività sportiva devi avere un certificato medico in corso di validità.\n\nTi prego di prendere un appuntamento per aggiornare il tuo certificato e di farmelo avere.\n\nGrazie per la collaborazione.\n\nIl Presidente\nNedo Splendiani`;
 
                         return (
                           <div key={p.id} className="p-4 rounded-xl neumorphic-in">
