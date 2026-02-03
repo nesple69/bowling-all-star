@@ -43,6 +43,7 @@ const App = () => {
   const [searchAccounting, setSearchAccounting] = useState('');
   const [searchTournaments, setSearchTournaments] = useState('');
   const [searchTournamentResults, setSearchTournamentResults] = useState('');
+  const [searchRanking, setSearchRanking] = useState('');
 
   // Auth State
   useEffect(() => {
@@ -510,6 +511,16 @@ const App = () => {
             {/* Ranking */}
             {activeTab === 'ranking' && (
               <div className="space-y-6">
+                <div className="relative max-w-md mx-auto md:mx-0">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Cerca atleta..."
+                    value={searchRanking}
+                    onChange={(e) => setSearchRanking(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl neumorphic-in focus:outline-none"
+                  />
+                </div>
                 <div className="p-4 md:p-6 rounded-3xl neumorphic-out overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
@@ -524,43 +535,51 @@ const App = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {playersWithStats.map((p, idx) => (
-                        <tr key={p.id} onClick={() => setSelectedPlayerForDetail(p)} className="group hover:bg-white/5 transition-colors cursor-pointer">
-                          <td className="py-4 pl-4 font-bold text-gray-500">{idx + 1}</td>
-                          <td className="py-4 font-bold">{p.nome} {p.cognome}</td>
-                          <td className="py-4 text-center text-xs font-bold text-blue-400">{p.categoria}</td>
-                          <td className="py-4 text-center font-mono">{p.totalePartite}</td>
-                          <td className="py-4 text-center font-mono">{p.totaleBirilli}</td>
-                          <td className="py-4 text-center font-black text-blue-400">{p.media}</td>
-                          {isAdmin && (
-                            <td className="py-4 pr-4">
-                              <div className="flex justify-end gap-2">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setEditingPlayer(p); setShowPlayerForm(true); }}
-                                  className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
-                                  title="Modifica"
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleDeletePlayer(p.id); }}
-                                  className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"
-                                  title="Elimina"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
+                      {playersWithStats
+                        .filter(p => {
+                          const search = searchRanking.toLowerCase();
+                          return p.nome.toLowerCase().includes(search) || p.cognome.toLowerCase().includes(search);
+                        })
+                        .map((p, idx) => (
+                          <tr key={p.id} onClick={() => setSelectedPlayerForDetail(p)} className="group hover:bg-white/5 transition-colors cursor-pointer">
+                            <td className="py-4 pl-4 font-bold text-gray-500">{idx + 1}</td>
+                            <td className="py-4 font-bold">{p.nome} {p.cognome}</td>
+                            <td className="py-4 text-center text-xs font-bold text-blue-400">{p.categoria}</td>
+                            <td className="py-4 text-center font-mono">{p.totalePartite}</td>
+                            <td className="py-4 text-center font-mono">{p.totaleBirilli}</td>
+                            <td className="py-4 text-center font-black text-blue-400">{p.media}</td>
+                            {isAdmin && (
+                              <td className="py-4 pr-4">
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setEditingPlayer(p); setShowPlayerForm(true); }}
+                                    className="p-2 rounded-lg neumorphic-btn text-blue-400 hover:scale-110 transition-transform"
+                                    title="Modifica"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeletePlayer(p.id); }}
+                                    className="p-2 rounded-lg neumorphic-btn text-red-500 hover:scale-110 transition-transform"
+                                    title="Elimina"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      {playersWithStats.filter(p => {
+                        const search = searchRanking.toLowerCase();
+                        return p.nome.toLowerCase().includes(search) || p.cognome.toLowerCase().includes(search);
+                      }).length === 0 && (
+                          <tr>
+                            <td colSpan={isAdmin ? 7 : 6} className="py-12 text-center text-gray-500 italic">
+                              Nessun atleta trovato {searchRanking ? 'per questa ricerca' : 'nel database'}.
                             </td>
-                          )}
-                        </tr>
-                      ))}
-                      {playersWithStats.length === 0 && (
-                        <tr>
-                          <td colSpan={isAdmin ? 7 : 6} className="py-12 text-center text-gray-500 italic">
-                            Nessun atleta trovato nel database.
-                          </td>
-                        </tr>
-                      )}
+                          </tr>
+                        )}
                     </tbody>
                   </table>
                 </div>
