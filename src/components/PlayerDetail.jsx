@@ -67,6 +67,13 @@ const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteR
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
+                            <Calendar className="w-5 h-5 text-gray-400" />
+                            <div>
+                                <p className="text-[10px] text-gray-500 uppercase tracking-widest">Data di Nascita</p>
+                                <p className="font-bold text-gray-200">{player.data_nascita ? new Date(player.data_nascita).toLocaleDateString('it-IT') : 'N/D'}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
                             <Award className="w-5 h-5 text-blue-400" />
                             <div>
                                 <p className="text-[10px] text-gray-500 uppercase tracking-widest">Categoria</p>
