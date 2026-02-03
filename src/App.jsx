@@ -465,8 +465,8 @@ const App = () => {
                           key={cat.name}
                           onClick={() => setSelectedDashboardCategory(selectedDashboardCategory === cat.name ? null : cat.name)}
                           className={`flex items-center justify-between p-3.5 rounded-2xl transition-all duration-300 cursor-pointer group/row border ${selectedDashboardCategory === cat.name
-                              ? 'bg-purple-500/20 border-purple-500/40'
-                              : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
+                            ? 'bg-purple-500/20 border-purple-500/40'
+                            : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
                             }`}
                         >
                           <div className="flex items-center gap-4">
@@ -482,7 +482,7 @@ const App = () => {
                             <span className={`text-lg font-black leading-none transition-colors ${selectedDashboardCategory === cat.name ? 'text-white' : 'text-purple-400'}`}>
                               {cat.count}
                             </span>
-                            <span className="block text-[9px] text-gray-500 font-bold uppercase tracking-widest">elementi</span>
+                            <span className="block text-[9px] text-gray-500 font-bold uppercase tracking-widest">giocatori</span>
                           </div>
                         </div>
                       ))}
