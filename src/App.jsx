@@ -91,7 +91,7 @@ const App = () => {
     return players.filter(p => {
       if (!p.data_scadenza_medica) return false;
       const expiry = new Date(p.data_scadenza_medica);
-      return expiry <= thirtyDaysFromNow;
+      return expiry >= today && expiry <= thirtyDaysFromNow;
     });
   }, [players]);
 
