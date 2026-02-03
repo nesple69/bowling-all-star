@@ -111,16 +111,22 @@ const PlayerDetail = ({ player, results, tournaments, onBack, isAdmin, onDeleteR
                                 </p>
                             </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-3">
                             {player.settore_seniores && (
-                                <span className="text-[10px] py-1 px-3 rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 font-bold flex items-center gap-1">
-                                    <Award className="w-3 h-3" /> SENIORES
-                                </span>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] py-1 px-3 rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 font-bold flex items-center gap-1 w-fit">
+                                        <Award className="w-3 h-3" /> SENIORES
+                                    </span>
+                                    {player.fascia_seniores && <p className="text-[10px] text-yellow-500/80 ml-2 font-medium">{player.fascia_seniores}</p>}
+                                </div>
                             )}
                             {player.settore_aziendale && (
-                                <span className="text-[10px] py-1 px-3 rounded-full bg-purple-500/10 text-purple-500 border border-purple-500/20 font-bold flex items-center gap-1">
-                                    <Briefcase className="w-3 h-3" /> AZIENDALE
-                                </span>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] py-1 px-3 rounded-full bg-purple-500/10 text-purple-500 border border-purple-500/20 font-bold flex items-center gap-1 w-fit">
+                                        <Briefcase className="w-3 h-3" /> AZIENDALE
+                                    </span>
+                                    {player.nome_azienda && <p className="text-[10px] text-purple-500/80 ml-2 font-medium">{player.nome_azienda}</p>}
+                                </div>
                             )}
                         </div>
                     </div>
