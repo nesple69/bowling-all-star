@@ -472,91 +472,93 @@ const App = () => {
                     </div>
                   </div>
 
-
-                  <div className="p-6 md:p-8 rounded-[2.5rem] glass-card border border-white/5 relative group">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/40 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                    <h2 className="text-2xl font-black text-blue-400 uppercase tracking-tight mb-8 text-center">Ultimi Tornei Giocati</h2>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-8">
-                      {recentTournamentsStats.map(t => (
-                        <div key={t.id} className="p-6 rounded-[2.5rem] glass-card relative group text-center min-w-0">
-                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/40 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                          <div className="flex flex-col items-center mb-6 gap-3">
-                            <div>
-                              <h3 className="text-xl font-black text-white tracking-tight group-hover:text-blue-400 transition-colors uppercase">{t.nome}</h3>
-                              <p className="text-xs text-gray-400 uppercase font-black tracking-widest mt-1">Classifica Finale</p>
-                            </div>
-                            <div className="px-4 py-2 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/5 inline-flex items-center">
-                              <span className="text-xs font-black uppercase tracking-widest">
-                                {new Date(t.data_inizio).toLocaleDateString('it-IT', { month: 'long' })}
-                              </span>
-                              <span className="ml-2 text-[10px] opacity-60 font-bold">{new Date(t.data_inizio).getFullYear()}</span>
-                            </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {recentTournamentsStats.map(t => (
+                      <div key={t.id} className="p-7 rounded-[2.5rem] glass-card relative overflow-hidden group text-center">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/40 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                        <div className="flex flex-col items-center mb-6 gap-3">
+                          <div>
+                            <h3 className="text-xl font-black text-white tracking-tight group-hover:text-blue-400 transition-colors uppercase">{t.nome}</h3>
+                            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1">Classifica Finale</p>
                           </div>
-                          <div className="px-2 mb-4 flex justify-between text-xs font-black text-gray-400 uppercase tracking-widest border-b border-white/5 pb-2">
-                            <div className="flex gap-4 items-center">
-                              <span className="w-10 text-center">Pos.</span>
-                              <span className="w-56 text-left">Giocatore</span>
-                            </div>
-                            <div className="flex gap-6 shrink-0">
-                              <span className="w-16 text-center">Birilli</span>
-                              <span className="w-20 text-center">Media</span>
-                            </div>
-                          </div>
-                          <div className="space-y-4">
-                            {t.topGroups.map((group, gIdx) => (
-                              <div key={gIdx} className="p-3.5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-300 group/row">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-inner transition-transform group-hover/row:scale-110 ${group.posizione === 1 ? 'bg-yellow-500/20 text-yellow-500 shadow-yellow-500/10' :
-                                      group.posizione === 2 ? 'bg-slate-400/20 text-slate-300' :
-                                        group.posizione === 3 ? 'bg-orange-600/20 text-orange-500' :
-                                          'bg-blue-500/10 text-blue-400'
-                                      }`}>
-                                      {group.posizione}
-                                    </div>
-                                    {group.totale_squadra > 0 && (
-                                      <div className="flex items-center gap-3 bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20">
-                                        <span className="text-xs font-black text-orange-400 uppercase tracking-widest">Totale Squadra:</span>
-                                        <span className="text-base font-black text-white uppercase tracking-widest">{group.totale_squadra}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                  {group.members.map((r, mIdx) => (
-                                    <div key={mIdx} className="flex items-center justify-between pl-14 pr-4">
-                                      <span className="font-black text-gray-100 text-base tracking-tight whitespace-nowrap w-56 text-left shrink-0">{r.player.nome} {r.player.cognome}</span>
-                                      <div className="flex gap-6 items-center shrink-0">
-                                        <div className="flex flex-col items-center gap-0.5 w-16">
-                                          <span className="text-base font-black text-blue-400 leading-none">{r.birilli}</span>
-                                          <span className="text-[7px] text-gray-500 font-bold uppercase tracking-widest">birilli</span>
-                                        </div>
-                                        <div className="flex flex-col items-center gap-0.5 w-20">
-                                          <div className="flex items-baseline gap-1.5 justify-center">
-                                            <span className="text-sm font-black text-white leading-none">{(r.birilli / (r.partite || t.numero_partite || 6)).toFixed(1)}</span>
-                                            <span className="text-[9px] font-bold text-gray-500 leading-none">{r.partite || t.numero_partite || 6}</span>
-                                          </div>
-                                          <span className="text-[7px] text-gray-500 font-bold uppercase tracking-widest">media</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                            {t.topGroups.length === 0 && (
-                              <div className="py-8 text-center bg-white/5 rounded-2xl border border-dashed border-white/10">
-                                <p className="text-gray-500 italic text-xs">In attesa di risultati...</p>
-                              </div>
-                            )}
+                          <div className="px-4 py-2 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/5 inline-flex items-center">
+                            <span className="text-xs font-black uppercase tracking-widest">
+                              {new Date(t.data_inizio).toLocaleDateString('it-IT', { month: 'long' })}
+                            </span>
+                            <span className="ml-2 text-[10px] opacity-60 font-bold">{new Date(t.data_inizio).getFullYear()}</span>
                           </div>
                         </div>
-                      ))}
+                        <div className="px-2 mb-4 flex justify-between text-[9px] font-black text-gray-600 uppercase tracking-widest border-b border-white/5 pb-2">
+                          <div className="flex gap-4 items-center">
+                            <span className="w-10 text-center">Pos.</span>
+                            <span className="w-32 text-left">Giocatore</span>
+                          </div>
+                          <div className="flex gap-6 pr-4">
+                            <span className="w-14 text-center">Birilli</span>
+                            <span className="w-12 text-center">Media</span>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          {t.topGroups.map((group, gIdx) => (
+                            <div key={gIdx} className="p-3.5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-300 group/row">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-4">
+                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-inner transition-transform group-hover/row:scale-110 ${group.posizione === 1 ? 'bg-yellow-500/20 text-yellow-500 shadow-yellow-500/10' :
+                                    group.posizione === 2 ? 'bg-slate-400/20 text-slate-300' :
+                                      group.posizione === 3 ? 'bg-orange-600/20 text-orange-500' :
+                                        'bg-blue-500/10 text-blue-400'
+                                    }`}>
+                                    {group.posizione}
+                                  </div>
+                                  {group.totale_squadra > 0 && (
+                                    <div className="flex items-center gap-3 bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20">
+                                      <span className="text-xs font-black text-orange-400 uppercase tracking-widest">Totale Squadra:</span>
+                                      <span className="text-base font-black text-white uppercase tracking-widest">{group.totale_squadra}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
 
-                      {/* Recent Tournaments Stats Grid continues... */}
-                    </div>
+                              <div className="space-y-2">
+                                {group.members.map((r, mIdx) => (
+                                  <div key={mIdx} className="flex items-center justify-between pl-14 pr-2">
+                                    <div className="flex items-center flex-1 min-w-0 gap-8">
+                                      <span className="font-black text-gray-100 text-lg tracking-tight whitespace-nowrap w-64 shrink-0 text-left">{r.player.nome} {r.player.cognome}</span>
+                                      <div className="flex-1 flex justify-start pl-4">
+                                        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                                          {(Array.isArray(r.punteggi_partite) ? r.punteggi_partite : (typeof r.punteggi_partite === 'string' ? JSON.parse(r.punteggi_partite) : [])).map((score, sIdx) => (
+                                            <div key={sIdx} className="w-12 h-9 flex items-center justify-center rounded-md bg-white/5 border border-white/10 text-xs font-black text-blue-300 leading-none">
+                                              {score}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-6 items-center border-l border-white/5 pl-6 shrink-0">
+                                      <div className="flex flex-col items-center gap-0.5 w-14">
+                                        <span className="text-lg font-black text-blue-400 leading-none">{r.birilli}</span>
+                                        <span className="text-[7px] text-gray-500 font-bold uppercase tracking-widest">birilli</span>
+                                      </div>
+                                      <div className="flex flex-col items-center gap-0.5 w-12 border-l border-white/10 pl-3">
+                                        <span className="text-base font-black text-white leading-none">{(r.birilli / (r.partite || t.numero_partite || 6)).toFixed(1)}</span>
+                                        <span className="text-[7px] text-gray-500 font-bold uppercase tracking-widest">media</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                          {t.topGroups.length === 0 && (
+                            <div className="py-8 text-center bg-white/5 rounded-2xl border border-dashed border-white/10">
+                              <p className="text-gray-500 italic text-xs">In attesa di risultati...</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Recent Tournaments Stats Grid continues... */}
                   </div>
 
 

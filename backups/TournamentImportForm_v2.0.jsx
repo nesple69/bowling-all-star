@@ -463,7 +463,7 @@ const TournamentImportForm = ({ players, tournaments, onSave, onCancel }) => {
 
                                         <div className="text-center border-l border-white/10 pl-2">
                                             <p className={`text-lg font-black leading-none ${res.isMatched ? 'text-purple-400' : 'text-gray-600'}`}>
-                                                {((res.punteggi_partite?.length || 0) > 0 ? (res.points / res.punteggi_partite.length) : (res.media || 0)).toFixed(1)}
+                                                {(res.media > 0 ? res.media : (res.points / (res.punteggi_partite?.length || tournaments.find(t => t.id === selectedTournamentId)?.numero_partite || 6))).toFixed(1)}
                                             </p>
                                             <p className="text-[9px] text-gray-500 uppercase font-bold tracking-wider">media</p>
                                         </div>

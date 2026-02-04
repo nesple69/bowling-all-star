@@ -10,8 +10,7 @@ import TournamentImportForm from './components/TournamentImportForm';
 import {
   LayoutDashboard, Users, Trophy, Wallet, LogIn, LogOut,
   AlertTriangle, Plus, Search, TrendingUp, Target, MapPin,
-  ArrowUpCircle, ArrowDownCircle, FileText, Pencil, X, Calendar, Upload,
-  Database, Download
+  ArrowUpCircle, ArrowDownCircle, FileText, Pencil, X, Calendar, Upload
 } from 'lucide-react';
 
 const App = () => {
@@ -201,53 +200,6 @@ const App = () => {
     });
   }, [tournaments, results, players]);
 
-  const selectedTournamentGroups = useMemo(() => {
-    if (!selectedTournament) return [];
-
-    const tResults = results
-      .filter(r => r.id_torneo === selectedTournament.id)
-      .map(r => {
-        const player = players.find(p => p.id === r.id_giocatore);
-        return { ...r, player };
-      })
-      .filter(r => r.player)
-      .sort((a, b) => {
-        const posA = a.posizione || 999;
-        const posB = b.posizione || 999;
-        if (posA !== posB) return posA - posB;
-        return (b.birilli || 0) - (a.birilli || 0);
-      });
-
-    const groups = [];
-    tResults.forEach(res => {
-      const lastGroup = groups[groups.length - 1];
-      if (lastGroup && lastGroup.posizione === res.posizione) {
-        lastGroup.members.push(res);
-        if (res.totale_squadra > 0 && lastGroup.totale_squadra === 0) {
-          lastGroup.totale_squadra = res.totale_squadra;
-        }
-      } else {
-        groups.push({
-          posizione: res.posizione,
-          totale_squadra: res.totale_squadra || 0,
-          members: [res]
-        });
-      }
-    });
-
-    const search = searchTournamentResults.toLowerCase();
-    if (!search) return groups;
-
-    return groups.filter(g =>
-      g.members.some(m =>
-        m.player.nome.toLowerCase().includes(search) ||
-        m.player.cognome.toLowerCase().includes(search)
-      )
-    );
-  }, [selectedTournament, results, players, searchTournamentResults]);
-
-  // Dashboard Stats - Categories
-
   // Dashboard Stats - Categories
   const categoryStats = useMemo(() => {
     const existingCategories = [...new Set(players.map(p => p.categoria))].filter(Boolean).sort();
@@ -340,37 +292,6 @@ const App = () => {
     else fetchData();
   };
 
-  const handleExportData = async () => {
-    try {
-      const [p, t, r, tr] = await Promise.all([
-        supabase.from('players').select('*'),
-        supabase.from('tournaments').select('*'),
-        supabase.from('results').select('*'),
-        supabase.from('transactions').select('*')
-      ]);
-
-      const backup = {
-        timestamp: new Date().toISOString(),
-        players: p.data,
-        tournaments: t.data,
-        results: r.data,
-        transactions: tr.data
-      };
-
-      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `AllStarBowling_Backup_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      alert('Errore durante il backup: ' + error.message);
-    }
-  };
-
   const handleLogin = async () => {
     const email = prompt('Inserisci Email Admin:');
     if (!email) return;
@@ -398,19 +319,14 @@ const App = () => {
             ))}
 
             {isAdmin && (
-              <>
-                <button onClick={() => setActiveTab('accounting')} className={`flex flex-col md:flex-row items-center gap-3 p-4 rounded-xl transition-all ${activeTab === 'accounting' ? 'neumorphic-in text-blue-400' : 'neumorphic-btn'}`}>
-                  <Wallet className="w-6 h-6" /> <span className="text-xs md:text-base font-medium">Contabilità</span>
-                </button>
-                <button onClick={handleExportData} className="flex flex-col md:flex-row items-center gap-3 p-4 rounded-xl neumorphic-btn hover:text-green-400 transition-all mt-4">
-                  <Download className="w-6 h-6" /> <span className="text-xs md:text-base font-medium">Backup Dati</span>
-                </button>
-              </>
+              <button onClick={() => setActiveTab('accounting')} className={`flex flex-col md:flex-row items-center gap-3 p-4 rounded-xl transition-all ${activeTab === 'accounting' ? 'neumorphic-in text-blue-400' : 'neumorphic-btn'}`}>
+                <Wallet className="w-6 h-6" /> <span className="text-xs md:text-base font-medium">Contabilità</span>
+              </button>
             )}
 
             {/* TEAM LOGO */}
-            <div className="flex-1 hidden md:flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity py-6">
-              <img src="/team-logo.png" alt="All Star Team Logo" className="w-full max-w-[180px] object-contain mx-auto" />
+            <div className="flex-1 hidden md:flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity">
+              <img src="/team-logo.png" alt="All Star Team Logo" className="w-full max-w-[160px] object-contain" />
             </div>
 
             <div className="md:mt-0">
@@ -456,109 +372,173 @@ const App = () => {
               {/* Dashboard */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-8 pt-0">
-                  <div className="mb-12">
-                    <div className="p-3 sm:p-4 md:p-5 rounded-[2rem] bg-blue-500/5 border border-blue-500/20 shadow-2xl backdrop-blur-sm">
-                      <h2 className="text-base sm:text-lg font-black text-white tracking-widest uppercase mb-3 drop-shadow-md text-center">
-                        Riepilogo Squadra - {players.length} ISCRITTI
-                      </h2>
-                      <div className="flex flex-row flex-nowrap gap-1.5 sm:gap-3 justify-between items-stretch">
+                  <div className="w-full mx-auto mb-8">
+                    <img
+                      src="/custom-header-uploaded.png"
+                      alt="All Star Team Bowling ASD"
+                      className="w-full h-auto max-h-[350px] object-contain mx-auto hover:scale-[1.02] transition-transform duration-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {recentTournamentsStats.map(t => (
+                      <div key={t.id} className="p-7 rounded-[2.5rem] glass-card relative overflow-hidden group text-center">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/40 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                        <div className="flex flex-col items-center mb-6 gap-3">
+                          <div>
+                            <h3 className="text-xl font-black text-white tracking-tight group-hover:text-blue-400 transition-colors uppercase">{t.nome}</h3>
+                            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1">Classifica Finale</p>
+                          </div>
+                          <div className="px-4 py-2 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/5 inline-flex items-center">
+                            <span className="text-xs font-black uppercase tracking-widest">
+                              {new Date(t.data_inizio).toLocaleDateString('it-IT', { month: 'long' })}
+                            </span>
+                            <span className="ml-2 text-[10px] opacity-60 font-bold">{new Date(t.data_inizio).getFullYear()}</span>
+                          </div>
+                        </div>
+                        <div className="px-2 mb-4 flex justify-between text-[9px] font-black text-gray-600 uppercase tracking-widest border-b border-white/5 pb-2">
+                          <div className="flex gap-4 items-center">
+                            <span className="w-10 text-center">Pos.</span>
+                            <span className="w-32 text-left">Giocatore</span>
+                          </div>
+                          <div className="flex gap-6 pr-4">
+                            <span className="w-14 text-center">Birilli</span>
+                            <span className="w-12 text-center">Media</span>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          {t.topGroups.map((group, gIdx) => (
+                            <div key={gIdx} className="p-3.5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-300 group/row">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-4">
+                                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-inner transition-transform group-hover/row:scale-110 ${group.posizione === 1 ? 'bg-yellow-500/20 text-yellow-500 shadow-yellow-500/10' :
+                                    group.posizione === 2 ? 'bg-slate-400/20 text-slate-300' :
+                                      group.posizione === 3 ? 'bg-orange-600/20 text-orange-500' :
+                                        'bg-blue-500/10 text-blue-400'
+                                    }`}>
+                                    {group.posizione}
+                                  </div>
+                                  {group.totale_squadra > 0 && (
+                                    <div className="flex items-center gap-3 bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20">
+                                      <span className="text-xs font-black text-orange-400 uppercase tracking-widest">Totale Squadra:</span>
+                                      <span className="text-base font-black text-white uppercase tracking-widest">{group.totale_squadra}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="space-y-2">
+                                {group.members.map((r, mIdx) => (
+                                  <div key={mIdx} className="flex items-center justify-between pl-14 pr-2">
+                                    <span className="font-bold text-gray-200 tracking-tight text-left truncate">{r.player.nome} {r.player.cognome}</span>
+                                    <div className="flex gap-6 items-center">
+                                      <div className="flex flex-col items-center gap-0 w-14">
+                                        <span className="text-base font-black text-blue-400 leading-none">{r.birilli}</span>
+                                        <span className="block text-[7px] text-gray-500 font-bold uppercase tracking-widest leading-none">birilli</span>
+                                      </div>
+                                      <div className="flex flex-col items-center gap-0 w-12 border-l border-white/10 pl-2">
+                                        <span className="text-sm font-black text-white leading-none">{(r.birilli / (t.numero_partite || 6)).toFixed(1)}</span>
+                                        <span className="block text-[7px] text-gray-500 font-bold uppercase tracking-widest leading-none">media</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                          {t.topGroups.length === 0 && (
+                            <div className="py-8 text-center bg-white/5 rounded-2xl border border-dashed border-white/10">
+                              <p className="text-gray-500 italic text-xs">In attesa di risultati...</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Category Summary Card - INTEGRATED INTO GRID */}
+                    <div className="p-7 rounded-[2.5rem] glass-card relative overflow-hidden group border-purple-500/20">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500/0 via-purple-500/40 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <h3 className="text-xl font-black text-white tracking-tight group-hover:text-purple-400 transition-colors">Riepilogo Squadra</h3>
+                          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1">Giocatori Iscritti</p>
+                        </div>
+                        <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] text-purple-400 font-bold uppercase tracking-tighter">
+                          {players.length} Atleti
+                        </div>
+                      </div>
+                      <div className="space-y-2.5 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
+                        <div className="flex items-center justify-between px-4 pb-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
+                          <span>Categoria</span>
+                          <span>Atleti</span>
+                        </div>
                         {categoryStats.map(cat => (
-                          <div key={cat.name} className="flex-1 min-w-0 h-16 sm:h-20 md:h-22 rounded-lg sm:rounded-xl glass-card flex flex-col items-center justify-center border border-white/10 group shadow-xl">
-                            <span className="text-[8px] sm:text-[9px] md:text-xs font-black text-blue-400 uppercase tracking-tighter mb-0.5 truncate w-full text-center px-1">{cat.name}</span>
-                            <span className="text-base sm:text-lg md:text-2xl font-black text-white leading-none">{cat.count}</span>
+                          <div
+                            key={cat.name}
+                            onClick={() => setSelectedDashboardCategory(selectedDashboardCategory === cat.name ? null : cat.name)}
+                            className={`flex items-center justify-between p-3.5 rounded-2xl transition-all duration-300 cursor-pointer group/row border ${selectedDashboardCategory === cat.name
+                              ? 'bg-purple-500/20 border-purple-500/40'
+                              : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
+                              }`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-inner transition-transform group-hover/row:scale-110 ${selectedDashboardCategory === cat.name ? 'bg-purple-500 text-white' : 'bg-white/5 text-gray-400'
+                                }`}>
+                                {cat.name.split('/')[0]}
+                              </div>
+                              <span className={`font-bold tracking-tight transition-colors ${selectedDashboardCategory === cat.name ? 'text-purple-300' : 'text-gray-200'}`}>
+                                Categoria {cat.name}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <span className={`text-lg font-black leading-none transition-colors ${selectedDashboardCategory === cat.name ? 'text-white' : 'text-purple-400'}`}>
+                                {cat.count}
+                              </span>
+                              <span className="block text-[9px] text-gray-500 font-bold uppercase tracking-widest">giocatori</span>
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
 
+                  <div className="space-y-6">
+                    {/* The category buttons row has been replaced by the card above */}
 
-                  <div className="p-6 md:p-8 rounded-[2.5rem] glass-card border border-white/5 relative group">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/40 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                    <h2 className="text-2xl font-black text-blue-400 uppercase tracking-tight mb-8 text-center">Ultimi Tornei Giocati</h2>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-8">
-                      {recentTournamentsStats.map(t => (
-                        <div key={t.id} className="p-6 rounded-[2.5rem] glass-card relative group text-center min-w-0">
-                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/40 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                          <div className="flex flex-col items-center mb-6 gap-3">
-                            <div>
-                              <h3 className="text-xl font-black text-white tracking-tight group-hover:text-blue-400 transition-colors uppercase">{t.nome}</h3>
-                              <p className="text-xs text-gray-400 uppercase font-black tracking-widest mt-1">Classifica Finale</p>
-                            </div>
-                            <div className="px-4 py-2 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/5 inline-flex items-center">
-                              <span className="text-xs font-black uppercase tracking-widest">
-                                {new Date(t.data_inizio).toLocaleDateString('it-IT', { month: 'long' })}
-                              </span>
-                              <span className="ml-2 text-[10px] opacity-60 font-bold">{new Date(t.data_inizio).getFullYear()}</span>
-                            </div>
+                    {selectedDashboardCategory && (
+                      <div className="p-8 rounded-[2.5rem] glass-card animate-fadeIn shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[60px] rounded-full -mr-16 -mt-16"></div>
+                        <div className="flex justify-between items-center mb-8 relative z-10">
+                          <div>
+                            <h3 className="text-xl font-black text-blue-400 tracking-tight">Atleti Categoria {selectedDashboardCategory}</h3>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Elenco Iscritti</p>
                           </div>
-                          <div className="px-2 mb-4 flex justify-between text-xs font-black text-gray-400 uppercase tracking-widest border-b border-white/5 pb-2">
-                            <div className="flex gap-4 items-center">
-                              <span className="w-10 text-center">Pos.</span>
-                              <span className="w-56 text-left">Giocatore</span>
-                            </div>
-                            <div className="flex gap-6 shrink-0">
-                              <span className="w-16 text-center">Birilli</span>
-                              <span className="w-20 text-center">Media</span>
-                            </div>
-                          </div>
-                          <div className="space-y-4">
-                            {t.topGroups.map((group, gIdx) => (
-                              <div key={gIdx} className="p-3.5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-300 group/row">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-inner transition-transform group-hover/row:scale-110 ${group.posizione === 1 ? 'bg-yellow-500/20 text-yellow-500 shadow-yellow-500/10' :
-                                      group.posizione === 2 ? 'bg-slate-400/20 text-slate-300' :
-                                        group.posizione === 3 ? 'bg-orange-600/20 text-orange-500' :
-                                          'bg-blue-500/10 text-blue-400'
-                                      }`}>
-                                      {group.posizione}
-                                    </div>
-                                    {group.totale_squadra > 0 && (
-                                      <div className="flex items-center gap-3 bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20">
-                                        <span className="text-xs font-black text-orange-400 uppercase tracking-widest">Totale Squadra:</span>
-                                        <span className="text-base font-black text-white uppercase tracking-widest">{group.totale_squadra}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                  {group.members.map((r, mIdx) => (
-                                    <div key={mIdx} className="flex items-center justify-between pl-14 pr-4">
-                                      <span className="font-black text-gray-100 text-base tracking-tight whitespace-nowrap w-56 text-left shrink-0">{r.player.nome} {r.player.cognome}</span>
-                                      <div className="flex gap-6 items-center shrink-0">
-                                        <div className="flex flex-col items-center gap-0.5 w-16">
-                                          <span className="text-base font-black text-blue-400 leading-none">{r.birilli}</span>
-                                          <span className="text-[7px] text-gray-500 font-bold uppercase tracking-widest">birilli</span>
-                                        </div>
-                                        <div className="flex flex-col items-center gap-0.5 w-20">
-                                          <div className="flex items-baseline gap-1.5 justify-center">
-                                            <span className="text-sm font-black text-white leading-none">{(r.birilli / (r.partite || t.numero_partite || 6)).toFixed(1)}</span>
-                                            <span className="text-[9px] font-bold text-gray-500 leading-none">{r.partite || t.numero_partite || 6}</span>
-                                          </div>
-                                          <span className="text-[7px] text-gray-500 font-bold uppercase tracking-widest">media</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                            {t.topGroups.length === 0 && (
-                              <div className="py-8 text-center bg-white/5 rounded-2xl border border-dashed border-white/10">
-                                <p className="text-gray-500 italic text-xs">In attesa di risultati...</p>
-                              </div>
-                            )}
-                          </div>
+                          <button onClick={() => setSelectedDashboardCategory(null)} className="p-3 rounded-2xl glass-btn text-gray-400 hover:text-white">
+                            <X className="w-5 h-5" />
+                          </button>
                         </div>
-                      ))}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 relative z-10">
+                          {players.filter(p => p.categoria === selectedDashboardCategory).map(p => (
+                            <div
+                              key={p.id}
+                              onClick={() => setSelectedPlayerForDetail(p)}
+                              className="p-5 rounded-3xl bg-white/5 border border-white/5 hover:bg-blue-500/10 hover:border-blue-500/20 transition-all duration-300 cursor-pointer group/player shadow-lg flex flex-col items-center text-center"
+                            >
+                              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
+                                <Users className="w-7 h-7 text-blue-400" />
+                              </div>
+                              <p className="font-bold text-gray-200 leading-tight text-sm">{p.nome}</p>
+                              <p className="font-black text-gray-200 leading-tight uppercase tracking-tighter text-base">{p.cognome}</p>
+                              <div className="mt-3 bg-white/5 px-3 py-1 rounded-full border border-white/5">
+                                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{p.sottocategoria || 'Classe Base'}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                      {/* Recent Tournaments Stats Grid continues... */}
-                    </div>
                   </div>
-
 
                   {expiringCertificates.length > 0 && (
                     <div className="mb-8 p-7 rounded-[2.5rem] bg-red-500/5 border border-red-500/10 backdrop-blur-md relative overflow-hidden group">
@@ -795,81 +775,66 @@ const App = () => {
                       </div>
                     </div>
                     <div className="p-4 md:p-6 rounded-3xl neumorphic-out">
-                      <div className="flex items-center justify-between gap-6 mb-8 border-b border-white/5 pb-6">
-                        <h2 className="text-2xl font-black text-blue-400 uppercase tracking-tight whitespace-nowrap shrink-0">{selectedTournament.nome}</h2>
-                        <div className="flex items-center gap-6 md:gap-10 text-base font-black text-gray-200 whitespace-nowrap">
-                          <span className="flex items-center gap-2 shrink-0">
-                            <span className="text-lg">📅</span> {new Date(selectedTournament.data_inizio).toLocaleDateString('it-IT')}
-                          </span>
-                          <span className="flex items-center gap-2 shrink-0">
-                            <span className="text-lg">📍</span> {selectedTournament.sede}
-                          </span>
-                          <span className="flex items-center gap-2 text-blue-400 bg-blue-500/5 px-4 py-2 rounded-xl border border-blue-500/10 shrink-0">
-                            <span className="text-lg">🎳</span> {selectedTournament.numero_partite} PARTITE
-                          </span>
-                        </div>
+                      <h2 className="text-2xl font-bold mb-6 text-blue-400">{selectedTournament.nome}</h2>
+                      <div className="text-sm text-gray-400 mb-6 flex gap-6">
+                        <span>📅 {new Date(selectedTournament.data_inizio).toLocaleDateString()}</span>
+                        <span>📍 {selectedTournament.sede}</span>
+                        <span>🎳 {selectedTournament.numero_partite} partite</span>
                       </div>
-                      <div className="space-y-4">
-                        {selectedTournamentGroups.map((group, gIdx) => (
-                          <div key={gIdx} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-300">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-inner ${group.posizione === 1 ? 'bg-yellow-500/20 text-yellow-500 shadow-yellow-500/10' :
-                                  group.posizione === 2 ? 'bg-slate-400/20 text-slate-300' :
-                                    group.posizione === 3 ? 'bg-orange-600/20 text-orange-500' :
-                                      'bg-blue-500/10 text-blue-400'
-                                  }`}>
-                                  {group.posizione}
-                                </div>
-                                {group.totale_squadra > 0 && (
-                                  <div className="flex items-center gap-3 bg-orange-500/10 px-4 py-2 rounded-xl border border-orange-500/20">
-                                    <span className="text-xs font-black text-orange-400 uppercase tracking-widest">Totale Squadra:</span>
-                                    <span className="text-base font-black text-white">{group.totale_squadra}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="space-y-3">
-                              {group.members.map((r, mIdx) => (
-                                <div key={mIdx} className="flex flex-row items-center justify-between pl-0 md:pl-14 gap-6">
-                                  <div className="flex items-center flex-1 min-w-0 gap-12">
-                                    <span className="font-black text-white text-3xl whitespace-nowrap w-[26rem] shrink-0 text-left">{r.player.nome} {r.player.cognome}</span>
-                                    <div className="flex-1 flex justify-start pl-8">
-                                      <div className="flex gap-3 overflow-x-auto no-scrollbar">
-                                        {(Array.isArray(r.punteggi_partite) ? r.punteggi_partite : (typeof r.punteggi_partite === 'string' ? JSON.parse(r.punteggi_partite) : [])).map((score, sIdx) => (
-                                          <div key={sIdx} className="w-14 h-12 flex items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 text-xl font-black text-blue-400 leading-none shadow-sm">
-                                            {score}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="flex gap-10 md:gap-14 items-center bg-black/20 p-4 rounded-2xl md:bg-transparent md:p-0 border border-white/5 md:border-0">
-                                    <div className="flex flex-col items-center gap-1.5 w-20">
-                                      <span className="text-3xl font-black text-blue-400 leading-none">{r.birilli}</span>
-                                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">birilli</span>
-                                    </div>
-                                    <div className="flex flex-col items-center gap-1.5 w-16 border-l border-white/10 pl-8">
-                                      <span className="text-2xl font-black text-white leading-none">{r.partite}</span>
-                                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">partite</span>
-                                    </div>
-                                    <div className="flex flex-col items-center gap-1.5 w-24 border-l border-white/10 pl-8">
-                                      <span className="text-3xl font-black text-blue-300 leading-none">{(r.birilli / (r.partite || selectedTournament.numero_partite || 6)).toFixed(1)}</span>
-                                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">media</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                        {selectedTournamentGroups.length === 0 && (
-                          <div className="py-20 text-center opacity-50">
-                            <Trophy className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                            <p className="text-gray-500 italic">Nessun risultato registrato per questo torneo.</p>
-                          </div>
-                        )}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="text-gray-400 border-b border-white/5">
+                              <th className="pb-4 pl-4 font-medium text-xs md:text-base">Pos.</th>
+                              <th className="pb-4 font-medium text-xs md:text-base">Atleta</th>
+                              <th className="pb-4 font-medium text-xs md:text-base text-center">Birilli</th>
+                              <th className="pb-4 font-medium text-xs md:text-base text-center">Partite</th>
+                              <th className="pb-4 font-medium text-xs md:text-base text-center">Media</th>
+                              <th className="pb-4 pr-4 font-medium text-xs md:text-base text-center">Data</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {results
+                              .filter(r => r.id_torneo === selectedTournament.id)
+                              .map(r => {
+                                const player = players.find(p => p.id === r.id_giocatore);
+                                return { ...r, player };
+                              })
+                              .filter(r => r.player)
+                              .sort((a, b) => (a.posizione || 999) - (b.posizione || 999))
+                              .filter(r => {
+                                const search = searchTournamentResults.toLowerCase();
+                                return r.player.nome.toLowerCase().includes(search) || r.player.cognome.toLowerCase().includes(search);
+                              })
+                              .map((r) => {
+                                const media = r.partite > 0 ? (r.birilli / r.partite).toFixed(2) : '0.00';
+                                return (
+                                  <tr key={r.id} className="group hover:bg-white/5 transition-colors">
+                                    <td className="py-4 pl-4 font-black text-blue-400 text-lg">#{r.posizione || '-'}</td>
+                                    <td className="py-4 font-bold">{r.player.nome} {r.player.cognome}</td>
+                                    <td className="py-4 text-center font-mono text-green-400 font-bold">{r.birilli}</td>
+                                    <td className="py-4 text-center font-mono">{r.partite}</td>
+                                    <td className="py-4 text-center font-black text-blue-400">{media}</td>
+                                    <td className="py-4 pr-4 text-center text-xs text-gray-400">
+                                      {r.data ? new Date(r.data).toLocaleDateString() : '-'}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            {results.filter(r => r.id_torneo === selectedTournament.id).filter(r => {
+                              const p = players.find(player => player.id === r.id_giocatore);
+                              if (!p) return false;
+                              const search = searchTournamentResults.toLowerCase();
+                              return p.nome.toLowerCase().includes(search) || p.cognome.toLowerCase().includes(search);
+                            }).length === 0 && (
+                                <tr>
+                                  <td colSpan="6" className="py-12 text-center text-gray-500 italic">
+                                    Nessun risultato trovato {searchTournamentResults ? 'per questa ricerca' : 'registrato'}.
+                                  </td>
+                                </tr>
+                              )}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>
