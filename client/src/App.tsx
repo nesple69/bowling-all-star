@@ -31,6 +31,7 @@ const Layout = () => {
 };
 
 function App() {
+  console.log('📦 Componente App montato');
   return (
     <AuthProvider>
       <Router>
