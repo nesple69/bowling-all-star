@@ -100,8 +100,13 @@ const Dashboard: React.FC = () => {
                 <AlertTriangle className="w-12 h-12 text-red-500" />
                 <h3 className="text-xl font-black uppercase tracking-tight text-dark">Connessione Fallita</h3>
                 <p className="text-gray-500 font-medium text-center max-w-md">
-                    Non riesco a contattare il server ({API_BASE_URL}).
-                    Assicurati che il backend sia attivo e configurato correttamente.
+                    Non riesco a contattare il server.
+                    <br />
+                    <span className="text-xs text-red-400 mt-2 block">
+                        Dettaglio: {error}
+                    </span>
+                    <br />
+                    Punto di accesso: <code className="bg-gray-100 px-1">{API_BASE_URL || '(Relativo)'}/api/dashboard/stats</code>
                 </p>
                 <button
                     onClick={() => window.location.reload()}
