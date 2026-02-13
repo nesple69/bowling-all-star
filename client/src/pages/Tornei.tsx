@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Trophy, Calendar, MapPin, Search, UserPlus, Users, Loader2 } from 'lucide-react';
+import { Trophy, Calendar, MapPin, Search, UserPlus, Users, Loader2, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -41,6 +41,7 @@ interface IscrittoPublic {
 const Tornei: React.FC = () => {
     const [tornei, setTornei] = useState<Torneo[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'TUTTI' | 'IN_CORSO' | 'COMPLETATI'>('TUTTI');
     const [searchQuery, setSearchQuery] = useState('');
     const [disponibilitaMap, setDisponibilitaMap] = useState<Record<string, number>>({});
@@ -91,6 +92,7 @@ const Tornei: React.FC = () => {
                 setDisponibilitaMap(map);
             } catch (err) {
                 console.error('Errore nel caricamento dei tornei:', err);
+                setError('Impossibile caricare la lista dei tornei. Verifica la connessione.');
             } finally {
                 setIsLoading(false);
             }
@@ -124,6 +126,17 @@ const Tornei: React.FC = () => {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+                <AlertTriangle className="w-12 h-12 text-red-500" />
+                <h3 className="text-xl font-black uppercase text-dark">Servitore non raggiungibile</h3>
+                <p className="text-gray-500 font-medium">{error}</p>
+                <button onClick={() => window.location.reload()} className="bg-primary text-white px-6 py-2 rounded-xl font-black uppercase text-xs">Riprova</button>
             </div>
         );
     }

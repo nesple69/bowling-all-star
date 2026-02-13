@@ -47,17 +47,20 @@ const Dashboard: React.FC = () => {
     const { user, isAdmin } = useAuth();
     const [data, setData] = useState<DashboardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [iscrittiMap, setIscrittiMap] = useState<Record<string, IscrittoPublic[]>>({});
     const [loadingIscritti, setLoadingIscritti] = useState<Record<string, boolean>>({});
     const [openIscritti, setOpenIscritti] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         const fetchStats = async () => {
+            setError(null);
             try {
                 const response = await axios.get(`${API_BASE_URL}/api/dashboard/stats`);
                 setData(response.data);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Errore nel caricamento della dashboard:', error);
+                setError('Impossibile caricare i dati. Verifica la connessione al server.');
             } finally {
                 setIsLoading(false);
             }
@@ -87,6 +90,25 @@ const Dashboard: React.FC = () => {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4 animate-fade-in">
+                <AlertTriangle className="w-12 h-12 text-red-500" />
+                <h3 className="text-xl font-black uppercase tracking-tight text-dark">Connessione Fallita</h3>
+                <p className="text-gray-500 font-medium text-center max-w-md">
+                    Non riesco a contattare il server ({API_BASE_URL}).
+                    Assicurati che il backend sia attivo e configurato correttamente.
+                </p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="mt-4 px-6 py-2 bg-primary text-white font-black rounded-xl uppercase text-xs tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+                >
+                    Riprova
+                </button>
             </div>
         );
     }
