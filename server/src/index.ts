@@ -26,17 +26,23 @@ app.use((req, res, next) => {
     next();
 });
 
-// Rotte
-app.use('/api/auth', authRoutes);
-app.use('/api/giocatori', giocatoriRoutes);
-app.use('/api/tornei', torneiRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/stagioni', stagioniRoutes);
-app.use('/api', contabilitaRoutes);
-app.use('/api/import', importRoutes);
-app.use('/api/partite', partiteRoutes);
-app.use('/api/backup', backupRoutes);
-app.use('/api/users', usersRoutes);
+// Rotte - Supporto doppio prefisso per Vercel
+const apiRouter = express.Router();
+
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/giocatori', giocatoriRoutes);
+apiRouter.use('/tornei', torneiRoutes);
+apiRouter.use('/dashboard', dashboardRoutes);
+apiRouter.use('/stagioni', stagioniRoutes);
+apiRouter.use('/import', importRoutes);
+apiRouter.use('/partite', partiteRoutes);
+apiRouter.use('/backup', backupRoutes);
+apiRouter.use('/users', usersRoutes);
+apiRouter.use('/', contabilitaRoutes);
+
+// Applichiamo il router sia a /api che alla radice per massima compatibilità
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
 
 // Servizio file statici (Locandine)
 app.use('/uploads', express.static('uploads'));
