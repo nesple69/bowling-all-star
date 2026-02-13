@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import {
     X, CreditCard, ArrowUpCircle, ArrowDownCircle,
@@ -30,7 +31,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const res = await axios.get(`http://localhost:3001/api/giocatori/${giocatore.id}/borsellino`, {
+            const res = await axios.get(`${API_BASE_URL}/api/giocatori/${giocatore.id}/borsellino`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSaldo(Number(res.data.saldo));
@@ -50,7 +51,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
         setIsActionLoading(true);
         try {
             const endpoint = showForm === 'ricarica' ? 'ricarica' : 'addebito';
-            await axios.post(`http://localhost:3001/api/contabilita/${endpoint}`, {
+            await axios.post(`${API_BASE_URL}/api/contabilita/${endpoint}`, {
                 giocatoreId: giocatore.id,
                 ...data
             }, {

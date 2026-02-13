@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import { Calendar, Plus, Trash2, CheckCircle2, AlertCircle, Save, ArrowLeft, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -32,7 +33,7 @@ const GestioneStagioni: React.FC = () => {
 
     const fetchStagioni = async () => {
         try {
-            const response = await axios.get('http://localhost:3001/api/stagioni');
+            const response = await axios.get(`${API_BASE_URL}/api/stagioni`);
             setStagioni(response.data);
         } catch (err) {
             console.error('Errore nel caricamento delle stagioni:', err);
@@ -45,7 +46,7 @@ const GestioneStagioni: React.FC = () => {
         e.preventDefault();
         const token = sessionStorage.getItem('token');
         try {
-            await axios.post('http://localhost:3001/api/stagioni', newStagione, {
+            await axios.post(`${API_BASE_URL}/api/stagioni`, newStagione, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setStatus({ type: 'success', message: 'Stagione creata con successo!' });
@@ -66,7 +67,7 @@ const GestioneStagioni: React.FC = () => {
         if (!window.confirm('Eliminare questa stagione?')) return;
         const token = sessionStorage.getItem('token');
         try {
-            await axios.delete(`http://localhost:3001/api/stagioni/${id}`, {
+            await axios.delete(`${API_BASE_URL}/api/stagioni/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setStatus({ type: 'success', message: 'Stagione eliminata.' });
@@ -82,7 +83,7 @@ const GestioneStagioni: React.FC = () => {
         if (!stagione) return;
 
         try {
-            await axios.put(`http://localhost:3001/api/stagioni/${id}`, { ...stagione, attiva: true }, {
+            await axios.put(`${API_BASE_URL}/api/stagioni/${id}`, { ...stagione, attiva: true }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setStatus({ type: 'success', message: 'Stagione attiva aggiornata.' });
@@ -96,7 +97,7 @@ const GestioneStagioni: React.FC = () => {
         const token = sessionStorage.getItem('token');
         try {
             const response = await axios.get(
-                `http://localhost:3001/api/backup/genera/${stagioneId}`,
+                `${API_BASE_URL}/api/backup/genera/${stagioneId}`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                     responseType: 'blob'

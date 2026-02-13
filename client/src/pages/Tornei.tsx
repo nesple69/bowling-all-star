@@ -4,6 +4,7 @@ import { Trophy, Calendar, MapPin, Search, UserPlus, Users, Loader2 } from 'luci
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { API_BASE_URL } from '../config';
 
 interface Torneo {
     id: string;
@@ -56,7 +57,7 @@ const Tornei: React.FC = () => {
 
         setLoadingIscritti(prev => ({ ...prev, [torneoId]: true }));
         try {
-            const res = await axios.get(`http://localhost:3001/api/tornei/public/${torneoId}/iscritti`);
+            const res = await axios.get(`${API_BASE_URL}/api/tornei/public/${torneoId}/iscritti`);
             setIscrittiMap(prev => ({ ...prev, [torneoId]: res.data }));
             setOpenIscritti(prev => ({ ...prev, [torneoId]: true }));
         } catch (err) {
@@ -69,7 +70,7 @@ const Tornei: React.FC = () => {
     useEffect(() => {
         const fetchTornei = async () => {
             try {
-                const response = await axios.get('http://localhost:3001/api/tornei/public');
+                const response = await axios.get(`${API_BASE_URL}/api/tornei/public`);
                 setTornei(response.data);
 
                 // Carica disponibilità per tornei non completati
@@ -77,7 +78,7 @@ const Tornei: React.FC = () => {
                 const dispResults = await Promise.all(
                     attivi.map(async (t: Torneo) => {
                         try {
-                            const res = await axios.get(`http://localhost:3001/api/tornei/public/${t.id}/disponibilita`);
+                            const res = await axios.get(`${API_BASE_URL}/api/tornei/public/${t.id}/disponibilita`);
                             const postiTotali = res.data.reduce((sum: number, s: any) => sum + (s.postiRimanenti || 0), 0);
                             return { id: t.id, posti: postiTotali };
                         } catch {

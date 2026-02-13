@@ -8,6 +8,7 @@ import {
 import { format, differenceInDays } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config';
 
 interface DashboardData {
     statsPerCategoria: { categoria: string; count: number }[];
@@ -53,7 +54,7 @@ const Dashboard: React.FC = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await axios.get('http://localhost:3001/api/dashboard/stats');
+                const response = await axios.get(`${API_BASE_URL}/api/dashboard/stats`);
                 setData(response.data);
             } catch (error) {
                 console.error('Errore nel caricamento della dashboard:', error);
@@ -72,7 +73,7 @@ const Dashboard: React.FC = () => {
 
         setLoadingIscritti(prev => ({ ...prev, [torneoId]: true }));
         try {
-            const res = await axios.get(`http://localhost:3001/api/tornei/public/${torneoId}/iscritti`);
+            const res = await axios.get(`${API_BASE_URL}/api/tornei/public/${torneoId}/iscritti`);
             setIscrittiMap(prev => ({ ...prev, [torneoId]: res.data }));
             setOpenIscritti(prev => ({ ...prev, [torneoId]: true }));
         } catch (err) {

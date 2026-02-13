@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config';
 
 interface Props {
     giocatore: any;
@@ -45,7 +46,7 @@ const SchedaGiocatore: React.FC<Props> = ({ giocatore, onClose, onEdit, onDelete
         if (!isAdmin) return;
         setIsWalletLoading(true);
         try {
-            const res = await axios.get(`http://localhost:3001/api/giocatori/${giocatore.id}/borsellino`, {
+            const res = await axios.get(`${API_BASE_URL}/api/giocatori/${giocatore.id}/borsellino`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSaldo(Number(res.data.saldo));
@@ -60,7 +61,7 @@ const SchedaGiocatore: React.FC<Props> = ({ giocatore, onClose, onEdit, onDelete
     const fetchPlayerResults = async () => {
         setIsLoadingResults(true);
         try {
-            const res = await axios.get(`http://localhost:3001/api/giocatori/${giocatore.id}`);
+            const res = await axios.get(`${API_BASE_URL}/api/giocatori/${giocatore.id}`);
             setResults(res.data.risultati || []);
         } catch (err) {
             console.error('Errore caricamento risultati:', err);
@@ -82,7 +83,7 @@ const SchedaGiocatore: React.FC<Props> = ({ giocatore, onClose, onEdit, onDelete
 
         setIsWalletActionLoading(true);
         try {
-            await axios.post(`http://localhost:3001/api/contabilita/${type}`, {
+            await axios.post(`${API_BASE_URL}/api/contabilita/${type}`, {
                 giocatoreId: giocatore.id,
                 importo: walletAmount,
                 descrizione: walletNote || (type === 'ricarica' ? 'Ricarica manuale' : 'Addebito manuale')

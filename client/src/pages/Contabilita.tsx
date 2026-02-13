@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import {
     Search, User, Loader2, ArrowLeftRight,
@@ -33,7 +34,7 @@ const Contabilita: React.FC = () => {
     const fetchSaldi = async () => {
         setIsLoading(true);
         try {
-            const res = await axios.get('http://localhost:3001/api/contabilita/saldi', {
+            const res = await axios.get(`${API_BASE_URL}/api/contabilita/saldi`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSaldi(res.data);

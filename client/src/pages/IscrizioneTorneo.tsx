@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import {
@@ -68,8 +69,8 @@ const IscrizioneTorneo: React.FC = () => {
         const fetchData = async () => {
             try {
                 const [resTorneo, resDisp] = await Promise.all([
-                    axios.get(`http://localhost:3001/api/tornei/public/${id}`),
-                    axios.get(`http://localhost:3001/api/tornei/public/${id}/disponibilita`)
+                    axios.get(`${API_BASE_URL}/api/tornei/public/${id}`),
+                    axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`)
                 ]);
                 setTorneo(resTorneo.data);
                 setDisponibilita(resDisp.data);
@@ -92,7 +93,7 @@ const IscrizioneTorneo: React.FC = () => {
         setSubmitResult(null);
 
         try {
-            const res = await axios.get(`http://localhost:3001/api/tornei/lookup-tessera/${tessera.trim()}`);
+            const res = await axios.get(`${API_BASE_URL}/api/tornei/lookup-tessera/${tessera.trim()}`);
             setGiocatore(res.data);
         } catch (err: any) {
             setTesseraError(err.response?.data?.message || 'Errore nella ricerca. Riprova.');
@@ -137,7 +138,7 @@ const IscrizioneTorneo: React.FC = () => {
         setSubmitResult(null);
 
         try {
-            await axios.post('http://localhost:3001/api/tornei/iscriviti', {
+            await axios.post(`${API_BASE_URL}/api/tornei/iscriviti`, {
                 torneoId: id,
                 turnoId: selectedTurno,
                 secondoTurnoId: selectedSecondTurno || null,
@@ -147,7 +148,7 @@ const IscrizioneTorneo: React.FC = () => {
             setSubmitResult({ type: 'success', message: 'Iscrizione inviata con successo! In attesa di conferma.' });
 
             // Aggiorna disponibilità
-            const resDisp = await axios.get(`http://localhost:3001/api/tornei/public/${id}/disponibilita`);
+            const resDisp = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`);
             setDisponibilita(resDisp.data);
 
             // Redirect dopo 3 secondi

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import {
     Users,
     UserPlus,
@@ -37,7 +38,7 @@ const GestioneUtenti: React.FC = () => {
         setIsLoading(true);
         try {
             const token = sessionStorage.getItem('token');
-            const response = await axios.get('http://localhost:3001/api/users', {
+            const response = await axios.get(`${API_BASE_URL}/api/users`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUsers(response.data);
@@ -63,7 +64,7 @@ const GestioneUtenti: React.FC = () => {
 
         try {
             const token = sessionStorage.getItem('token');
-            await axios.put(`http://localhost:3001/api/users/${userId}/role`,
+            await axios.put(`${API_BASE_URL}/api/users/${userId}/role`,
                 { ruolo: newRole },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -87,7 +88,7 @@ const GestioneUtenti: React.FC = () => {
 
         try {
             const token = sessionStorage.getItem('token');
-            await axios.delete(`http://localhost:3001/api/users/${userId}`, {
+            await axios.delete(`${API_BASE_URL}/api/users/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSuccessMessage(`Utente ${username} eliminato con successo`);
@@ -213,8 +214,8 @@ const GestioneUtenti: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${u.ruolo === 'ADMIN'
-                                                    ? 'bg-secondary text-white border border-secondary shadow-sm'
-                                                    : 'bg-gray-100 text-gray-500 border border-transparent'
+                                                ? 'bg-secondary text-white border border-secondary shadow-sm'
+                                                : 'bg-gray-100 text-gray-500 border border-transparent'
                                                 }`}>
                                                 {u.ruolo === 'ADMIN' ? <Shield className="w-3 h-3" /> : <UserIcon className="w-3 h-3" />}
                                                 {u.ruolo}
@@ -231,8 +232,8 @@ const GestioneUtenti: React.FC = () => {
                                                 <button
                                                     onClick={() => handleToggleRole(u.id, u.ruolo)}
                                                     className={`p-2 rounded-xl border-2 transition-all hover:-translate-y-0.5 ${u.ruolo === 'ADMIN'
-                                                            ? 'bg-red-50 border-red-100 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500'
-                                                            : 'bg-green-50 border-green-100 text-green-600 hover:bg-green-500 hover:text-white hover:border-green-500'
+                                                        ? 'bg-red-50 border-red-100 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500'
+                                                        : 'bg-green-50 border-green-100 text-green-600 hover:bg-green-500 hover:text-white hover:border-green-500'
                                                         }`}
                                                     title={u.ruolo === 'ADMIN' ? 'Rimuovi privilegi Admin' : 'Rendi Admin'}
                                                 >
@@ -242,8 +243,8 @@ const GestioneUtenti: React.FC = () => {
                                                     disabled={u.id === currentUser?.id}
                                                     onClick={() => handleDeleteUser(u.id, u.username)}
                                                     className={`p-2 rounded-xl border-2 border-gray-100 text-gray-400 transition-all ${u.id === currentUser?.id
-                                                            ? 'opacity-30 cursor-not-allowed'
-                                                            : 'hover:bg-red-500 hover:text-white hover:border-red-500 hover:-translate-y-0.5 shadow-sm'
+                                                        ? 'opacity-30 cursor-not-allowed'
+                                                        : 'hover:bg-red-500 hover:text-white hover:border-red-500 hover:-translate-y-0.5 shadow-sm'
                                                         }`}
                                                     title="Elimina Utente"
                                                 >

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import {
     Trophy, Plus, Edit2, Trash2, Calendar,
     MapPin, Settings, AlertCircle, Users, ChevronUp,
@@ -121,7 +122,7 @@ const GestioneTornei: React.FC = () => {
                 return;
             }
 
-            const url = sid ? `http://localhost:3001/api/tornei?stagioneId=${sid}` : 'http://localhost:3001/api/tornei';
+            const url = sid ? `${API_BASE_URL}/api/tornei?stagioneId=${sid}` : `${API_BASE_URL}/api/tornei`;
             const response = await axios.get(url, { headers });
             setTornei(response.data);
         } catch (err: any) {
@@ -138,7 +139,7 @@ const GestioneTornei: React.FC = () => {
 
     const fetchStagioni = async () => {
         try {
-            const res = await axios.get('http://localhost:3001/api/stagioni');
+            const res = await axios.get(`${API_BASE_URL}/api/stagioni`);
             setStagioni(res.data);
 
             // Seleziona automaticamente la stagione attiva
@@ -167,11 +168,11 @@ const GestioneTornei: React.FC = () => {
         try {
             if (editingStagioneId) {
                 // Modifica
-                await axios.put(`http://localhost:3001/api/stagioni/${editingStagioneId}`, newStagione, { headers });
+                await axios.put(`${API_BASE_URL}/api/stagioni/${editingStagioneId}`, newStagione, { headers });
                 setStatusStagione({ type: 'success', message: 'Stagione aggiornata!' });
             } else {
                 // Creazione
-                await axios.post('http://localhost:3001/api/stagioni', newStagione, { headers });
+                await axios.post(`${API_BASE_URL}/api/stagioni`, newStagione, { headers });
                 setStatusStagione({ type: 'success', message: 'Stagione creata!' });
             }
             setNewStagione({
@@ -197,7 +198,7 @@ const GestioneTornei: React.FC = () => {
         if (!window.confirm(`🚨 CONFERMA DEFINITIVA: Sei assolutamente sicuro di voler eliminare la stagione "${nome}" e TUTTI i suoi tornei?\n\nQuesta operazione è IRREVERSIBILE!`)) return;
 
         try {
-            await axios.delete(`http://localhost:3001/api/stagioni/${id}`, { headers });
+            await axios.delete(`${API_BASE_URL}/api/stagioni/${id}`, { headers });
             // Se la stagione eliminata era quella selezionata, resetta il filtro
             if (selectedStagione === id) {
                 setSelectedStagione('');
@@ -212,7 +213,7 @@ const GestioneTornei: React.FC = () => {
     const handleDownloadBackup = async (stagioneId: string, stagioneName: string) => {
         try {
             const response = await axios.get(
-                `http://localhost:3001/api/backup/genera/${stagioneId}`,
+                `${API_BASE_URL}/api/backup/genera/${stagioneId}`,
                 {
                     headers,
                     responseType: 'blob'
@@ -246,7 +247,7 @@ const GestioneTornei: React.FC = () => {
             return;
         }
         try {
-            await axios.delete(`http://localhost:3001/api/tornei/${id}`, { headers });
+            await axios.delete(`${API_BASE_URL}/api/tornei/${id}`, { headers });
             setTornei(tornei.filter(t => t.id !== id));
         } catch (err) {
             alert('Errore durante l\'eliminazione del torneo.');
@@ -265,8 +266,8 @@ const GestioneTornei: React.FC = () => {
 
         try {
             const [resIscr, resDisp] = await Promise.all([
-                axios.get(`http://localhost:3001/api/tornei/${torneoId}/iscrizioni`, { headers }),
-                axios.get(`http://localhost:3001/api/tornei/public/${torneoId}/disponibilita`)
+                axios.get(`${API_BASE_URL}/api/tornei/${torneoId}/iscrizioni`, { headers }),
+                axios.get(`${API_BASE_URL}/api/tornei/public/${torneoId}/disponibilita`)
             ]);
             setIscrizioni(resIscr.data);
             setTurniTorneo(resDisp.data.map((d: any) => ({
@@ -285,7 +286,7 @@ const GestioneTornei: React.FC = () => {
 
     const reloadIscrizioni = async (torneoId: string) => {
         try {
-            const res = await axios.get(`http://localhost:3001/api/tornei/${torneoId}/iscrizioni`, { headers });
+            const res = await axios.get(`${API_BASE_URL}/api/tornei/${torneoId}/iscrizioni`, { headers });
             setIscrizioni(res.data);
             // Aggiorna anche il conteggio
             setTornei(prev => prev.map(t =>
@@ -299,7 +300,7 @@ const GestioneTornei: React.FC = () => {
     const handleStato = async (iscrizioneId: string, stato: string, torneo: Torneo) => {
         setActionLoading(iscrizioneId);
         try {
-            await axios.patch(`http://localhost:3001/api/tornei/iscrizioni/${iscrizioneId}/stato`, { stato }, { headers });
+            await axios.patch(`${API_BASE_URL}/api/tornei/iscrizioni/${iscrizioneId}/stato`, { stato }, { headers });
             await reloadIscrizioni(torneo.id);
         } catch (err: any) {
             alert(err.response?.data?.message || 'Errore nell\'aggiornamento.');
@@ -313,7 +314,7 @@ const GestioneTornei: React.FC = () => {
 
         setActionLoading(iscrizioneId);
         try {
-            await axios.put(`http://localhost:3001/api/tornei/iscrizioni/${iscrizioneId}`, {
+            await axios.put(`${API_BASE_URL}/api/tornei/iscrizioni/${iscrizioneId}`, {
                 turnoId: nuovoTurnoId
             }, { headers });
             await reloadIscrizioni(torneo.id);
@@ -329,7 +330,7 @@ const GestioneTornei: React.FC = () => {
 
         setActionLoading(iscrizioneId);
         try {
-            await axios.delete(`http://localhost:3001/api/tornei/iscrizioni/${iscrizioneId}`, { headers });
+            await axios.delete(`${API_BASE_URL}/api/tornei/iscrizioni/${iscrizioneId}`, { headers });
             await reloadIscrizioni(torneo.id);
         } catch (err: any) {
             alert(err.response?.data?.message || 'Errore nella cancellazione.');

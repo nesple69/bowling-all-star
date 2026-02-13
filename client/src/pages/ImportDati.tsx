@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import {
     Trophy,
     Link as LinkIcon,
@@ -59,10 +60,10 @@ const ImportDati: React.FC = () => {
             try {
                 const token = sessionStorage.getItem('token');
                 const [torneiRes, giocatoriRes] = await Promise.all([
-                    axios.get('http://localhost:3001/api/tornei', {
+                    axios.get(`${API_BASE_URL}/api/tornei`, {
                         headers: { Authorization: `Bearer ${token}` }
                     }),
-                    axios.get('http://localhost:3001/api/giocatori', {
+                    axios.get(`${API_BASE_URL}/api/giocatori`, {
                         headers: { Authorization: `Bearer ${token}` }
                     })
                 ]);
@@ -80,7 +81,7 @@ const ImportDati: React.FC = () => {
         setLoading(true);
         try {
             const token = sessionStorage.getItem('token');
-            const res = await axios.get(`http://localhost:3001/api/import/preview?url=${encodeURIComponent(url)}`, {
+            const res = await axios.get(`${API_BASE_URL}/api/import/preview?url=${encodeURIComponent(url)}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setPreview(res.data);
@@ -98,7 +99,7 @@ const ImportDati: React.FC = () => {
         setImporting(true);
         try {
             const token = sessionStorage.getItem('token');
-            const res = await axios.post('http://localhost:3001/api/import/torneo', {
+            const res = await axios.post(`${API_BASE_URL}/api/import/torneo`, {
                 url,
                 torneoId: selectedTorneoId,
                 matchesOverride: manualMatches

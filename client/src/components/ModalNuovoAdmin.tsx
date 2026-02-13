@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, User, Mail, Lock, Plus } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 interface ModalNuovoAdminProps {
     isOpen: boolean;
@@ -40,7 +41,7 @@ const ModalNuovoAdmin: React.FC<ModalNuovoAdminProps> = ({ isOpen, onClose, onSu
 
         try {
             const token = sessionStorage.getItem('token');
-            await axios.post('http://localhost:3001/api/users/create-admin',
+            await axios.post(`${API_BASE_URL}/api/users/create-admin`,
                 {
                     username: formData.username,
                     email: formData.email,

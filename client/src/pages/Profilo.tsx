@@ -13,6 +13,7 @@ import {
     Key
 } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const Profilo: React.FC = () => {
     const { user, setUser } = useAuth();
@@ -53,7 +54,7 @@ const Profilo: React.FC = () => {
 
         try {
             const token = sessionStorage.getItem('token');
-            const response = await axios.put('http://localhost:3001/api/auth/update-profile',
+            const response = await axios.put(`${API_BASE_URL}/api/auth/update-profile`,
                 {
                     username: formData.username,
                     email: formData.email,

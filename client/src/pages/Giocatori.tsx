@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Search, Filter, Plus, User as UserIcon, Star, Loader2, Users } from 'lucide-react';
 import SchedaGiocatore from '../components/SchedaGiocatore';
 import FormGiocatore from '../components/FormGiocatore';
+import { API_BASE_URL } from '../config';
 
 interface Giocatore {
     id: string;
@@ -68,7 +69,7 @@ const Giocatori: React.FC = () => {
         setIsLoading(true);
         try {
             const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-            const res = await axios.get('http://localhost:3001/api/giocatori', {
+            const res = await axios.get(`${API_BASE_URL}/api/giocatori`, {
                 params: { categoria: selectedCategory !== 'ALL' ? selectedCategory : undefined },
                 ...config
             });
@@ -87,11 +88,11 @@ const Giocatori: React.FC = () => {
     const handleSavePlayer = async (formData: any) => {
         try {
             if (editingGiocatore) {
-                await axios.put(`http://localhost:3001/api/giocatori/${editingGiocatore.id}`, formData, {
+                await axios.put(`${API_BASE_URL}/api/giocatori/${editingGiocatore.id}`, formData, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } else {
-                await axios.post('http://localhost:3001/api/giocatori', formData, {
+                await axios.post(`${API_BASE_URL}/api/giocatori`, formData, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }
@@ -112,7 +113,7 @@ const Giocatori: React.FC = () => {
     const handleDeleteGiocatore = async () => {
         if (!selectedGiocatore) return;
         try {
-            await axios.delete(`http://localhost:3001/api/giocatori/${selectedGiocatore.id}`, {
+            await axios.delete(`${API_BASE_URL}/api/giocatori/${selectedGiocatore.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             await fetchGiocatori();

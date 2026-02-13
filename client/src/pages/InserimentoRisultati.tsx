@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import {
     Trophy, ChevronLeft, Save, Trash2,
     Plus, Search, UserPlus, Info,
@@ -44,9 +45,9 @@ const InserimentoRisultati: React.FC = () => {
             const token = sessionStorage.getItem('token');
             try {
                 const [resTorneo, resRisultati, resGiocatori] = await Promise.all([
-                    axios.get(`http://localhost:3001/api/tornei/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-                    axios.get(`http://localhost:3001/api/tornei/${id}/risultati`, { headers: { Authorization: `Bearer ${token}` } }),
-                    axios.get('http://localhost:3001/api/giocatori', { headers: { Authorization: `Bearer ${token}` } })
+                    axios.get(`${API_BASE_URL}/api/tornei/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get(`${API_BASE_URL}/api/tornei/${id}/risultati`, { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get(`${API_BASE_URL}/api/giocatori`, { headers: { Authorization: `Bearer ${token}` } })
                 ]);
                 setTorneo(resTorneo.data);
                 setRisultati(resRisultati.data);
@@ -64,7 +65,7 @@ const InserimentoRisultati: React.FC = () => {
     const handleSaveResult = async (risultato: Risultato) => {
         try {
             const token = sessionStorage.getItem('token');
-            const res = await axios.post(`http://localhost:3001/api/tornei/${id}/risultati`, risultato, {
+            const res = await axios.post(`${API_BASE_URL}/api/tornei/${id}/risultati`, risultato, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             // Update the ID if it was new
@@ -80,7 +81,7 @@ const InserimentoRisultati: React.FC = () => {
         if (!window.confirm('Eliminare questo risultato?')) return;
         try {
             const token = sessionStorage.getItem('token');
-            await axios.delete(`http://localhost:3001/api/tornei/${id}/risultati/${risultatoId}`, {
+            await axios.delete(`${API_BASE_URL}/api/tornei/${id}/risultati/${risultatoId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setRisultati(risultati.filter(r => r.id !== risultatoId));

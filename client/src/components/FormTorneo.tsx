@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import {
     Save, ArrowLeft, Plus, Clock, Edit2,
     Trash2, MapPin, Link as LinkIcon, FileText,
@@ -42,11 +43,11 @@ const FormTorneo: React.FC = () => {
             const token = sessionStorage.getItem('token');
             try {
                 // Fetch Stagioni Reali
-                const resStagioni = await axios.get('http://localhost:3001/api/stagioni');
+                const resStagioni = await axios.get(`${API_BASE_URL}/api/stagioni`);
                 setStagioni(resStagioni.data);
 
                 if (isEdit) {
-                    const resTorneo = await axios.get(`http://localhost:3001/api/tornei/${id}`, {
+                    const resTorneo = await axios.get(`${API_BASE_URL}/api/tornei/${id}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     const t = resTorneo.data;
@@ -62,7 +63,7 @@ const FormTorneo: React.FC = () => {
                         completato: t.completato
                     });
                     setTurni(t.turni || []);
-                    if (t.locandina) setPreviewUrl(`http://localhost:3001${t.locandina}`);
+                    if (t.locandina) setPreviewUrl(`${API_BASE_URL}${t.locandina}`);
                 }
             } catch (err) {
                 console.error('Errore nel caricamento dati:', err);
@@ -94,7 +95,7 @@ const FormTorneo: React.FC = () => {
 
         try {
             const token = sessionStorage.getItem('token');
-            const res = await axios.post(`http://localhost:3001/api/tornei/${id}/giorni`, nuovoTurno, {
+            const res = await axios.post(`${API_BASE_URL}/api/tornei/${id}/giorni`, nuovoTurno, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTurni([...turni, res.data]);
@@ -107,7 +108,7 @@ const FormTorneo: React.FC = () => {
         if (!window.confirm('Eliminare questo turno?')) return;
         try {
             const token = sessionStorage.getItem('token');
-            await axios.delete(`http://localhost:3001/api/tornei/${id}/giorni/${turnoId}`, {
+            await axios.delete(`${API_BASE_URL}/api/tornei/${id}/giorni/${turnoId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTurni(turni.filter(t => t.id !== turnoId));
@@ -122,7 +123,7 @@ const FormTorneo: React.FC = () => {
 
         try {
             const token = sessionStorage.getItem('token');
-            const res = await axios.put(`http://localhost:3001/api/tornei/${id}/giorni/${editingTurno.id}`, editingTurno, {
+            const res = await axios.put(`${API_BASE_URL}/api/tornei/${id}/giorni/${editingTurno.id}`, editingTurno, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTurni(turni.map(t => t.id === editingTurno.id ? res.data : t));
@@ -150,12 +151,12 @@ const FormTorneo: React.FC = () => {
         try {
             const token = sessionStorage.getItem('token');
             if (isEdit) {
-                await axios.put(`http://localhost:3001/api/tornei/${id}`, data, {
+                await axios.put(`${API_BASE_URL}/api/tornei/${id}`, data, {
                     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
                 });
                 setStatus({ type: 'success', message: 'Torneo aggiornato con successo!' });
             } else {
-                const res = await axios.post('http://localhost:3001/api/tornei', data, {
+                const res = await axios.post(`${API_BASE_URL}/api/tornei`, data, {
                     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
                 });
                 setStatus({ type: 'success', message: 'Torneo creato! Ora puoi aggiungere i turni.' });

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 export function usePartiteTorneo(risultatoTorneoId: string | null) {
     const [data, setData] = useState<any>(null);
@@ -16,7 +17,7 @@ export function usePartiteTorneo(risultatoTorneoId: string | null) {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`http://localhost:3001/api/partite/torneo/${risultatoTorneoId}`);
+                const response = await axios.get(`${API_BASE_URL}/api/partite/torneo/${risultatoTorneoId}`);
                 setData(response.data.data);
             } catch (err: any) {
                 console.error('Errore fetch partite:', err);

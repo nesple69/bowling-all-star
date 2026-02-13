@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import {
     Trophy, Calendar, MapPin, Download,
     ExternalLink, ChevronLeft, Info, Users,
@@ -67,10 +68,10 @@ const DettaglioTorneo: React.FC = () => {
     useEffect(() => {
         const fetchTorneo = async () => {
             try {
-                const resTorneo = await axios.get(`http://localhost:3001/api/tornei/public/${id}`);
+                const resTorneo = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}`);
                 setTorneo(resTorneo.data);
 
-                const resDisp = await axios.get(`http://localhost:3001/api/tornei/public/${id}/disponibilita`);
+                const resDisp = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`);
                 setDisponibilita(resDisp.data);
 
                 // Se loggato, prendi info giocatore
@@ -78,7 +79,7 @@ const DettaglioTorneo: React.FC = () => {
                 const userStr = sessionStorage.getItem('user');
                 if (token && userStr) {
                     // Fetch profile to get giocatoreId and saldo
-                    const resProfile = await axios.get('http://localhost:3001/api/auth/profile', {
+                    const resProfile = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     setUserGiocatore(resProfile.data.giocatore);
@@ -113,7 +114,7 @@ const DettaglioTorneo: React.FC = () => {
 
         try {
             const token = sessionStorage.getItem('token');
-            await axios.post('http://localhost:3001/api/tornei/iscriviti', {
+            await axios.post(`${API_BASE_URL}/api/tornei/iscriviti`, {
                 torneoId: id,
                 turnoId: turnoId,
                 giocatoreId: userGiocatore.id
@@ -123,11 +124,11 @@ const DettaglioTorneo: React.FC = () => {
 
             setStatus({ type: 'success', message: 'Iscrizione effettuata con successo!' });
             // Refresh disponibilita
-            const resDisp = await axios.get(`http://localhost:3001/api/tornei/public/${id}/disponibilita`);
+            const resDisp = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`);
             setDisponibilita(resDisp.data);
 
             // Refresh saldo
-            const resProfile = await axios.get('http://localhost:3001/api/auth/profile', {
+            const resProfile = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUserGiocatore(resProfile.data.giocatore);
@@ -164,7 +165,7 @@ const DettaglioTorneo: React.FC = () => {
                             <>
                                 {torneo.locandina && !isScaduto2Giorni && (
                                     <a
-                                        href={`http://localhost:3001${torneo.locandina}`}
+                                        href={`${API_BASE_URL}${torneo.locandina}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:border-primary hover:text-primary transition-all shadow-sm"
