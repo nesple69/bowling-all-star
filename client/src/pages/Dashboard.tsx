@@ -60,7 +60,7 @@ const Dashboard: React.FC = () => {
                 setData(response.data);
             } catch (error: any) {
                 console.error('Errore nel caricamento della dashboard:', error);
-                setError('Impossibile caricare i dati. Verifica la connessione al server.');
+                setError(error.response?.data?.message || error.message || 'Errore di connessione');
             } finally {
                 setIsLoading(false);
             }
@@ -108,6 +108,8 @@ const Dashboard: React.FC = () => {
                     <br />
                     <span className="text-[10px] text-gray-400">
                         Punto di accesso: <code className="bg-gray-100 px-1">{API_BASE_URL || '(Relativo)'}/api/dashboard/stats</code>
+                        <br />
+                        Stato Axios: <code className="bg-gray-100 px-1">{error}</code>
                     </span>
                 </p>
                 <div className="flex space-x-2">

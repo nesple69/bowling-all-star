@@ -90,9 +90,9 @@ const Tornei: React.FC = () => {
                 const map: Record<string, number> = {};
                 dispResults.forEach((d: { id: string; posti: number }) => { map[d.id] = d.posti; });
                 setDisponibilitaMap(map);
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Errore nel caricamento dei tornei:', err);
-                setError('Impossibile caricare la lista dei tornei. Verifica la connessione.');
+                setError(err.response?.data?.message || err.message || 'Errore di connessione');
             } finally {
                 setIsLoading(false);
             }
@@ -136,6 +136,9 @@ const Tornei: React.FC = () => {
                 <AlertTriangle className="w-12 h-12 text-red-500" />
                 <h3 className="text-xl font-black uppercase text-dark">Servitore non raggiungibile</h3>
                 <p className="text-gray-500 font-medium">{error}</p>
+                <span className="text-[10px] text-gray-400">
+                    Punto di accesso: <code className="bg-gray-100 px-1">{API_BASE_URL || '(Relativo)'}/api/tornei/public</code>
+                </span>
                 <button onClick={() => window.location.reload()} className="bg-primary text-white px-6 py-2 rounded-xl font-black uppercase text-xs">Riprova</button>
             </div>
         );
