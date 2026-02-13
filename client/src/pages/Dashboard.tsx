@@ -102,18 +102,30 @@ const Dashboard: React.FC = () => {
                 <p className="text-gray-500 font-medium text-center max-w-md">
                     Non riesco a contattare il server.
                     <br />
-                    <span className="text-xs text-red-400 mt-2 block">
-                        Dettaglio: {error}
+                    <span className="text-xs text-red-400 mt-2 block font-mono">
+                        {error}
                     </span>
                     <br />
-                    Punto di accesso: <code className="bg-gray-100 px-1">{API_BASE_URL || '(Relativo)'}/api/dashboard/stats</code>
+                    <span className="text-[10px] text-gray-400">
+                        Punto di accesso: <code className="bg-gray-100 px-1">{API_BASE_URL || '(Relativo)'}/api/dashboard/stats</code>
+                    </span>
                 </p>
-                <button
-                    onClick={() => window.location.reload()}
-                    className="mt-4 px-6 py-2 bg-primary text-white font-black rounded-xl uppercase text-xs tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all"
-                >
-                    Riprova
-                </button>
+                <div className="flex space-x-2">
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="bg-primary text-white font-black px-6 py-2 rounded-xl uppercase tracking-widest text-xs shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
+                    >
+                        Riprova
+                    </button>
+                    <a
+                        href={`${API_BASE_URL}/api/health`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-gray-200 text-gray-600 font-black px-6 py-2 rounded-xl uppercase tracking-widest text-xs hover:bg-gray-300 transition-all"
+                    >
+                        Test Server
+                    </a>
+                </div>
             </div>
         );
     }
