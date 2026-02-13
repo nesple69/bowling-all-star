@@ -1,11 +1,5 @@
 {
     "version": 2,
-    "functions": {
-        "api/index.ts": {
-            "runtime": "vercel-node@latest",
-            "includeFiles": "server/src/**"
-        }
-    },
     "rewrites": [
         {
             "source": "/api/(.*)",
@@ -14,10 +8,6 @@
         {
             "source": "/uploads/(.*)",
             "destination": "/api/index.ts"
-        },
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
         }
     ]
 }
