@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.DS_Store
+backups/
+client/node_modules/
+client/dist/
+server/node_modules/
+server/dist/
+server/.env
