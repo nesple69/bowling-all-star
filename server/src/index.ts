@@ -20,9 +20,9 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Logger middleware
+// Logger middleware avanzato per Vercel
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`);
     next();
 });
 
@@ -42,7 +42,19 @@ app.use('/api/users', usersRoutes);
 app.use('/uploads', express.static('uploads'));
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok' });
+    console.log('💚 Health check hit!');
+    res.json({ status: 'ok', environment: process.env.NODE_ENV, timestamp: new Date().toISOString() });
+});
+
+// Gestore 404 personalizzato per debug
+app.use('/api/*', (req, res) => {
+    console.warn(`⚠️ 404 su rotta API: ${req.method} ${req.url}`);
+    res.status(404).json({
+        error: 'Rotta API non trovata',
+        path: req.url,
+        method: req.method,
+        help: 'Se vedi questo, Express è attivo ma la rotta è sbagliata'
+    });
 });
 
 // Export app for Vercel
