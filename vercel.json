@@ -1,5 +1,19 @@
 {
     "version": 2,
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/api"
+        },
+        {
+            "source": "/uploads/(.*)",
+            "destination": "/api"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/client/$1"
+        }
+    ],
     "builds": [
         {
             "src": "package.json",
@@ -9,30 +23,8 @@
             }
         },
         {
-            "src": "server/src/index.ts",
+            "src": "api/index.ts",
             "use": "@vercel/node"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/api/(.*)",
-            "dest": "/server/src/index.ts"
-        },
-        {
-            "src": "/uploads/(.*)",
-            "dest": "/server/src/index.ts"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/$1",
-            "continue": true
-        },
-        {
-            "handle": "filesystem"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "index.html"
         }
     ]
 }
