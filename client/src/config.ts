@@ -1,22 +1,25 @@
-// Rilevamento intelligente dell'URL API con logging della sorgente
+// Rilevamento URL API - Versione Definitiva "No-Bug"
 const getApiUrl = () => {
-    // 1. Variabile d'ambiente esplicita
-    if (import.meta.env.VITE_API_URL) {
-        console.log('🔌 API URL sorgente: Variabile d\'ambiente VITE_API_URL');
-        return import.meta.env.VITE_API_URL;
-    }
+    // 1. Controllo se siamo in ambiente locale (PC di sviluppo)
+    const isLocal = typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-    // 2. Controllo ambiente Locale
-    if (typeof window !== 'undefined' &&
-        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        console.log('🏠 API URL sorgente: Ambiente Locale');
+    if (isLocal) {
+        console.log('🏠 Ambiente: Locale (Sviluppo)');
         return 'http://localhost:3001';
     }
 
-    // 3. Produzione (Vercel)
-    console.log('🌍 API URL sorgente: Rilevamento automatico Produzione');
+    // 2. Produzione (Vercel / Online)
+    // Ignoriamo deliberatamente VITE_API_URL per evitare errori di battitura persistenti.
+    // Usare '' (vuoto) forza il browser a usare l'indirizzo attuale del sito per le chiamate API.
+    console.log('🌍 Ambiente: Produzione (Online)');
     return '';
 };
 
 export const API_BASE_URL = getApiUrl();
-console.log('🚀 API_BASE_URL configurata:', API_BASE_URL || '(Percorso Relativo)');
+console.log('🚀 API_BASE_URL finale:', API_BASE_URL || '(Percorso Relativo)');
+
+// Debug log per identificare variabili "fantasma"
+if (import.meta.env.VITE_API_URL) {
+    console.warn('⚠️ Nota: C\'è ancora una variabile VITE_API_URL impostata:', import.meta.env.VITE_API_URL);
+}
