@@ -56,6 +56,7 @@ const App = () => {
   // Calendar PDF States
   const [calendarPdfUrl, setCalendarPdfUrl] = useState(null);
   const [showCalendarUpload, setShowCalendarUpload] = useState(false);
+  const [uploadingCalendar, setUploadingCalendar] = useState(false);
   // Directive PDF States
   const [directivePdfUrl, setDirectivePdfUrl] = useState(null);
   const [showDirectiveUpload, setShowDirectiveUpload] = useState(false);
@@ -140,9 +141,23 @@ const App = () => {
   };
 
   const handleSaveImportedResults = async (importedResults) => {
-    console.log('App: handleSaveImportedResults started', { count: importedResults?.length });
+    console.group('🔵 IMPORT DEBUG');
+    console.log('Received:', importedResults);
+    console.log('Is Array:', Array.isArray(importedResults));
+    console.log('Length:', importedResults?.length);
+    console.log('First item:', importedResults?.[0]);
+    console.groupEnd();
+
+    if (!importedResults?.length) {
+      alert('❌ No data received! Check TournamentImportV2 component.');
+      return;
+    }
+
     try {
       setLoading(true);
+
+      console.log('📤 Sending to Supabase:', importedResults.length, 'items');
+
       const { data, error } = await supabase
         .from('results')
         .upsert(importedResults.map(r => ({
@@ -150,21 +165,48 @@ const App = () => {
           categoria_risultato: r.categoria_risultato || null
         })));
 
-      console.log('App: Supabase upsert completed', { error });
+      console.log('✅ Supabase data:', data);
+      console.log('❌ Supabase error:', error);
 
       if (error) throw error;
 
-      console.log('App: Refreshing data...');
       await fetchData();
-      console.log('App: Data refreshed');
-
       setShowTournamentImportForm(false);
-      alert(`Importato con successo! (${importedResults.length} risultati)`);
+      alert(`✅ Imported ${importedResults.length} results!`);
+
     } catch (error) {
-      console.error('App: Import error', error);
-      alert('Errore caricamento risultati: ' + error.message);
+      console.error('🔴 Error:', error);
+      alert('Error: ' + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const testDirectImport = async () => {
+    if (!tournaments[0] || !players[0]) {
+      alert('⚠️ Need at least 1 tournament and 1 player');
+      return;
+    }
+
+    const test = [{
+      id_torneo: tournaments[0].id,
+      id_giocatore: players[0].id,
+      birilli: 999,
+      posizione: 99,
+      media: 166.5,
+      partite: 6
+    }];
+
+    console.log('🧪 Test insert:', test);
+
+    const { data, error } = await supabase.from('results').insert(test);
+
+    if (error) {
+      alert('❌ DB Error: ' + error.message);
+      console.error(error);
+    } else {
+      alert('✅ Test OK! Problem is in TournamentImportV2');
+      await fetchData();
     }
   };
 
@@ -1888,6 +1930,11 @@ const App = () => {
                 title="Importa Risultati FISB"
               >
                 <Upload className="w-5 h-5" /> <span>+ aggiungi torneo</span>
+              </button>
+            )}
+            {isAdmin && (
+              <button onClick={testDirectImport} className="pointer-events-auto px-4 py-2 bg-yellow-500/20 text-yellow-400 rounded-xl font-bold border border-yellow-500/20 scale-90 md:scale-100">
+                🧪 TEST INSERT
               </button>
             )}
             <button

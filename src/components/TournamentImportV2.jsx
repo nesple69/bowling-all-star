@@ -75,15 +75,16 @@ const TournamentImportV2 = ({ players, tournaments, onSave, onCancel }) => {
             let foundAny = false;
             row.forEach((cell, idx) => {
                 const c = cell.toUpperCase().trim();
-                if (['POS', 'RANGO', 'POS.', '#', 'POSIZIONE', 'CL', 'POSIZ.'].includes(c)) { colMapping.rank = idx; foundAny = true; }
-                else if (['ATLETA', 'GIOCATORE', 'NOME', 'NOMINATIVO', 'GIOCATORI'].includes(c)) { colMapping.name = idx; foundAny = true; }
-                else if (['SQUADRA', 'TOT. SQUADRA', 'TOT. SQ.', 'TEAM TOT.'].includes(c)) colMapping.teamTotal = idx;
-                else if (['TOT', 'TOTALE', 'BIRILLI', 'SCRATCH'].includes(c)) colMapping.total = idx;
-                else if (['MEDIA', 'MED', 'AVG'].includes(c)) colMapping.media = idx;
+                if (['POS', 'RANGO', 'POS.', '#', 'POSIZIONE', 'CL', 'POSIZ.', 'POSS'].includes(c)) { colMapping.rank = idx; foundAny = true; }
+                else if (['ATLETA', 'GIOCATORE', 'NOME', 'NOMINATIVO', 'GIOCATORI', 'COGNOME NOME'].includes(c)) { colMapping.name = idx; foundAny = true; }
+                else if (['SQUADRA', 'TOT. SQUADRA', 'TOT. SQ.', 'TEAM TOT.', 'TOT.SQUADRA'].includes(c)) colMapping.teamTotal = idx;
+                else if (['TOT', 'TOTALE', 'BIRILLI', 'SCRATCH', 'TOT.', 'SCR'].includes(c)) colMapping.total = idx;
+                else if (['MEDIA', 'MED', 'AVG', 'MED.'].includes(c)) colMapping.media = idx;
                 else if (/^G\d+$/.test(c) || /^P\d+$/.test(c)) colMapping.scores.push(idx);
             });
             if (foundAny && colMapping.name !== -1) break;
         }
+        console.log('Parser: Mapping rilevato:', colMapping);
 
         // Heuristics if mapping failed
         if (colMapping.name === -1) colMapping.name = rows[0].length >= 2 ? 1 : 0;
@@ -113,18 +114,27 @@ const TournamentImportV2 = ({ players, tournaments, onSave, onCancel }) => {
             if (!name || name.length < 3 || !isNaN(name)) {
                 name = row.find(c => c.length > 5 && isNaN(c) && !c.includes('.'));
             }
-            if (!name || name.length < 3 || /TEAM|SQUADRA|FISB|PAGINA/i.test(name)) return;
+            if (!name || name.length < 3 || /TEAM|SQUADRA|FISB|PAGINA|GIOCATORE|CAMPIONATO|CATEGOR|CAT\.|COGNOME|NOME/i.test(name)) {
+                console.log('Parser: Riga scartata (noise/header):', name);
+                return;
+            }
 
             // Scores detection
             let scores = [];
-            row.forEach(cell => {
-                const val = parseInt(cell);
-                if (!isNaN(val) && val >= 50 && val <= 300 && !cell.includes('.')) scores.push(val);
+            row.forEach((cell, idx) => {
+                if (idx === colMapping.name || idx === colMapping.rank) return;
+                const val = parseInt(cell.toString().replace(/[^0-9]/g, ''));
+                if (!isNaN(val) && val >= 40 && val <= 300) scores.push(val);
             });
 
             const sumScores = scores.reduce((a, b) => a + b, 0);
-            let total = parseInt(row[colMapping.total]) || sumScores;
-            if (total < sumScores) total = sumScores;
+            let total = 0;
+            if (colMapping.total !== -1 && row[colMapping.total]) {
+                total = parseInt(row[colMapping.total].toString().replace(/[^0-9]/g, '')) || 0;
+            }
+            if (total < sumScores || total === 0) total = sumScores;
+
+            console.log(`Row Debug [${name}]: Games=${scores.join(',')} Sum=${sumScores} FinalTotal=${total}`);
 
             results.push({
                 rank: parseInt(row[colMapping.rank]) || lastRank++,
@@ -137,14 +147,42 @@ const TournamentImportV2 = ({ players, tournaments, onSave, onCancel }) => {
         });
 
         // --- 5. MATCHING PLAYERS ---
+        console.group('🔍 PLAYER MATCHING DEBUG');
         const matched = results.map(res => {
+            const norm = (n) => {
+                if (!n) return '';
+                return n.toString().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, '');
+            };
+
+            const target = norm(res.player_name);
+
             const matchedPlayer = players.find(p => {
-                const norm = (n) => n.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z]/g, '');
-                const target = norm(res.player_name);
-                const p1 = norm(p.nome) + norm(p.cognome);
-                const p2 = norm(p.cognome) + norm(p.nome);
-                return target === p1 || target === p2 || (target.includes(norm(p.nome)) && target.includes(norm(p.cognome)));
+                const nOriginal = norm(p.nome);
+                const cOriginal = norm(p.cognome);
+                const p1 = nOriginal + cOriginal;
+                const p2 = cOriginal + nOriginal;
+
+                // 1. Exact match (N+C or C+N)
+                if (target === p1 || target === p2) return true;
+
+                // 2. Partial match (Database Name and Surname both contained in the target)
+                if (nOriginal.length > 2 && cOriginal.length > 2) {
+                    if (target.includes(nOriginal) && target.includes(cOriginal)) return true;
+                }
+
+                // 3. Fallback: Surname contained and Name initial matches
+                if (cOriginal.length > 3 && target.includes(cOriginal)) {
+                    if (nOriginal.length > 0 && target.includes(nOriginal[0])) return true;
+                }
+
+                return false;
             });
+
+            if (matchedPlayer) {
+                console.log(`✅ MATCH: "${res.player_name}" -> ${matchedPlayer.nome} ${matchedPlayer.cognome}`);
+            } else {
+                console.warn(`❌ NO MATCH: "${res.player_name}" (Normalized: ${target})`);
+            }
 
             return {
                 ...res,
@@ -153,6 +191,7 @@ const TournamentImportV2 = ({ players, tournaments, onSave, onCancel }) => {
                 isMatched: !!matchedPlayer
             };
         });
+        console.groupEnd();
 
         if (matched.length === 0) {
             alert('Analisi completata, ma non è stato possibile estrarre atleti validi. Controlla il formato dei dati.');
@@ -180,6 +219,7 @@ const TournamentImportV2 = ({ players, tournaments, onSave, onCancel }) => {
 
         setIsSaving(true);
         try {
+            console.log('📤 TournamentImportV2 sending:', toSave);
             await onSave(toSave);
         } finally {
             setIsSaving(false);
