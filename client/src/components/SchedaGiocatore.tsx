@@ -103,6 +103,11 @@ const SchedaGiocatore: React.FC<Props> = ({ giocatore, onClose, onEdit, onDelete
         }
     };
 
+    // Calcola la miglior partita dai risultati
+    const migliorPartita = results.length > 0
+        ? Math.max(...results.flatMap(r => r.partite?.map((p: any) => p.birilli) || [0]))
+        : 0;
+
     // Data per il grafico basata sui risultati reali
     const chartData = results.length > 0
         ? results
@@ -199,7 +204,7 @@ const SchedaGiocatore: React.FC<Props> = ({ giocatore, onClose, onEdit, onDelete
                                         <span className="text-[10px] font-bold uppercase">Miglior Partita</span>
                                         <Award className="w-4 h-4 text-secondary" />
                                     </div>
-                                    <p className="text-3xl font-bold text-dark">{giocatore.migliorPartita || '0'}</p>
+                                    <p className="text-3xl font-bold text-dark">{migliorPartita || '0'}</p>
                                 </div>
 
                                 <div className="bg-white border-2 border-gray-100 p-4 rounded-xl shadow-sm hover:border-secondary/30 transition-colors">
