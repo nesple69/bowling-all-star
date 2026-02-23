@@ -16,6 +16,16 @@ import {
   Database, Download, ExternalLink, Globe, ShieldCheck, MessageCircle, MessageSquare
 } from 'lucide-react';
 
+// Helper: formatta una data da stringa DB (es. "2026-03-15" o ISO timestamp) in locale IT
+// Usa il costruttore new Date(year, month, day) che lavora in timezone locale (evita lo shift UTC+1)
+const formatDateIT = (dateStr, options) => {
+  if (!dateStr) return '-';
+  const parts = String(dateStr).substring(0, 10).split('-');
+  if (parts.length !== 3) return '-';
+  const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  return d.toLocaleDateString('it-IT', options || { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
 const App = () => {
   useEffect(() => {
     console.log('All Star Project - UI v2.0 (Tournament Import)');
@@ -1199,7 +1209,7 @@ const App = () => {
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-base font-black text-white tracking-tight group-hover:text-blue-400 transition-colors uppercase text-left">{t.nome}</h3>
                               <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                                {new Date(t.data_inizio).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                {formatDateIT(t.data_inizio, { day: '2-digit', month: 'long', year: 'numeric' })}
                               </span>
                             </div>
                             <div className="px-2 mb-3 flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-white/5 pb-1.5">
@@ -1649,7 +1659,7 @@ const App = () => {
                         <h2 className="text-2xl font-black text-blue-400 uppercase tracking-tight whitespace-nowrap shrink-0">{selectedTournament.nome}</h2>
                         <div className="flex items-center gap-6 md:gap-10 text-base font-black text-gray-200 whitespace-nowrap">
                           <span className="flex items-center gap-2 shrink-0">
-                            <span className="text-lg">📅</span> {new Date(selectedTournament.data_inizio).toLocaleDateString('it-IT')}
+                            <span className="text-lg">📅</span> {formatDateIT(selectedTournament.data_inizio)}
                           </span>
                           <span className="flex items-center gap-2 shrink-0">
                             <span className="text-lg">📍</span> {selectedTournament.sede}
@@ -1757,7 +1767,7 @@ const App = () => {
                               >
                                 <td className="py-4 pl-4 font-bold">{t.nome}</td>
                                 <td className="py-4 text-center font-mono text-xs">
-                                  {new Date(t.data_inizio).toLocaleDateString()}
+                                  {formatDateIT(t.data_inizio)}
                                 </td>
                                 <td className="py-4 text-center text-sm text-gray-400">{t.sede}</td>
                                 <td className="py-4 text-center font-mono">{t.numero_partite}</td>

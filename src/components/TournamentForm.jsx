@@ -2,8 +2,19 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Trophy, Calendar, MapPin, Hash, Upload, Save, X, FileText } from 'lucide-react';
 
+// Converte una stringa data dal DB (ISO o YYYY-MM-DD) al formato corretto per input type="date"
+// Prende solo i primi 10 caratteri (YYYY-MM-DD) per evitare la conversione UTC che sposta l'ora
+const toDateInputValue = (dateStr) => {
+    if (!dateStr) return '';
+    return String(dateStr).substring(0, 10);
+};
+
 const TournamentForm = ({ tournament, onSave, onCancel }) => {
-    const [formData, setFormData] = useState(tournament || {
+    const [formData, setFormData] = useState(tournament ? {
+        ...tournament,
+        data_inizio: toDateInputValue(tournament.data_inizio),
+        data_fine: toDateInputValue(tournament.data_fine),
+    } : {
         nome: '',
         data_inizio: '',
         data_fine: '',
