@@ -102,7 +102,7 @@ const Footer: React.FC = () => {
 
                 <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-center items-center gap-4">
                     <p className="text-[10px] text-slate-500 uppercase tracking-widest font-medium">
-                        © {new Date().getFullYear()} ASD All Star TEAM. Tutti i diritti riservati.
+                        © {new Date().getFullYear()} ASD All Star TEAM (v2). Tutti i diritti riservati.
                     </p>
                 </div>
             </div>
