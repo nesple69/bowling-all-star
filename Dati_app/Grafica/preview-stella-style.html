@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bowling App - Stella Style Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5DADE2',
+                        secondary: '#F8B500',
+                        dark: '#2C3E50',
+                        lightblue: '#3498DB'
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                        heading: ['Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2, h3 {
+            font-family: 'Montserrat', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- NAVBAR STELLA STYLE -->
+    <header class="bg-gradient-to-r from-primary to-lightblue shadow-lg">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Logo + Titolo -->
+                <div class="flex items-center gap-4">
+                    <div class="text-5xl">🎳</div>
+                    <div>
+                        <h1 class="text-white text-2xl font-bold font-heading uppercase tracking-wide">
+                            STELLA BOWLING CLUB
+                        </h1>
+                        <p class="text-white/80 text-xs">🇮🇹 Eccellenza Italiana</p>
+                    </div>
+                </div>
+                
+                <!-- Menu Desktop -->
+                <nav class="hidden lg:flex gap-2">
+                    <a href="#" class="text-white font-semibold uppercase text-sm px-4 py-2 bg-white/30 rounded-md transition">
+                        HOME ⭐
+                    </a>
+                    <a href="#" class="text-white font-semibold uppercase text-sm px-4 py-2 hover:bg-white/20 rounded-md transition">
+                        PRENOTAZIONE
+                    </a>
+                    <a href="#" class="text-white font-semibold uppercase text-sm px-4 py-2 hover:bg-white/20 rounded-md transition">
+                        CLASSIFICHE
+                    </a>
+                    <a href="#" class="text-white font-semibold uppercase text-sm px-4 py-2 hover:bg-white/20 rounded-md transition">
+                        TORNEI
+                    </a>
+                    <a href="#" class="text-white font-semibold uppercase text-sm px-4 py-2 hover:bg-white/20 rounded-md transition">
+                        PROFILO ⭐
+                    </a>
+                </nav>
+                
+                <!-- Hamburger Mobile -->
+                <button class="lg:hidden text-white p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 lg:px-12 py-8">
+
+        <!-- HEADER SECTION -->
+        <div class="mb-12 text-center">
+            <h1 class="text-5xl font-bold text-dark tracking-tight mb-3">Stella Style Preview</h1>
+            <p class="text-gray-600 text-lg">Design System ispirato a Stella Bowling Club</p>
+        </div>
+
+        <!-- PALETTE COLORI -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-8 flex items-center gap-3">
+                🎨 Palette Colori
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg border-2 border-secondary shadow-md p-6 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-lg mb-4" style="background: linear-gradient(135deg, #5DADE2 0%, #3498DB 100%);"></div>
+                    <p class="font-bold text-dark text-lg">Azzurro Primary</p>
+                    <p class="text-sm text-gray-500 mt-1">#5DADE2</p>
+                </div>
+                <div class="bg-white rounded-lg border-2 border-secondary shadow-md p-6 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-lg mb-4" style="background: linear-gradient(135deg, #F8B500 0%, #FFD700 100%);"></div>
+                    <p class="font-bold text-dark text-lg">Oro Secondary</p>
+                    <p class="text-sm text-gray-500 mt-1">#F8B500</p>
+                </div>
+                <div class="bg-white rounded-lg border-2 border-secondary shadow-md p-6 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-lg mb-4" style="background-color: #2C3E50;"></div>
+                    <p class="font-bold text-dark text-lg">Blu Scuro</p>
+                    <p class="text-sm text-gray-500 mt-1">#2C3E50</p>
+                </div>
+                <div class="bg-white rounded-lg border-2 border-secondary shadow-md p-6 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-lg mb-4 border-2 border-gray-300" style="background-color: #FFFFFF;"></div>
+                    <p class="font-bold text-dark text-lg">Bianco</p>
+                    <p class="text-sm text-gray-500 mt-1">#FFFFFF</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BUTTONS -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-8">🔘 Bottoni Stella Style</h2>
+            <div class="bg-white rounded-lg border-2 border-secondary shadow-lg p-8">
+                <div class="flex flex-wrap gap-4">
+                    <button class="bg-secondary hover:bg-[#E5A600] text-white font-bold py-3 px-8 rounded-md uppercase shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200">
+                        Prenota Ora
+                    </button>
+                    <button class="bg-primary hover:bg-lightblue text-white font-semibold py-3 px-8 rounded-md shadow hover:shadow-md transition-all duration-200">
+                        Secondary
+                    </button>
+                    <button class="bg-white border-2 border-secondary hover:bg-secondary text-secondary hover:text-white font-semibold py-3 px-8 rounded-md transition-all duration-200">
+                        Outline Oro
+                    </button>
+                    <button class="bg-gradient-to-r from-secondary to-yellow-400 text-white font-bold py-3 px-8 rounded-md shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+                        Gradient Gold
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD STATS -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-8">📊 Dashboard Stats</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Card 1 - Gradient Azzurro -->
+                <div class="bg-gradient-to-br from-primary to-lightblue rounded-xl shadow-lg p-6 text-white">
+                    <h3 class="text-sm font-medium uppercase opacity-90 mb-2">Totale Iscritti</h3>
+                    <p class="text-5xl font-bold mb-2">24</p>
+                    <p class="text-sm opacity-90">⭐ +3 questo mese</p>
+                </div>
+
+                <!-- Card 2 - Gradient Oro -->
+                <div class="bg-gradient-to-br from-secondary to-yellow-400 rounded-xl shadow-lg p-6 text-white">
+                    <h3 class="text-sm font-medium uppercase opacity-90 mb-2">Tornei Attivi</h3>
+                    <p class="text-5xl font-bold mb-2">3</p>
+                    <p class="text-sm opacity-90">🏆 In corso</p>
+                </div>
+
+                <!-- Card 3 - Bianco con bordo oro -->
+                <div class="bg-white border-2 border-secondary rounded-xl shadow-lg p-6">
+                    <h3 class="text-sm font-medium text-gray-600 uppercase mb-2">Media Squadra</h3>
+                    <p class="text-5xl font-bold text-dark mb-2">172</p>
+                    <p class="text-sm text-gray-600">🎯 birilli</p>
+                </div>
+
+                <!-- Card 4 - Bianco con bordo azzurro -->
+                <div class="bg-white border-2 border-primary rounded-xl shadow-lg p-6">
+                    <h3 class="text-sm font-medium text-gray-600 uppercase mb-2">Prossimo Torneo</h3>
+                    <p class="text-3xl font-bold text-primary mb-2">15 Mar</p>
+                    <p class="text-sm text-gray-600">📅 Trofeo Primavera</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROSSIME PARTITE (Stella Style) -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-8">🎳 Prossime Partite</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Match Card 1 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-5 shadow hover:shadow-xl transition-all">
+                    <div class="flex items-center justify-between mb-4">
+                        <!-- Team 1 -->
+                        <div class="flex-1 text-center">
+                            <div class="text-4xl text-dark mb-2">🎳</div>
+                            <p class="font-bold text-dark text-sm">Mon Drille</p>
+                            <p class="text-xs text-gray-600">Cesena Coriano</p>
+                            <p class="text-xs text-gray-500 mt-1">22/09 19:00</p>
+                        </div>
+                        
+                        <!-- VS -->
+                        <div class="px-3">
+                            <span class="font-bold text-gray-400 text-xl">VS</span>
+                        </div>
+                        
+                        <!-- Team 2 -->
+                        <div class="flex-1 text-center">
+                            <div class="text-4xl text-dark mb-2">🎳</div>
+                            <p class="font-bold text-dark text-sm">Collur Cenin</p>
+                            <p class="text-xs text-gray-600">Val Maro</p>
+                            <p class="text-xs text-gray-500 mt-1">22/09 19:30</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottone -->
+                    <button class="w-full bg-secondary hover:bg-[#E5A600] text-white font-bold py-2.5 rounded-md uppercase text-sm transition hover:scale-105">
+                        Prenota Ora
+                    </button>
+                </div>
+
+                <!-- Match Card 2 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-5 shadow hover:shadow-xl transition-all">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex-1 text-center">
+                            <div class="text-4xl text-dark mb-2">🎳</div>
+                            <p class="font-bold text-dark text-sm">Raulezh 6iiinla</p>
+                            <p class="text-xs text-gray-600">Zona Sud</p>
+                            <p class="text-xs text-gray-500 mt-1">26/09 19:00</p>
+                        </div>
+                        <div class="px-3">
+                            <span class="font-bold text-gray-400 text-xl">VS</span>
+                        </div>
+                        <div class="flex-1 text-center">
+                            <div class="text-4xl text-dark mb-2">🎳</div>
+                            <p class="font-bold text-dark text-sm">Baat 3 S5a Mes</p>
+                            <p class="text-xs text-gray-600">Val Marecchia</p>
+                            <p class="text-xs text-gray-500 mt-1">26/09 19:30</p>
+                        </div>
+                    </div>
+                    <button class="w-full bg-secondary hover:bg-[#E5A600] text-white font-bold py-2.5 rounded-md uppercase text-sm transition hover:scale-105">
+                        Prenota Ora
+                    </button>
+                </div>
+
+                <!-- Match Card 3 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-5 shadow hover:shadow-xl transition-all opacity-60">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex-1 text-center">
+                            <div class="text-4xl text-dark mb-2">🎳</div>
+                            <p class="font-bold text-dark text-sm">Assieme line di</p>
+                            <p class="text-xs text-gray-600">discutare</p>
+                            <p class="text-xs text-gray-500 mt-1">TBD</p>
+                        </div>
+                        <div class="px-3">
+                            <span class="font-bold text-gray-400 text-xl">VS</span>
+                        </div>
+                        <div class="flex-1 text-center">
+                            <div class="text-4xl text-dark mb-2">🎳</div>
+                            <p class="font-bold text-dark text-sm">Pensar Tentale</p>
+                            <p class="text-xs text-gray-600">-</p>
+                            <p class="text-xs text-gray-500 mt-1">TBD</p>
+                        </div>
+                    </div>
+                    <button class="w-full bg-gray-300 text-gray-600 font-bold py-2.5 rounded-md uppercase text-sm cursor-not-allowed">
+                        In Attesa
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- CLASSIFICHE (Stella Style) -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-8">⭐ Classifiche</h2>
+            
+            <div class="bg-white rounded-lg border-2 border-secondary shadow-lg p-6">
+                <h3 class="text-xl font-bold text-dark mb-4 flex items-center gap-2">
+                    <span class="text-secondary">⭐</span>
+                    Stlin d Autümno
+                </h3>
+                
+                <div class="space-y-2">
+                    <!-- Item 1 -->
+                    <div class="bg-white border-l-4 border-secondary p-4 shadow-sm hover:shadow-md transition flex items-center justify-between rounded-r-md">
+                        <div class="flex items-center gap-3">
+                            <span class="text-secondary text-2xl">⭐</span>
+                            <span class="font-bold text-dark">Mario Rossi</span>
+                            <span class="px-2 py-0.5 bg-secondary/10 text-secondary rounded text-xs font-bold">SENIOR A</span>
+                        </div>
+                        <span class="text-secondary text-xl">⭐</span>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="bg-white border-l-4 border-gray-300 p-4 shadow-sm hover:shadow-md transition flex items-center justify-between rounded-r-md">
+                        <div class="flex items-center gap-3">
+                            <span class="text-gray-300 text-2xl">⭐</span>
+                            <span class="font-bold text-dark">Giulia Verdi</span>
+                            <span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-bold">U18</span>
+                        </div>
+                        <span class="text-secondary text-xl">⭐</span>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="bg-white border-l-4 border-gray-300 p-4 shadow-sm hover:shadow-md transition flex items-center justify-between rounded-r-md">
+                        <div class="flex items-center gap-3">
+                            <span class="text-gray-300 text-2xl">⭐</span>
+                            <span class="font-bold text-dark">Luca Bianchi</span>
+                            <span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-xs font-bold">SENIOR C</span>
+                        </div>
+                        <span class="text-gray-300 text-xl">☆</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seconda Classifica -->
+            <div class="bg-white rounded-lg border-2 border-primary shadow-lg p-6 mt-6">
+                <h3 class="text-xl font-bold text-dark mb-4 flex items-center gap-2">
+                    <span class="text-primary">⭐</span>
+                    StlurraMamo
+                </h3>
+                
+                <div class="space-y-2">
+                    <div class="bg-white border-l-4 border-primary p-4 shadow-sm hover:shadow-md transition flex items-center justify-between rounded-r-md">
+                        <div class="flex items-center gap-3">
+                            <span class="text-primary text-2xl">⭐</span>
+                            <span class="font-bold text-dark">Anna Neri</span>
+                        </div>
+                        <span class="text-secondary text-xl">⭐</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BADGES CATEGORIE -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-8">🏷️ Badges Categorie</h2>
+            <div class="bg-white rounded-lg border-2 border-secondary shadow-lg p-8">
+                <div class="flex flex-wrap gap-3 mb-6">
+                    <span class="px-4 py-2 bg-green-500 text-white rounded-md text-sm font-bold uppercase border-2 border-green-600">U12</span>
+                    <span class="px-4 py-2 bg-cyan-500 text-white rounded-md text-sm font-bold uppercase border-2 border-cyan-600">U15</span>
+                    <span class="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-bold uppercase border-2 border-blue-600">U18</span>
+                    <span class="px-4 py-2 bg-gradient-to-r from-secondary to-yellow-400 text-white rounded-md text-sm font-bold uppercase shadow-md">⭐ SENIOR A</span>
+                    <span class="px-4 py-2 bg-orange-400 text-white rounded-md text-sm font-bold uppercase border-2 border-orange-500">SENIOR B</span>
+                    <span class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-bold uppercase border-2 border-purple-700">SENIOR C</span>
+                    <span class="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-bold uppercase border-2 border-gray-700">SENIOR D</span>
+                </div>
+
+                <div class="pt-6 border-t-2 border-gray-200">
+                    <h3 class="text-sm font-bold text-dark mb-3 uppercase">Status Badges:</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <span class="px-4 py-2 bg-green-100 border-2 border-green-500 text-green-800 rounded-full text-xs font-bold">✓ CONFERMATO</span>
+                        <span class="px-4 py-2 bg-yellow-100 border-2 border-yellow-500 text-yellow-800 rounded-full text-xs font-bold">⏳ IN ATTESA</span>
+                        <span class="px-4 py-2 bg-red-100 border-2 border-red-500 text-red-800 rounded-full text-xs font-bold">✕ ANNULLATO</span>
+                        <span class="px-4 py-2 bg-blue-100 border-2 border-blue-500 text-blue-800 rounded-full text-xs font-bold">ℹ INFO</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FORMS -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-8">📝 Form Elements</h2>
+            <div class="bg-white rounded-lg border-2 border-secondary shadow-lg p-8 max-w-2xl">
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-bold text-dark mb-2 uppercase">Nome Completo</label>
+                        <input type="text" placeholder="Inserisci nome e cognome" 
+                               class="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-dark mb-2 uppercase">Categoria</label>
+                        <select class="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none transition">
+                            <option>Seleziona categoria</option>
+                            <option>⭐ SENIOR A</option>
+                            <option>SENIOR B</option>
+                            <option>SENIOR C</option>
+                            <option>U18</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="terms2" class="w-5 h-5 text-secondary rounded focus:ring-primary">
+                        <label for="terms2" class="ml-3 text-sm text-dark font-medium">Accetto termini e condizioni</label>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button class="flex-1 bg-secondary hover:bg-[#E5A600] text-white font-bold py-3 px-6 rounded-md uppercase shadow-md hover:shadow-lg transition-all">
+                            Salva
+                        </button>
+                        <button class="px-6 py-3 bg-white border-2 border-gray-300 hover:border-gray-400 text-dark font-semibold rounded-md transition">
+                            Annulla
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ALERTS -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-8">⚠️ Alerts Stella Style</h2>
+            <div class="space-y-4 max-w-2xl">
+                <div class="p-5 bg-blue-50 border-l-4 border-primary rounded-r-lg shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <p class="font-bold text-blue-900 text-sm uppercase mb-1">Informazione</p>
+                            <p class="text-sm text-blue-800">Le iscrizioni per il torneo "Trofeo Primavera" chiudono il 15 marzo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-5 bg-green-50 border-l-4 border-green-500 rounded-r-lg shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <p class="font-bold text-green-900 text-sm uppercase mb-1">✓ Successo!</p>
+                            <p class="text-sm text-green-800">Prenotazione confermata per il torneo del 15 marzo alle ore 19:00.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-5 bg-yellow-50 border-l-4 border-secondary rounded-r-lg shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <div>
+                            <p class="font-bold text-yellow-900 text-sm uppercase mb-1">⚠️ Attenzione</p>
+                            <p class="text-sm text-yellow-800">3 giocatori hanno il certificato medico in scadenza nei prossimi 15 giorni.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TABELLA -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-8">📋 Classifica Torneo</h2>
+            <div class="bg-white rounded-lg border-2 border-secondary shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gradient-to-r from-primary to-lightblue text-white">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-bold uppercase">Pos.</th>
+                                <th class="px-6 py-4 text-left text-sm font-bold uppercase">Giocatore</th>
+                                <th class="px-6 py-4 text-left text-sm font-bold uppercase">Categoria</th>
+                                <th class="px-6 py-4 text-left text-sm font-bold uppercase">Partite</th>
+                                <th class="px-6 py-4 text-left text-sm font-bold uppercase">Birilli</th>
+                                <th class="px-6 py-4 text-left text-sm font-bold uppercase">Media</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b-2 border-secondary hover:bg-yellow-50 transition">
+                                <td class="px-6 py-4 text-3xl">🥇</td>
+                                <td class="px-6 py-4 font-bold text-dark">Mario Rossi</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-gradient-to-r from-secondary to-yellow-400 text-white rounded-md text-xs font-bold">⭐ SENIOR A</span>
+                                </td>
+                                <td class="px-6 py-4 text-dark font-semibold">6</td>
+                                <td class="px-6 py-4 font-mono font-bold text-primary text-lg">1234</td>
+                                <td class="px-6 py-4 font-mono font-bold text-dark text-lg">205.6</td>
+                            </tr>
+                            <tr class="border-b border-gray-200 hover:bg-blue-50 transition">
+                                <td class="px-6 py-4 text-3xl">🥈</td>
+                                <td class="px-6 py-4 font-bold text-dark">Giulia Verdi</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-blue-500 text-white rounded-md text-xs font-bold">U18</span>
+                                </td>
+                                <td class="px-6 py-4 text-dark font-semibold">6</td>
+                                <td class="px-6 py-4 font-mono font-bold text-primary text-lg">1198</td>
+                                <td class="px-6 py-4 font-mono font-bold text-dark text-lg">199.6</td>
+                            </tr>
+                            <tr class="border-b border-gray-200 hover:bg-blue-50 transition">
+                                <td class="px-6 py-4 text-3xl">🥉</td>
+                                <td class="px-6 py-4 font-bold text-dark">Luca Bianchi</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-purple-600 text-white rounded-md text-xs font-bold">SENIOR C</span>
+                                </td>
+                                <td class="px-6 py-4 text-dark font-semibold">6</td>
+                                <td class="px-6 py-4 font-mono font-bold text-primary text-lg">1156</td>
+                                <td class="px-6 py-4 font-mono font-bold text-dark text-lg">192.6</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-gradient-to-r from-dark to-gray-800 text-white py-12 mt-16">
+        <div class="container mx-auto px-4 lg:px-12 text-center">
+            <div class="text-5xl mb-4">🎳</div>
+            <h3 class="text-2xl font-bold font-heading mb-2">STELLA BOWLING CLUB</h3>
+            <p class="text-gray-400 mb-4">© 2024 Stella Style - Design System Preview</p>
+            <p class="text-sm text-gray-500">Font: Roboto + Montserrat | Framework: Tailwind CSS</p>
+            <div class="mt-6 flex justify-center gap-6">
+                <span class="text-secondary text-2xl cursor-pointer hover:scale-110 transition">⭐</span>
+                <span class="text-primary text-2xl cursor-pointer hover:scale-110 transition">🎳</span>
+                <span class="text-secondary text-2xl cursor-pointer hover:scale-110 transition">🏆</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

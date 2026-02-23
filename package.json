@@ -1,33 +1,35 @@
 {
-  "name": "all-star-team",
+  "name": "bowling-management-app",
+  "version": "1.0.0",
+  "description": "Bowling Association Management Web App",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "client": "npm run dev --workspace=client",
+    "server": "npm run dev --workspace=server",
+    "dev": "concurrently \"npm run client\" \"npm run server\"",
+    "build": "npm run prisma:generate --workspace=server && npm run build --workspace=client && rm -rf public && mkdir -p public && cp -rv client/dist/* public/",
+    "install-all": "npm install"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.48.2",
-    "lucide-react": "^0.474.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "recharts": "^3.7.0"
+    "@prisma/client": "^6.19.2",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "date-fns": "^2.30.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.19.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "10.4.20",
-    "eslint": "9.19.0",
-    "eslint-plugin-react-hooks": "5.1.0",
-    "eslint-plugin-react-refresh": "0.4.18",
-    "globals": "15.14.0",
-    "postcss": "8.4.49",
-    "tailwindcss": "3.4.17",
-    "vite": "6.0.11"
+    "@tailwindcss/vite": "^4.1.18",
+    "autoprefixer": "^10.4.24",
+    "concurrently": "^8.2.2",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
   }
 }

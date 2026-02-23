@@ -1,0 +1,21 @@
+dati autenticazione Supabase
+
+supabase_allstar
+allstarteam@123
+
+dati per autenticazione
+amministratore di sistema
+Email: info@bowlingvaldera.it
+Password: Admin2026!
+
+
+dati per entrare dopo aggiornamento database
+Username: Nedo69
+Password: Ari@1Nico@5
+
+
+localhost    http://localhost:5173
+
+ikn questa apgina c'è la struttura Prisma 
+http://localhost:5555/
+

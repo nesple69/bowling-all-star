@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String     @id @default(uuid())
+  username  String?    @unique
+  email     String?    @unique
+  password  String
+  nome      String
+  cognome   String
+  ruolo     Ruolo      @default(USER)
+  createdAt DateTime   @default(now())
+  giocatore Giocatore?
+}
+
+model Giocatore {
+  id                        String               @id @default(uuid())
+  nome                      String
+  cognome                   String
+  dataNascita               DateTime
+  telefono                  String?
+  numeroTessera             String?              @unique
+  sesso                     Sesso                @default(M)
+  categoria                 CategoriaGiocatore   @default(D)
+  isSenior                  Boolean              @default(false)
+  fasciaSenior              FasciaSenior         @default(NONE)
+  mediaAttuale              Float                @default(0)
+  migliorPartita            Int                  @default(0)
+  totaleBirilli             Int                  @default(0)
+  certificatoMedicoScadenza DateTime?
+  isAziendale               Boolean              @default(false)
+  aziendaAffiliata          String?
+  userId                    String               @unique
+  user                      User                 @relation(fields: [userId], references: [id])
+  iscrizioni                IscrizioneTorneo[]
+  movimenti                 MovimentoContabile[]
+  risultati                 RisultatoTorneo[]
+  saldo                     SaldoBorsellino?
+}
+
+model Stagione {
+  id         String   @id @default(uuid())
+  nome       String
+  dataInizio DateTime
+  dataFine   DateTime
+  attiva     Boolean  @default(false)
+  tornei     Torneo[]
+}
+
+model Torneo {
+  id             String              @id @default(uuid())
+  nome           String
+  tipologia      TipologiaTorneo
+  sede           String
+  locandina      String?
+  linkIscrizione String?
+  stagioneId     String
+  dataInizio     DateTime
+  dataFine       DateTime?
+  costoIscrizione Decimal             @default(0) @db.Decimal(10, 2)
+  partitePreviste Int                 @default(6)
+  completato     Boolean             @default(false)
+  mostraBottoneIscrizione Boolean    @default(true)
+  turni          GiorniOrariTorneo[]
+  iscrizioni     IscrizioneTorneo[]
+  risultati      RisultatoTorneo[]
+  stagione       Stagione            @relation(fields: [stagioneId], references: [id])
+}
+
+model GiorniOrariTorneo {
+  id                   String             @id @default(uuid())
+  torneoId             String
+  giorno               DateTime           @db.Date
+  orarioInizio         DateTime
+  orarioFine           DateTime
+  postiDisponibili     Int
+  torneo               Torneo             @relation(fields: [torneoId], references: [id])
+  iscrizioni           IscrizioneTorneo[] @relation("TurnoPrincipale")
+  iscrizioniSecondarie IscrizioneTorneo[] @relation("TurnoRiserva")
+}
+
+model IscrizioneTorneo {
+  id             String            @id @default(uuid())
+  torneoId       String
+  giocatoreId    String
+  turnoId        String
+  secondoTurnoId String?
+  stato          StatoIscrizione   @default(PENDENTE)
+  note           String?
+  createdAt      DateTime          @default(now())
+  giocatore      Giocatore         @relation(fields: [giocatoreId], references: [id])
+  torneo         Torneo            @relation(fields: [torneoId], references: [id])
+  turno          GiorniOrariTorneo @relation("TurnoPrincipale", fields: [turnoId], references: [id])
+  secondoTurno   GiorniOrariTorneo? @relation("TurnoRiserva", fields: [secondoTurnoId], references: [id])
+}
+
+model RisultatoTorneo {
+  id                   String    @id @default(uuid())
+  torneoId             String
+  giocatoreId          String
+  posizione            Int
+  partiteGiocate       Int
+  totaleBirilli        Int
+  totaleBirilliSquadra Int?
+  divisione            String?   // Es: "Eccellenza", "Cadetti", "Femminile"
+  isRiserva            Boolean   @default(false)
+  giocatore            Giocatore @relation(fields: [giocatoreId], references: [id])
+  torneo               Torneo    @relation(fields: [torneoId], references: [id])
+  partite              PartitaTorneo[]
+  
+  createdAt DateTime @default(now())
+}
+
+model PartitaTorneo {
+  id                String   @id @default(cuid())
+  risultatoTorneoId String   // FK a RisultatoTorneo
+  risultatoTorneo   RisultatoTorneo @relation(fields: [risultatoTorneoId], references: [id], onDelete: Cascade)
+  numeroPartita     Int      // 1, 2, 3, 4, 5, 6
+  birilli           Int      // Punteggio della partita (0-300)
+  data              DateTime? // Data/ora partita (opzionale)
+  note              String?   // Note eventuali
+  
+  createdAt DateTime @default(now())
+  
+  @@index([risultatoTorneoId])
+}
+
+model MovimentoContabile {
+  id          String        @id @default(uuid())
+  giocatoreId String
+  importo     Decimal       @db.Decimal(10, 2)
+  tipo        TipoMovimento
+  descrizione String?
+  data        DateTime      @default(now())
+  adminId     String?
+  giocatore   Giocatore     @relation(fields: [giocatoreId], references: [id])
+}
+
+model SaldoBorsellino {
+  id           String    @id @default(uuid())
+  giocatoreId  String    @unique
+  saldoAttuale Decimal   @default(0) @db.Decimal(10, 2)
+  giocatore    Giocatore @relation(fields: [giocatoreId], references: [id])
+}
+
+enum Ruolo {
+  USER
+  ADMIN
+}
+
+enum Sesso {
+  M
+  F
+}
+
+enum CategoriaGiocatore {
+  A
+  B
+  C
+  D
+  ES
+  DS
+}
+
+enum FasciaSenior {
+  A
+  B
+  C
+  NONE
+}
+
+enum TipologiaTorneo {
+  SINGOLO
+  DOPPIO
+  TRIS
+  SQUADRA_4
+}
+
+enum TipoMovimento {
+  RICARICA
+  ISCRIZIONE_TORNEO
+  ACQUISTO_MAGLIA
+  ADDEBITO_MANUALE
+}
+
+enum StatoIscrizione {
+  PENDENTE
+  CONFERMATA
+  MODIFICATA
+  RIFIUTATA
+}
