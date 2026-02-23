@@ -79,7 +79,12 @@ app.use('/api', apiRouter);
 app.use('/', apiRouter);
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', environment: process.env.NODE_ENV, timestamp: new Date().toISOString() });
+    res.json({
+        status: 'ok',
+        v_antigravity: '1.0.42_FINAL_SYNC',
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Gestore 404 globale
