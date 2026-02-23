@@ -36,7 +36,7 @@ apiRouter.get('/debug-env', (req, res) => {
     res.json({
         status: 'diagnostic',
         has_db: !!process.env.DATABASE_URL,
-        has_supabase_url: !!(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL),
+        supabase_url: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'MISSING',
         has_supabase_key: !!(process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY),
         node_env: process.env.NODE_ENV,
         env_keys: Object.keys(process.env).filter(k => k.includes('SUPABASE') || k.includes('URL') || k.includes('DATABASE'))
