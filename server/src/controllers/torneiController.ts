@@ -172,7 +172,7 @@ export const createTorneo = async (req: Request, res: Response) => {
                 console.log(`[SUPABASE] Caricamento completato: ${locandina}`);
             } else {
                 console.error('[SUPABASE ERROR] Errore caricamento storage:', error);
-                throw new Error(`Errore Supabase: ${error.message} (${error.statusCode || error.code || 'N/A'})`);
+                throw new Error(`Errore Supabase: ${error.message} (Status: ${error.status || 'N/A'})`);
             }
         }
         const dataInizioParsed = dataInizio ? new Date(dataInizio) : null;
@@ -245,7 +245,7 @@ export const updateTorneo = async (req: Request, res: Response) => {
                 console.log(`[SUPABASE] Caricamento completato: ${locandina}`);
             } else {
                 console.error('[SUPABASE ERROR] Errore caricamento storage:', error);
-                throw new Error(`Errore Supabase: ${error.message} (${error.statusCode || error.code || 'N/A'})`);
+                throw new Error(`Errore Supabase: ${error.message} (Status: ${error.status || 'N/A'})`);
             }
         }
         const dataInizioParsed = dataInizio ? new Date(dataInizio) : undefined;
