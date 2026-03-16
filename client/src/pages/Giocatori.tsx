@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { Search, Filter, Plus, User as UserIcon, Star, Loader2, Users } from 'lucide-react';
 import SchedaGiocatore from '../components/SchedaGiocatore';
@@ -52,8 +53,6 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const Giocatori: React.FC = () => {
-    const [giocatori, setGiocatori] = useState<Giocatore[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('ALL');
     const [selectedSettore, setSelectedSettore] = useState('ALL'); // 'ALL', 'SENIOR', 'AZIENDALE'
@@ -65,25 +64,19 @@ const Giocatori: React.FC = () => {
 
     const { token, isAdmin } = useAuth();
 
-    const fetchGiocatori = async () => {
-        setIsLoading(true);
-        try {
-            const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-            const res = await axios.get(`${API_BASE_URL}/api/giocatori`, {
-                params: { categoria: selectedCategory !== 'ALL' ? selectedCategory : undefined },
-                ...config
-            });
-            setGiocatori(res.data);
-        } catch (err) {
-            console.error('Errore nel caricamento dei giocatori', err);
-        } finally {
-            setIsLoading(false);
-        }
+    const fetchGiocatoriData = async () => {
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+        const res = await axios.get(`${API_BASE_URL}/api/giocatori`, {
+            params: { categoria: selectedCategory !== 'ALL' ? selectedCategory : undefined },
+            ...config
+        });
+        return res.data;
     };
 
-    useEffect(() => {
-        fetchGiocatori();
-    }, [token, selectedCategory]);
+    const { data: giocatori = [], isLoading, refetch } = useQuery({
+        queryKey: ['giocatori', selectedCategory, token],
+        queryFn: fetchGiocatoriData,
+    });
 
     const handleSavePlayer = async (formData: any) => {
         try {
@@ -96,7 +89,7 @@ const Giocatori: React.FC = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }
-            await fetchGiocatori();
+            await refetch();
             setIsFormOpen(false);
             setEditingGiocatore(null);
         } catch (error) {
@@ -116,7 +109,7 @@ const Giocatori: React.FC = () => {
             await axios.delete(`${API_BASE_URL}/api/giocatori/${selectedGiocatore.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            await fetchGiocatori();
+            await refetch();
             setSelectedGiocatore(null);
         } catch (error) {
             console.error('Errore durante l\'eliminazione del giocatore', error);
@@ -126,7 +119,7 @@ const Giocatori: React.FC = () => {
 
     const filteredGiocatori = useMemo(() => {
         return giocatori
-            .filter(g => {
+            .filter((g: Giocatore) => {
                 const fullName = `${g.nome} ${g.cognome}`.toLowerCase();
                 const matchesSearch = fullName.includes(searchTerm.toLowerCase()) ||
                     g.numeroTessera?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -136,7 +129,7 @@ const Giocatori: React.FC = () => {
                     (selectedSettore === 'AZIENDALE' && g.isAziendale);
                 return matchesSearch && matchesCategory && matchesSettore;
             })
-            .sort((a, b) => (b.mediaAttuale || 0) - (a.mediaAttuale || 0) || a.cognome.localeCompare(b.cognome));
+            .sort((a: Giocatore, b: Giocatore) => (b.mediaAttuale || 0) - (a.mediaAttuale || 0) || a.cognome.localeCompare(b.cognome));
     }, [giocatori, searchTerm, selectedCategory, selectedSettore]);
 
     if (isLoading) {
@@ -243,7 +236,7 @@ const Giocatori: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {filteredGiocatori.map((g) => {
+                            {filteredGiocatori.map((g: Giocatore) => {
                                 const isCertificatoScaduto = g.certificatoMedicoScadenza
                                     ? new Date(g.certificatoMedicoScadenza) < new Date()
                                     : true;

@@ -8,6 +8,7 @@ const router = Router();
 router.get('/', authenticateToken, isAdmin, usersController.getAllUsers);
 router.post('/create-admin', authenticateToken, isAdmin, usersController.createAdmin);
 router.put('/:id/role', authenticateToken, isAdmin, usersController.updateUserRole);
+router.put('/:id/reset-password', authenticateToken, isAdmin, usersController.resetUserPassword);
 router.delete('/:id', authenticateToken, isAdmin, usersController.deleteUser);
 
 export default router;

@@ -111,3 +111,26 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: 'Errore nell\'eliminazione utente', error });
     }
 };
+
+// PUT /api/users/:id/reset-password - Resetta password utente (solo ADMIN)
+export const resetUserPassword = async (req: AuthRequest, res: Response) => {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ message: 'La nuova password deve contenere almeno 6 caratteri' });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await prisma.user.update({
+            where: { id: id as string },
+            data: { password: hashedPassword }
+        });
+
+        res.json({ message: 'Password utente aggiornata con successo' });
+    } catch (error) {
+        res.status(500).json({ message: 'Errore durante il reset della password', error });
+    }
+};

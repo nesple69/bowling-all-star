@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config';
 import {
     Users,
@@ -11,7 +12,8 @@ import {
     AlertCircle,
     CheckCircle2,
     ArrowRightLeft,
-    Mail
+    Mail,
+    Key
 } from 'lucide-react';
 import ModalNuovoAdmin from '../components/ModalNuovoAdmin';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,32 +29,32 @@ interface UserData {
 }
 
 const GestioneUtenti: React.FC = () => {
-    const [users, setUsers] = useState<UserData[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+    const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
+    const [userToReset, setUserToReset] = useState<UserData | null>(null);
+    const [newPassword, setNewPassword] = useState('');
     const { user: currentUser } = useAuth();
 
-    const fetchUsers = async () => {
-        setIsLoading(true);
-        try {
-            const token = sessionStorage.getItem('token');
-            const response = await axios.get(`${API_BASE_URL}/api/users`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setUsers(response.data);
-        } catch (err: any) {
-            setError('Errore nel caricamento degli utenti');
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
+    const fetchUsersData = async () => {
+        const token = sessionStorage.getItem('token');
+        const response = await axios.get(`${API_BASE_URL}/api/users`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data as UserData[];
     };
 
+    const { data: users = [], isLoading, error: fetchError, refetch: fetchUsers } = useQuery({
+        queryKey: ['adminUsers'],
+        queryFn: fetchUsersData,
+    });
+
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        if (fetchError) {
+            setError('Errore nel caricamento degli utenti');
+        }
+    }, [fetchError]);
 
     const handleToggleRole = async (userId: string, currentRole: string) => {
         const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN';
@@ -98,6 +100,35 @@ const GestioneUtenti: React.FC = () => {
             setError(err.response?.data?.message || 'Errore durante l\'eliminazione dell\'utente');
         }
     };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!userToReset || newPassword.length < 6) {
+            setError('La password deve essere di almeno 6 caratteri');
+            return;
+        }
+
+        try {
+            const token = sessionStorage.getItem('token');
+            await axios.put(`${API_BASE_URL}/api/users/${userToReset.id}/reset-password`,
+                { newPassword },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setSuccessMessage(`Password di ${userToReset.username} resettata con successo`);
+            setResetPasswordModalOpen(false);
+            setUserToReset(null);
+            setNewPassword('');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Errore durante il reset della password');
+        }
+    };
+
+    const sortedUsers = [...users].sort((a, b) => {
+        if (a.ruolo === 'ADMIN' && b.ruolo !== 'ADMIN') return -1;
+        if (a.ruolo !== 'ADMIN' && b.ruolo === 'ADMIN') return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('it-IT', {
@@ -183,7 +214,7 @@ const GestioneUtenti: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                users.map((u) => (
+                                sortedUsers.map((u) => (
                                     <tr key={u.id} className="hover:bg-gray-50/50 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
@@ -230,8 +261,20 @@ const GestioneUtenti: React.FC = () => {
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
+                                                    onClick={() => {
+                                                        setUserToReset(u);
+                                                        setNewPassword('');
+                                                        setResetPasswordModalOpen(true);
+                                                    }}
+                                                    className={`p-2 rounded-xl border-2 transition-all shadow-sm
+                                                        bg-white border-gray-100 text-gray-500 hover:bg-primary/10 hover:border-primary/20 hover:text-primary hover:-translate-y-0.5`}
+                                                    title="Resetta Password"
+                                                >
+                                                    <Key className="w-4 h-4" />
+                                                </button>
+                                                <button
                                                     onClick={() => handleToggleRole(u.id, u.ruolo)}
-                                                    className={`p-2 rounded-xl border-2 transition-all hover:-translate-y-0.5 ${u.ruolo === 'ADMIN'
+                                                    className={`p-2 rounded-xl border-2 transition-all shadow-sm hover:-translate-y-0.5 ${u.ruolo === 'ADMIN'
                                                         ? 'bg-red-50 border-red-100 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500'
                                                         : 'bg-green-50 border-green-100 text-green-600 hover:bg-green-500 hover:text-white hover:border-green-500'
                                                         }`}
@@ -265,10 +308,65 @@ const GestioneUtenti: React.FC = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={() => {
                     fetchUsers();
-                    setSuccessMessage('Nuovo amministratore creato correttamente!');
+                    setSuccessMessage('Nuovo amministratore creato con successo!');
                     setTimeout(() => setSuccessMessage(''), 3000);
                 }}
             />
+
+            {/* Modale Reset Password */}
+            {resetPasswordModalOpen && userToReset && (
+                <div className="fixed inset-0 bg-dark/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+                        <div className="p-6 sm:p-8">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h2 className="text-2xl font-black text-dark tracking-tight uppercase">Reset Password</h2>
+                                    <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1">Imposta una nuova password per <span className="text-primary">{userToReset.username}</span></p>
+                                </div>
+                                <div className="p-3 bg-primary/10 rounded-2xl">
+                                    <Key className="w-6 h-6 text-primary" />
+                                </div>
+                            </div>
+
+                            <form onSubmit={handleResetPassword} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Nuova Password</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Inserisci password..."
+                                        className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        required
+                                        minLength={6}
+                                        autoComplete="off"
+                                    />
+                                    <p className="text-[10px] text-gray-400 font-medium px-1 uppercase tracking-widest">Minimo 6 caratteri</p>
+                                </div>
+
+                                <div className="pt-2 flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setResetPasswordModalOpen(false);
+                                            setUserToReset(null);
+                                        }}
+                                        className="flex-1 px-4 py-3.5 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition-all uppercase tracking-widest text-xs"
+                                    >
+                                        Annulla
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="flex-[2] bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all text-xs uppercase tracking-widest"
+                                    >
+                                        Conferma
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

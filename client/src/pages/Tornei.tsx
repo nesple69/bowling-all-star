@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { Trophy, Calendar, MapPin, Search, UserPlus, Users, Loader2, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -40,12 +41,8 @@ interface IscrittoPublic {
 }
 
 const Tornei: React.FC = () => {
-    const [tornei, setTornei] = useState<Torneo[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'TUTTI' | 'IN_CORSO' | 'COMPLETATI'>('TUTTI');
     const [searchQuery, setSearchQuery] = useState('');
-    const [disponibilitaMap, setDisponibilitaMap] = useState<Record<string, number>>({});
     const [iscrittiMap, setIscrittiMap] = useState<Record<string, IscrittoPublic[]>>({});
     const [loadingIscritti, setLoadingIscritti] = useState<Record<string, boolean>>({});
     const [openIscritti, setOpenIscritti] = useState<Record<string, boolean>>({});
@@ -69,40 +66,39 @@ const Tornei: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        const fetchTornei = async () => {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/api/tornei/public`);
-                setTornei(response.data);
+    const fetchTorneiData = async () => {
+        const response = await axios.get(`${API_BASE_URL}/api/tornei/public`);
+        const torneiData = response.data;
 
-                // Carica disponibilità per tornei non completati
-                const attivi = response.data.filter((t: Torneo) => !t.completato);
-                const dispResults = await Promise.all(
-                    attivi.map(async (t: Torneo) => {
-                        try {
-                            const res = await axios.get(`${API_BASE_URL}/api/tornei/public/${t.id}/disponibilita`);
-                            const postiTotali = res.data.reduce((sum: number, s: any) => sum + (s.postiRimanenti || 0), 0);
-                            return { id: t.id, posti: postiTotali };
-                        } catch {
-                            return { id: t.id, posti: 0 };
-                        }
-                    })
-                );
-                const map: Record<string, number> = {};
-                dispResults.forEach((d: { id: string; posti: number }) => { map[d.id] = d.posti; });
-                setDisponibilitaMap(map);
-            } catch (err: any) {
-                console.error('Errore nel caricamento dei tornei:', err);
-                setError(err.response?.data?.message || err.message || 'Errore di connessione');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchTornei();
-    }, []);
+        // Carica disponibilità per tornei non completati
+        const attivi = torneiData.filter((t: Torneo) => !t.completato);
+        const dispResults = await Promise.all(
+            attivi.map(async (t: Torneo) => {
+                try {
+                    const res = await axios.get(`${API_BASE_URL}/api/tornei/public/${t.id}/disponibilita`);
+                    const postiTotali = res.data.reduce((sum: number, s: any) => sum + (s.postiRimanenti || 0), 0);
+                    return { id: t.id, posti: postiTotali };
+                } catch {
+                    return { id: t.id, posti: 0 };
+                }
+            })
+        );
+        const map: Record<string, number> = {};
+        dispResults.forEach((d: { id: string; posti: number }) => { map[d.id] = d.posti; });
+        return { tornei: torneiData, disponibilitaMap: map };
+    };
+
+    const { data: torneiDataResult, isLoading, error: queryError } = useQuery({
+        queryKey: ['torneiPublicData'],
+        queryFn: fetchTorneiData,
+    });
+
+    const error = queryError ? (queryError as any).response?.data?.message || queryError.message || 'Errore di connessione' : null;
+    const tornei = torneiDataResult?.tornei || [];
+    const disponibilitaMap = torneiDataResult?.disponibilitaMap || {};
 
     const filteredTornei = tornei
-        .filter(t => {
+        .filter((t: Torneo) => {
             const matchSearch = t.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 t.sede.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -110,7 +106,7 @@ const Tornei: React.FC = () => {
             if (filter === 'IN_CORSO') return matchSearch && !t.completato;
             return matchSearch;
         })
-        .sort((a, b) => new Date(b.dataInizio).getTime() - new Date(a.dataInizio).getTime());
+        .sort((a: Torneo, b: Torneo) => new Date(b.dataInizio).getTime() - new Date(a.dataInizio).getTime());
 
     // Verifica se il torneo è ancora prenotabile
     const isPrenotabile = (t: Torneo): boolean => {
@@ -197,7 +193,7 @@ const Tornei: React.FC = () => {
             {/* Lista Cards Orizzontali */}
             <div className="flex flex-col gap-6">
                 {filteredTornei.length > 0 ? (
-                    filteredTornei.map((t) => {
+                    filteredTornei.map((t: Torneo) => {
                         const prenotabile = isPrenotabile(t);
                         const dataInizio = new Date(t.dataInizio);
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config';
 import {
     Trophy, Plus, Edit2, Trash2, Calendar,
@@ -85,10 +86,6 @@ const buildWhatsAppLink = (telefono: string | null, messaggio: string): string |
 };
 
 const GestioneTornei: React.FC = () => {
-    const [tornei, setTornei] = useState<Torneo[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [stagioni, setStagioni] = useState<any[]>([]);
     const [selectedStagione, setSelectedStagione] = useState('');
 
     // Pannello iscrizioni espandibile
@@ -113,43 +110,42 @@ const GestioneTornei: React.FC = () => {
     const token = sessionStorage.getItem('token');
     const headers = { Authorization: `Bearer ${token}` };
 
-    const fetchTornei = async (sid?: string) => {
-        try {
-            if (!token) {
-                setError('Sessione scaduta. Effettua nuovamente il login.');
-                setIsLoading(false);
-                return;
-            }
-
-            const url = sid ? `${API_BASE_URL}/api/tornei?stagioneId=${sid}` : `${API_BASE_URL}/api/tornei`;
-            const response = await axios.get(url, { headers });
-            setTornei(response.data);
-        } catch (err: any) {
-            console.error('Errore nel caricamento dei tornei:', err);
-            if (err.response?.status === 401) {
-                setError('Sessione scaduta. Effettua nuovamente il login.');
-            } else {
-                setError('Impossibile caricare la lista dei tornei.');
-            }
-        } finally {
-            setIsLoading(false);
-        }
+    const fetchTorneiData = async () => {
+        if (!token) throw new Error('Sessione scaduta. Effettua nuovamente il login.');
+        const url = selectedStagione ? `${API_BASE_URL}/api/tornei?stagioneId=${selectedStagione}` : `${API_BASE_URL}/api/tornei`;
+        const response = await axios.get(url, { headers });
+        return response.data as Torneo[];
     };
 
-    const fetchStagioni = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/api/stagioni`);
-            setStagioni(res.data);
+    const fetchStagioniData = async () => {
+        const res = await axios.get(`${API_BASE_URL}/api/stagioni`);
+        return res.data as any[];
+    };
 
-            // Seleziona automaticamente la stagione attiva
-            const stagioneAttiva = res.data.find((s: any) => s.attiva);
-            if (stagioneAttiva && !selectedStagione) {
+    const { data: stagioni = [], refetch: fetchStagioni } = useQuery({
+        queryKey: ['stagioni'],
+        queryFn: fetchStagioniData,
+    });
+
+    const { data: tornei = [], isLoading, error: queryError, refetch: refetchTornei } = useQuery({
+        queryKey: ['adminTornei', selectedStagione],
+        queryFn: fetchTorneiData,
+        enabled: !!token,
+        retry: false
+    });
+
+    const error = queryError ?
+        ((queryError as any).response?.status === 401 ? 'Sessione scaduta. Effettua nuovamente il login.' : 'Impossibile caricare la lista dei tornei.')
+        : '';
+
+    useEffect(() => {
+        if (stagioni.length > 0 && !selectedStagione) {
+            const stagioneAttiva = stagioni.find((s: any) => s.attiva);
+            if (stagioneAttiva) {
                 setSelectedStagione(stagioneAttiva.id);
             }
-        } catch (err) {
-            console.error('Errore nel caricamento stagioni:', err);
         }
-    };
+    }, [stagioni, selectedStagione]);
 
     const handleOpenEditStagione = (stagione: any) => {
         setEditingStagioneId(stagione.id);
@@ -201,9 +197,9 @@ const GestioneTornei: React.FC = () => {
             // Se la stagione eliminata era quella selezionata, resetta il filtro
             if (selectedStagione === id) {
                 setSelectedStagione('');
-                fetchTornei();
             }
-            fetchStagioni();
+            await fetchStagioni();
+            await refetchTornei();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Errore nell\'eliminazione.');
         }
@@ -236,10 +232,7 @@ const GestioneTornei: React.FC = () => {
     };
 
 
-    useEffect(() => {
-        fetchTornei();
-        fetchStagioni();
-    }, []);
+    // --- Eliminazione e Tornei ---
 
     const handleDelete = async (id: string, nome: string) => {
         if (!window.confirm(`Sei sicuro di voler eliminare il torneo "${nome}"? Questa azione eliminerà anche tutti i turni associati.`)) {
@@ -247,7 +240,7 @@ const GestioneTornei: React.FC = () => {
         }
         try {
             await axios.delete(`${API_BASE_URL}/api/tornei/${id}`, { headers });
-            setTornei(tornei.filter(t => t.id !== id));
+            await refetchTornei();
         } catch (err) {
             alert('Errore durante l\'eliminazione del torneo.');
         }
@@ -287,10 +280,7 @@ const GestioneTornei: React.FC = () => {
         try {
             const res = await axios.get(`${API_BASE_URL}/api/tornei/${torneoId}/iscrizioni`, { headers });
             setIscrizioni(res.data);
-            // Aggiorna anche il conteggio
-            setTornei(prev => prev.map(t =>
-                t.id === torneoId ? { ...t, _count: { ...t._count, iscrizioni: res.data.length } } : t
-            ));
+            await refetchTornei();
         } catch (err) {
             console.error('Errore ricaricamento iscrizioni:', err);
         }
@@ -361,11 +351,7 @@ const GestioneTornei: React.FC = () => {
                     <select
                         className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest outline-none focus:ring-2 focus:ring-primary/20"
                         value={selectedStagione}
-                        onChange={(e) => {
-                            const sid = e.target.value;
-                            setSelectedStagione(sid);
-                            fetchTornei(sid);
-                        }}
+                        onChange={(e) => setSelectedStagione(e.target.value)}
                     >
                         <option value="">Seleziona stagione</option>
                         {stagioni.map(s => (

@@ -63,7 +63,7 @@ const Footer: React.FC = () => {
                         <ul className="space-y-3">
                             <li>
                                 <a
-                                    href="/documenti/calendario-tornei.pdf"
+                                    href="/calendario_tornei.pdf"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm group"

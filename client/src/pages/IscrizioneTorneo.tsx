@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -44,11 +45,23 @@ interface GiocatoreLookup {
 const IscrizioneTorneo: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
-    // Dati torneo
-    const [torneo, setTorneo] = useState<Torneo | null>(null);
-    const [disponibilita, setDisponibilita] = useState<Disponibilita[]>([]);
-    const [loading, setLoading] = useState(true);
+    const fetchTorneoDati = async () => {
+        const [resTorneo, resDisp] = await Promise.all([
+            axios.get(`${API_BASE_URL}/api/tornei/public/${id}`),
+            axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`)
+        ]);
+        return { torneo: resTorneo.data as Torneo, disponibilita: resDisp.data as Disponibilita[] };
+    };
+
+    const { data: torneoDati, isLoading: loading } = useQuery({
+        queryKey: ['iscrizione', id],
+        queryFn: fetchTorneoDati,
+    });
+
+    const torneo = torneoDati?.torneo || null;
+    const disponibilita = torneoDati?.disponibilita || [];
 
     // Step 1: Tessera
     const [tessera, setTessera] = useState('');
@@ -63,25 +76,6 @@ const IscrizioneTorneo: React.FC = () => {
     // Submit
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitResult, setSubmitResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-    // Carica torneo e disponibilità
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [resTorneo, resDisp] = await Promise.all([
-                    axios.get(`${API_BASE_URL}/api/tornei/public/${id}`),
-                    axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`)
-                ]);
-                setTorneo(resTorneo.data);
-                setDisponibilita(resDisp.data);
-            } catch (err) {
-                console.error('Errore caricamento dati torneo:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [id]);
 
     // Lookup tessera
     const handleLookupTessera = async () => {
@@ -147,9 +141,8 @@ const IscrizioneTorneo: React.FC = () => {
 
             setSubmitResult({ type: 'success', message: 'Iscrizione inviata con successo! In attesa di conferma.' });
 
-            // Aggiorna disponibilità
-            const resDisp = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`);
-            setDisponibilita(resDisp.data);
+            // Aggiorna disponibilità invalidando la query
+            await queryClient.invalidateQueries({ queryKey: ['iscrizione', id] });
 
             // Redirect dopo 3 secondi
             setTimeout(() => navigate(`/tornei/${id}`), 3000);

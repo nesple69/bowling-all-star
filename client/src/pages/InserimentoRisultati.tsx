@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config';
 import {
     Trophy, ChevronLeft, Save, Trash2,
@@ -32,35 +33,41 @@ interface Risultato {
 
 const InserimentoRisultati: React.FC = () => {
     const { id } = useParams();
+    const fetchTorneoData = async () => {
+        const token = sessionStorage.getItem('token');
+        const [resTorneo, resRisultati, resGiocatori] = await Promise.all([
+            axios.get(`${API_BASE_URL}/api/tornei/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+            axios.get(`${API_BASE_URL}/api/tornei/${id}/risultati`, { headers: { Authorization: `Bearer ${token}` } }),
+            axios.get(`${API_BASE_URL}/api/giocatori`, { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        return {
+            torneo: resTorneo.data,
+            risultati: resRisultati.data as Risultato[],
+            giocatori: resGiocatori.data as Giocatore[]
+        };
+    };
+
+    const { data: torneoData, isLoading, error } = useQuery({
+        queryKey: ['inserimentoRisultati', id],
+        queryFn: fetchTorneoData,
+    });
+
     const [torneo, setTorneo] = useState<any>(null);
     const [risultati, setRisultati] = useState<Risultato[]>([]);
     const [giocatori, setGiocatori] = useState<Giocatore[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
     const [status, setStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
 
-    // Fetch initial data
     useEffect(() => {
-        const fetchData = async () => {
-            const token = sessionStorage.getItem('token');
-            try {
-                const [resTorneo, resRisultati, resGiocatori] = await Promise.all([
-                    axios.get(`${API_BASE_URL}/api/tornei/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-                    axios.get(`${API_BASE_URL}/api/tornei/${id}/risultati`, { headers: { Authorization: `Bearer ${token}` } }),
-                    axios.get(`${API_BASE_URL}/api/giocatori`, { headers: { Authorization: `Bearer ${token}` } })
-                ]);
-                setTorneo(resTorneo.data);
-                setRisultati(resRisultati.data);
-                setGiocatori(resGiocatori.data);
-            } catch (err) {
-                console.error('Errore nel caricamento dei dati:', err);
-                setStatus({ type: 'error', message: 'Impossibile caricare i dati del torneo.' });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
-    }, [id]);
+        if (torneoData) {
+            setTorneo(torneoData.torneo);
+            setRisultati(torneoData.risultati);
+            setGiocatori(torneoData.giocatori);
+        }
+        if (error) {
+            setStatus({ type: 'error', message: 'Impossibile caricare i dati del torneo.' });
+        }
+    }, [torneoData, error]);
 
     const handleSaveResult = async (risultato: Risultato) => {
         try {

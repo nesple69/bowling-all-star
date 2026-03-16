@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config';
 import { Calendar, Plus, Trash2, CheckCircle2, AlertCircle, Save, ArrowLeft, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -14,8 +15,16 @@ interface Stagione {
 }
 
 const GestioneStagioni: React.FC = () => {
-    const [stagioni, setStagioni] = useState<Stagione[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const fetchStagioniData = async () => {
+        const response = await axios.get(`${API_BASE_URL}/api/stagioni`);
+        return response.data as Stagione[];
+    };
+
+    const { data: stagioni = [], isLoading, refetch: fetchStagioni } = useQuery({
+        queryKey: ['stagioni'],
+        queryFn: fetchStagioniData,
+    });
+
     const [status, setStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
 
     // Form per nuova stagione
@@ -26,21 +35,6 @@ const GestioneStagioni: React.FC = () => {
         dataFine: format(new Date(new Date().setFullYear(new Date().getFullYear() + 1)), 'yyyy-MM-dd'),
         attiva: false
     });
-
-    useEffect(() => {
-        fetchStagioni();
-    }, []);
-
-    const fetchStagioni = async () => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/api/stagioni`);
-            setStagioni(response.data);
-        } catch (err) {
-            console.error('Errore nel caricamento delle stagioni:', err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();

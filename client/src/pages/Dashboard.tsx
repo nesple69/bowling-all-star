@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import {
     Trophy, AlertTriangle, Clock, CheckCircle2,
     Download, ExternalLink, Users, Calendar, MapPin, CreditCard,
@@ -45,28 +46,21 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const Dashboard: React.FC = () => {
     const { user, isAdmin } = useAuth();
-    const [data, setData] = useState<DashboardData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [iscrittiMap, setIscrittiMap] = useState<Record<string, IscrittoPublic[]>>({});
     const [loadingIscritti, setLoadingIscritti] = useState<Record<string, boolean>>({});
     const [openIscritti, setOpenIscritti] = useState<Record<string, boolean>>({});
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            setError(null);
-            try {
-                const response = await axios.get(`${API_BASE_URL}/api/dashboard/stats`);
-                setData(response.data);
-            } catch (error: any) {
-                console.error('Errore nel caricamento della dashboard:', error);
-                setError(error.response?.data?.message || error.message || 'Errore di connessione');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchStats();
-    }, []);
+    const fetchStats = async (): Promise<DashboardData> => {
+        const response = await axios.get(`${API_BASE_URL}/api/dashboard/stats`);
+        return response.data;
+    };
+
+    const { data, isLoading, error: queryError } = useQuery({
+        queryKey: ['dashboardStats'],
+        queryFn: fetchStats,
+    });
+
+    const error = queryError ? (queryError as any).response?.data?.message || queryError.message || 'Errore di connessione' : null;
 
     const fetchIscritti = async (torneoId: string) => {
         if (iscrittiMap[torneoId]) {

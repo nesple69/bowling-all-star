@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config';
 import {
     Trophy,
@@ -46,35 +47,32 @@ interface ImportPreview {
 const ImportDati: React.FC = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [url, setUrl] = useState('');
-    const [tornei, setTornei] = useState<Torneo[]>([]);
-    const [giocatori, setGiocatori] = useState<Giocatore[]>([]);
     const [selectedTorneoId, setSelectedTorneoId] = useState('');
     const [preview, setPreview] = useState<ImportPreview | null>(null);
     const [loading, setLoading] = useState(false);
     const [importing, setImporting] = useState(false);
     const [manualMatches, setManualMatches] = useState<Record<string, string>>({});
     const [importResult, setImportResult] = useState<{ salvati: number; nonMatchati: string[] } | null>(null);
+    const fetchImportData = async () => {
+        const token = sessionStorage.getItem('token');
+        const [torneiRes, giocatoriRes] = await Promise.all([
+            axios.get(`${API_BASE_URL}/api/tornei`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }),
+            axios.get(`${API_BASE_URL}/api/giocatori`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+        ]);
+        return { tornei: torneiRes.data as Torneo[], giocatori: giocatoriRes.data as Giocatore[] };
+    };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const token = sessionStorage.getItem('token');
-                const [torneiRes, giocatoriRes] = await Promise.all([
-                    axios.get(`${API_BASE_URL}/api/tornei`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }),
-                    axios.get(`${API_BASE_URL}/api/giocatori`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    })
-                ]);
-                setTornei(torneiRes.data);
-                setGiocatori(giocatoriRes.data);
-            } catch (error) {
-                console.error('Errore nel caricamento dati iniziali:', error);
-            }
-        };
-        fetchData();
-    }, []);
+    const { data: importData } = useQuery({
+        queryKey: ['importData'],
+        queryFn: fetchImportData,
+    });
+
+    const tornei = importData?.tornei || [];
+    const giocatori = importData?.giocatori || [];
 
     const fetchPreview = async () => {
         if (!url) return;

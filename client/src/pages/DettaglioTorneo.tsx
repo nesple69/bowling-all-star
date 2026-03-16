@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config';
 import {
     Trophy, Calendar, MapPin, Download,
@@ -58,40 +59,39 @@ interface Disponibilita {
 
 const DettaglioTorneo: React.FC = () => {
     const { id } = useParams();
-    const [torneo, setTorneo] = useState<Torneo | null>(null);
-    const [disponibilita, setDisponibilita] = useState<Disponibilita[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [isRegistering, setIsRegistering] = useState(false);
-    const [userGiocatore, setUserGiocatore] = useState<any>(null);
     const [status, setStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
 
-    useEffect(() => {
-        const fetchTorneo = async () => {
-            try {
-                const resTorneo = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}`);
-                setTorneo(resTorneo.data);
+    const fetchTorneoData = async () => {
+        const resTorneo = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}`);
+        const resDisp = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`);
 
-                const resDisp = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`);
-                setDisponibilita(resDisp.data);
+        let giocatore = null;
+        const token = sessionStorage.getItem('token');
+        const userStr = sessionStorage.getItem('user');
+        if (token && userStr) {
+            const resProfile = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            giocatore = resProfile.data.giocatore;
+        }
 
-                // Se loggato, prendi info giocatore
-                const token = sessionStorage.getItem('token');
-                const userStr = sessionStorage.getItem('user');
-                if (token && userStr) {
-                    // Fetch profile to get giocatoreId and saldo
-                    const resProfile = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    setUserGiocatore(resProfile.data.giocatore);
-                }
-            } catch (err) {
-                console.error('Errore nel caricamento del torneo:', err);
-            } finally {
-                setIsLoading(false);
-            }
+        return {
+            torneo: resTorneo.data as Torneo,
+            disponibilita: resDisp.data as Disponibilita[],
+            userGiocatore: giocatore
         };
-        fetchTorneo();
-    }, [id]);
+    };
+
+    const { data, isLoading, refetch } = useQuery({
+        queryKey: ['torneoDetail', id],
+        queryFn: fetchTorneoData,
+        enabled: !!id
+    });
+
+    const torneo = data?.torneo;
+    const disponibilita = data?.disponibilita || [];
+    const userGiocatore = data?.userGiocatore;
 
     const handleIscrizione = async (turnoId: string) => {
         if (!userGiocatore) {
@@ -123,15 +123,7 @@ const DettaglioTorneo: React.FC = () => {
             });
 
             setStatus({ type: 'success', message: 'Iscrizione effettuata con successo!' });
-            // Refresh disponibilita
-            const resDisp = await axios.get(`${API_BASE_URL}/api/tornei/public/${id}/disponibilita`);
-            setDisponibilita(resDisp.data);
-
-            // Refresh saldo
-            const resProfile = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setUserGiocatore(resProfile.data.giocatore);
+            await refetch();
         } catch (err: any) {
             setStatus({ type: 'error', message: err.response?.data?.message || 'Errore durante l\'iscrizione.' });
         } finally {

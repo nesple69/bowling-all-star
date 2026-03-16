@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -25,29 +26,21 @@ interface SaldoGiocatore {
 }
 
 const Contabilita: React.FC = () => {
-    const { token } = useAuth();
-    const [saldi, setSaldi] = useState<SaldoGiocatore[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGiocatore, setSelectedGiocatore] = useState<SaldoGiocatore | null>(null);
-
-    const fetchSaldi = async () => {
-        setIsLoading(true);
-        try {
-            const res = await axios.get(`${API_BASE_URL}/api/contabilita/saldi`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setSaldi(res.data);
-        } catch (error) {
-            console.error('Errore nel caricamento dei saldi:', error);
-        } finally {
-            setIsLoading(false);
-        }
+    const { token } = useAuth();
+    const fetchSaldiData = async () => {
+        const res = await axios.get(`${API_BASE_URL}/api/contabilita/saldi`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return res.data as SaldoGiocatore[];
     };
 
-    useEffect(() => {
-        if (token) fetchSaldi();
-    }, [token]);
+    const { data: saldi = [], isLoading, refetch: fetchSaldi } = useQuery({
+        queryKey: ['saldi', token],
+        queryFn: fetchSaldiData,
+        enabled: !!token
+    });
 
     const filteredSaldi = saldi.filter((s: SaldoGiocatore) => {
         const fullSearch = `${s.nome} ${s.cognome} ${s.numeroTessera}`.toLowerCase();
