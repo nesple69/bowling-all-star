@@ -333,7 +333,7 @@ const DettaglioTorneo: React.FC = () => {
                                                                                 r.isRiserva ? (
                                                                                     <span className="text-[9px] font-black text-gray-300 uppercase leading-none">RIS</span>
                                                                                 ) : (
-                                                                                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black ${r.posizione === 1 ? 'bg-amber-400 text-white shadow-sm' :
+                                                                                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-black ${r.posizione === 1 ? 'bg-amber-400 text-white shadow-sm' :
                                                                                         r.posizione === 2 ? 'bg-slate-300 text-white' :
                                                                                             r.posizione === 3 ? 'bg-amber-600/30 text-amber-700' : 'text-gray-400'
                                                                                         }`}>
