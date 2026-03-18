@@ -263,22 +263,46 @@ const DettaglioTorneo: React.FC = () => {
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
                                     {(() => {
-                                        // 1. Raggruppa per Divisione
-                                        const divisions = torneo.risultati.reduce((acc: any, ris: any) => {
-                                            const div = ris.divisione || 'Generale';
-                                            if (!acc[div]) acc[div] = [];
-                                            acc[div].push(ris);
+                                        // 1. Raggruppa i risultati in "Squadre" (Teams)
+                                        const groupedTeams = torneo.risultati.reduce((acc: any, ris: any) => {
+                                            const teamId = torneo.tipologia === 'SINGOLO' ? ris.id : ris.posizione;
+                                            if (!acc[teamId]) acc[teamId] = [];
+                                            acc[teamId].push(ris);
                                             return acc;
                                         }, {});
 
-                                        return Object.entries(divisions).map(([divName, divResults]: [string, any]) => {
-                                            // 2. Raggruppa per Posizione dentro la divisione
-                                            const groupedByPos = divResults.reduce((acc: any, ris: any) => {
-                                                const pos = ris.posizione;
-                                                if (!acc[pos]) acc[pos] = [];
-                                                acc[pos].push(ris);
-                                                return acc;
-                                            }, {});
+                                        // 2. Calcola la Categoria FISB per ogni Squadra
+                                        const divisions: Record<string, any[]> = {};
+                                        
+                                        Object.values(groupedTeams).forEach((team: any) => {
+                                            const p1 = team[0];
+                                            let divName = p1.divisione || 'Generale'; // default fallback
+                                            
+                                            if (torneo.tipologia === 'SINGOLO' && p1.giocatore?.sesso && p1.giocatore?.categoria) {
+                                                divName = `${p1.giocatore.sesso}/${p1.giocatore.categoria}`;
+                                            } else if (torneo.tipologia === 'DOPPIO' || torneo.tipologia === 'TRIS') {
+                                                const hasEccellenza = team.some((m: any) => ['A', 'B'].includes(m.giocatore?.categoria));
+                                                const allFemale = team.every((m: any) => m.giocatore?.sesso === 'F');
+                                                const genere = allFemale ? 'Femminile' : 'Maschile';
+                                                const livello = hasEccellenza ? 'Eccellenza' : 'Cadetti';
+                                                divName = `${livello} ${genere}`;
+                                            } else if (torneo.tipologia === 'SQUADRA_4' || torneo.tipologia === 'SQUADRA') {
+                                                const hasEccellenza = team.some((m: any) => ['A', 'B'].includes(m.giocatore?.categoria));
+                                                divName = hasEccellenza ? 'Eccellenza' : 'Cadetti';
+                                            }
+
+                                            if (!divisions[divName]) divisions[divName] = [];
+                                            divisions[divName].push(team);
+                                        });
+
+                                        // 3. Ordina le divisioni alfabeticamente
+                                        const sortedDivisionNames = Object.keys(divisions).sort((a, b) => a.localeCompare(b));
+
+                                        return sortedDivisionNames.map((divName) => {
+                                            const teamsInDiv = divisions[divName];
+                                            
+                                            // 4. Ordina i team per posizione crescente
+                                            const sortedTeams = teamsInDiv.sort((a, b) => a[0].posizione - b[0].posizione);
 
                                             return (
                                                 <React.Fragment key={divName}>
@@ -294,10 +318,10 @@ const DettaglioTorneo: React.FC = () => {
                                                         </td>
                                                     </tr>
 
-                                                    {Object.entries(groupedByPos).map(([, members]) => {
-                                                        const teamTotal = (members as any)[0].totaleBirilliSquadra || (members as any).reduce((sum: number, m: any) => sum + m.totaleBirilli, 0);
+                                                    {sortedTeams.map((members: any) => {
+                                                        const teamTotal = members[0].totaleBirilliSquadra || members.reduce((sum: number, m: any) => sum + m.totaleBirilli, 0);
 
-                                                        return (members as any).map((r: any, memberIdx: number) => {
+                                                        return members.map((r: any, memberIdx: number) => {
                                                             const isFirstInGroup = memberIdx === 0;
                                                             const isLastInGroup = memberIdx === (members as any).length - 1;
 
