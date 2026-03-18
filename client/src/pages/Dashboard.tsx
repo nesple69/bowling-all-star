@@ -329,14 +329,14 @@ const Dashboard: React.FC = () => {
                                     <div className="bg-dark p-2 flex justify-between items-center">
                                         <div className="flex items-center gap-3">
                                             <div>
-                                                <p className="text-[9px] font-black uppercase text-white/50 tracking-widest leading-none mb-1">{torneo.stagione.nome}</p>
+                                                <p className="text-[10px] font-black uppercase text-white/80 tracking-widest leading-none mb-1">{torneo.stagione.nome}</p>
                                                 <h4 className="text-white text-xs font-black uppercase leading-tight">{torneo.nome}</h4>
                                             </div>
-                                            <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">
+                                            <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest">
                                                 {format(new Date(torneo.dataInizio), 'dd/MM/yy')}
                                             </span>
                                         </div>
-                                        <div className="px-2 py-0.5 bg-white/10 rounded-full text-[9px] font-bold text-white uppercase tracking-widest">
+                                        <div className="px-2 py-0.5 bg-secondary text-dark rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
                                             {torneo.tipologia}
                                         </div>
                                     </div>
