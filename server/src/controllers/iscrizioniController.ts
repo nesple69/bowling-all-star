@@ -66,6 +66,9 @@ export const getIscrizioniTorneo = async (req: Request, res: Response) => {
                         orarioInizio: true,
                         orarioFine: true
                     }
+                },
+                sede: {
+                    select: { id: true, nome: true }
                 }
             },
             orderBy: { createdAt: 'desc' }
@@ -157,7 +160,7 @@ export const getDisponibilitaTurni = async (req: Request, res: Response) => {
 
 // POST /api/tornei/iscriviti (Giocatore - Iscrizione con Borsellino)
 export const iscriviGiocatore = async (req: Request, res: Response) => {
-    const { torneoId, turnoId, giocatoreId, secondoTurnoId } = req.body;
+    const { torneoId, turnoId, giocatoreId, secondoTurnoId, sedeId } = req.body;
 
     try {
         const torneo = await prisma.torneo.findUnique({
@@ -249,6 +252,7 @@ export const iscriviGiocatore = async (req: Request, res: Response) => {
                     giocatoreId,
                     turnoId,
                     secondoTurnoId: secondoTurnoId || null,
+                    sedeId: sedeId || null,
                     stato: 'PENDENTE'
                 }
             });

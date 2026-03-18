@@ -71,6 +71,7 @@ model Torneo {
   turni          GiorniOrariTorneo[]
   iscrizioni     IscrizioneTorneo[]
   risultati      RisultatoTorneo[]
+  sedi           SedeTorneo[]
   stagione       Stagione            @relation(fields: [stagioneId], references: [id])
 }
 
@@ -92,6 +93,7 @@ model IscrizioneTorneo {
   giocatoreId    String
   turnoId        String
   secondoTurnoId String?
+  sedeId         String?
   stato          StatoIscrizione   @default(PENDENTE)
   note           String?
   createdAt      DateTime          @default(now())
@@ -99,6 +101,7 @@ model IscrizioneTorneo {
   torneo         Torneo            @relation(fields: [torneoId], references: [id])
   turno          GiorniOrariTorneo @relation("TurnoPrincipale", fields: [turnoId], references: [id])
   secondoTurno   GiorniOrariTorneo? @relation("TurnoRiserva", fields: [secondoTurnoId], references: [id])
+  sede           SedeTorneo?       @relation(fields: [sedeId], references: [id])
 }
 
 model RisultatoTorneo {
@@ -130,6 +133,15 @@ model PartitaTorneo {
   createdAt DateTime @default(now())
   
   @@index([risultatoTorneoId])
+}
+
+model SedeTorneo {
+  id         String             @id @default(uuid())
+  torneoId   String
+  nome       String
+  categorie  String[]
+  torneo     Torneo             @relation(fields: [torneoId], references: [id], onDelete: Cascade)
+  iscrizioni IscrizioneTorneo[]
 }
 
 model MovimentoContabile {

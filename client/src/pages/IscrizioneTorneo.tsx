@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config';
@@ -19,6 +19,7 @@ interface Torneo {
     dataFine: string | null;
     costoIscrizione: number;
     stagione: { nome: string };
+    sedi: { id: string, nome: string, categorie: string[] }[];
 }
 
 interface Disponibilita {
@@ -45,7 +46,11 @@ interface GiocatoreLookup {
 const IscrizioneTorneo: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { search } = useLocation();
     const queryClient = useQueryClient();
+
+    const queryParams = new URLSearchParams(search);
+    const preselectedTurnoId = queryParams.get('turnoId');
 
     const fetchTorneoDati = async () => {
         const [resTorneo, resDisp] = await Promise.all([
@@ -70,8 +75,9 @@ const IscrizioneTorneo: React.FC = () => {
     const [lookupLoading, setLookupLoading] = useState(false);
 
     // Step 2: Turno
-    const [selectedTurno, setSelectedTurno] = useState('');
+    const [selectedTurno, setSelectedTurno] = useState(preselectedTurnoId || '');
     const [selectedSecondTurno, setSelectedSecondTurno] = useState('');
+    const [selectedSede, setSelectedSede] = useState('');
 
     // Submit
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,7 +94,20 @@ const IscrizioneTorneo: React.FC = () => {
 
         try {
             const res = await axios.get(`${API_BASE_URL}/api/tornei/lookup-tessera/${tessera.trim()}`);
-            setGiocatore(res.data);
+            const player = res.data;
+            setGiocatore(player);
+
+            // Suggerimento Sede in base alla categoria
+            if (torneo && torneo.sedi && torneo.sedi.length > 0) {
+                const suggestedSede = torneo.sedi.find(s => 
+                    s.categorie.includes(player.categoria)
+                );
+                if (suggestedSede) {
+                    setSelectedSede(suggestedSede.id);
+                } else if (torneo.sedi.length === 1) {
+                    setSelectedSede(torneo.sedi[0].id);
+                }
+            }
         } catch (err: any) {
             setTesseraError(err.response?.data?.message || 'Errore nella ricerca. Riprova.');
         } finally {
@@ -120,6 +139,7 @@ const IscrizioneTorneo: React.FC = () => {
     const canSubmit = giocatore &&
         selectedTurno &&
         (!isMultiTurno || selectedSecondTurno) &&
+        (!torneo?.sedi || torneo.sedi.length === 0 || selectedSede) &&
         !giaIscritto &&
         saldoSufficiente &&
         !isCertificatoScaduto &&
@@ -136,7 +156,8 @@ const IscrizioneTorneo: React.FC = () => {
                 torneoId: id,
                 turnoId: selectedTurno,
                 secondoTurnoId: selectedSecondTurno || null,
-                giocatoreId: giocatore.id
+                giocatoreId: giocatore.id,
+                sedeId: selectedSede || null
             });
 
             setSubmitResult({ type: 'success', message: 'Iscrizione inviata con successo! In attesa di conferma.' });
@@ -298,6 +319,59 @@ const IscrizioneTorneo: React.FC = () => {
                 )}
             </div>
 
+            {/* STEP 1.5: Scegli Sede (solo se ci sono più sedi) */}
+            {giocatore && !giaIscritto && torneo.sedi && torneo.sedi.length > 0 && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in">
+                    <h2 className="text-lg font-black uppercase tracking-tight flex items-center gap-3 mb-4">
+                        <MapPin className="w-5 h-5 text-primary" />
+                        1.5 Scegli la Sede di Gara
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-6 font-bold italic">Seleziona in quale bowling center giocherai le tue partite.</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {torneo.sedi.map((s) => {
+                            const isSelected = selectedSede === s.id;
+                            const matchesCategory = s.categorie.includes(giocatore.categoria);
+                            
+                            return (
+                                <button
+                                    key={s.id}
+                                    onClick={() => setSelectedSede(s.id)}
+                                    className={`p-6 rounded-2xl border-2 text-left transition-all relative group ${
+                                        isSelected 
+                                            ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' 
+                                            : 'border-gray-100 hover:border-primary/30 bg-white'
+                                    }`}
+                                >
+                                    {matchesCategory && (
+                                        <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm z-10">
+                                            Suggerita per {giocatore.categoria}
+                                        </span>
+                                    )}
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-primary' : 'border-gray-200'}`}>
+                                            {isSelected && <div className="w-3 h-3 bg-primary rounded-full" />}
+                                        </div>
+                                        <div>
+                                            <p className="font-black uppercase text-sm leading-tight mb-1">{s.nome}</p>
+                                            <div className="flex flex-wrap gap-1">
+                                                {s.categorie.map(c => (
+                                                    <span key={c} className={`text-[8px] font-black px-1.5 py-0.5 rounded border ${
+                                                        c === giocatore.categoria ? 'bg-amber-100 border-amber-200 text-amber-700' : 'bg-gray-50 border-gray-100 text-gray-400'
+                                                    }`}>
+                                                        {c}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             {/* STEP 2: Scegli Turno (solo se giocatore identificato e non già iscritto) */}
             {giocatore && !giaIscritto && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in">
@@ -426,6 +500,12 @@ const IscrizioneTorneo: React.FC = () => {
                         <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-sm text-gray-500 font-bold uppercase">Atleta</span>
                             <span className="font-black uppercase">{giocatore.cognome} {giocatore.nome}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span className="text-sm text-gray-500 font-bold uppercase">Sede di Gara</span>
+                            <span className="font-black uppercase text-amber-600">
+                                {torneo.sedi?.find(s => s.id === selectedSede)?.nome || torneo.sede}
+                            </span>
                         </div>
                         <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-sm text-gray-500 font-bold uppercase">Turno Preferito</span>

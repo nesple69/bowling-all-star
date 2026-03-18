@@ -66,6 +66,7 @@ export const getTorneoPublicById = async (req: Request, res: Response) => {
                 turni: {
                     orderBy: { orarioInizio: 'asc' }
                 },
+                sedi: true,
                 risultati: {
                     include: {
                         giocatore: {
@@ -125,6 +126,7 @@ export const getTorneoById = async (req: Request, res: Response) => {
                 turni: {
                     orderBy: { giorno: 'asc' }
                 },
+                sedi: true,
                 stagione: true
             }
         });
@@ -141,8 +143,18 @@ export const createTorneo = async (req: Request, res: Response) => {
     console.log('Body:', req.body);
     console.log('File:', req.file);
 
-    const { nome, tipologia, sede, stagioneId, dataInizio, dataFine, linkIscrizione, costoIscrizione, mostraBottoneIscrizione, locandinaUrl } = req.body;
+    const { nome, tipologia, sede, stagioneId, dataInizio, dataFine, linkIscrizione, costoIscrizione, mostraBottoneIscrizione, locandinaUrl, sedi } = req.body;
     let locandina = locandinaUrl || null;
+
+    // Parse sedi if provided as JSON string
+    let sediData = [];
+    if (sedi) {
+        try {
+            sediData = typeof sedi === 'string' ? JSON.parse(sedi) : sedi;
+        } catch (e) {
+            console.error('Errore parsing sedi:', e);
+        }
+    }
 
     try {
         // Gestione caricamento su Supabase Storage se presente un file
@@ -193,7 +205,13 @@ export const createTorneo = async (req: Request, res: Response) => {
                 costoIscrizione: costoIscrizione ? parseFloat(costoIscrizione) : 0,
                 dataInizio: dataInizioParsed,
                 dataFine: dataFineParsed,
-                mostraBottoneIscrizione: mostraBottoneIscrizione === 'false' || mostraBottoneIscrizione === false ? false : true
+                mostraBottoneIscrizione: mostraBottoneIscrizione === 'false' || mostraBottoneIscrizione === false ? false : true,
+                sedi: {
+                    create: sediData.map((s: any) => ({
+                        nome: s.nome,
+                        categorie: s.categorie || []
+                    }))
+                }
             }
         });
         console.log('Torneo creato con successo:', nuovoTorneo.id);
@@ -214,8 +232,18 @@ export const updateTorneo = async (req: Request, res: Response) => {
     console.log('Body:', req.body);
     console.log('File:', req.file);
 
-    const { nome, tipologia, sede, stagioneId, dataInizio, dataFine, linkIscrizione, completato, costoIscrizione, mostraBottoneIscrizione, locandinaUrl } = req.body;
+    const { nome, tipologia, sede, stagioneId, dataInizio, dataFine, linkIscrizione, completato, costoIscrizione, mostraBottoneIscrizione, locandinaUrl, sedi } = req.body;
     let locandina = locandinaUrl || undefined;
+
+    // Parse sedi if provided
+    let sediData = [];
+    if (sedi) {
+        try {
+            sediData = typeof sedi === 'string' ? JSON.parse(sedi) : sedi;
+        } catch (e) {
+            console.error('Errore parsing sedi:', e);
+        }
+    }
 
     try {
         // Gestione caricamento su Supabase Storage se presente un file
@@ -269,9 +297,30 @@ export const updateTorneo = async (req: Request, res: Response) => {
         };
         if (locandina) updateData.locandina = locandina;
 
-        const torneoAggiornato = await prisma.torneo.update({
-            where: { id },
-            data: updateData
+        const torneoAggiornato = await prisma.$transaction(async (tx) => {
+            // Aggiorna dati principali
+            const updated = await tx.torneo.update({
+                where: { id },
+                data: updateData
+            });
+
+            // Gestione sedi se fornite
+            if (sedi) {
+                // Rimuovi vecchie sedi
+                await tx.sedeTorneo.deleteMany({ where: { torneoId: id } });
+                
+                // Crea nuove sedi
+                if (sediData.length > 0) {
+                    await tx.sedeTorneo.createMany({
+                        data: sediData.map((s: any) => ({
+                            torneoId: id,
+                            nome: s.nome,
+                            categorie: s.categorie || []
+                        }))
+                    });
+                }
+            }
+            return updated;
         });
         console.log('Torneo aggiornato con successo');
         res.json(torneoAggiornato);

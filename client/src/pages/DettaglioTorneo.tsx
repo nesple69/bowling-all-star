@@ -45,6 +45,7 @@ interface Torneo {
     risultati: Risultato[];
     turni: any[];
     costoIscrizione: number;
+    sedi: { id: string, nome: string, categorie: string[] }[];
 }
 
 interface Disponibilita {
@@ -96,6 +97,13 @@ const DettaglioTorneo: React.FC = () => {
     const handleIscrizione = async (turnoId: string) => {
         if (!userGiocatore) {
             alert('Devi aver effettuato l\'accesso per iscriverti.');
+            return;
+        }
+
+        // Se il torneo ha più sedi, reindirizza alla pagina di iscrizione completa
+        // per permettere la scelta della sede con suggerimento categoria
+        if (torneo && torneo.sedi && torneo.sedi.length > 0) {
+            window.location.href = `/tornei/${id}/iscrizione?turnoId=${turnoId}`;
             return;
         }
 
@@ -216,13 +224,30 @@ const DettaglioTorneo: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4 group">
+                        <div className="flex items-start gap-4 group">
                             <div className="p-4 bg-gray-50 rounded-3xl group-hover:bg-primary/5 transition-colors">
                                 <MapPin className="w-6 h-6 text-gray-400 group-hover:text-primary transition-colors" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sede di Gara</p>
-                                <p className="font-black text-gray-700 uppercase">{torneo.sede}</p>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sedi di Gara</p>
+                                {torneo.sedi && torneo.sedi.length > 0 ? (
+                                    <div className="space-y-2 mt-1">
+                                        {torneo.sedi.map((s, idx) => (
+                                            <div key={idx} className="flex flex-col">
+                                                <span className="font-black text-gray-700 uppercase text-sm leading-tight">{s.nome}</span>
+                                                <div className="flex flex-wrap gap-1 mt-0.5">
+                                                    {s.categorie.map(c => (
+                                                        <span key={c} className="text-[8px] font-black px-1.5 py-0.5 bg-primary/5 border border-primary/10 text-primary rounded-full uppercase tracking-tighter">
+                                                            {c}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="font-black text-gray-700 uppercase">{torneo.sede}</p>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -54,6 +54,10 @@ interface Iscrizione {
         orarioInizio: string;
         orarioFine: string | null;
     } | null;
+    sede?: {
+        id: string;
+        nome: string;
+    } | null;
 }
 
 interface DisponibilitaTurno {
@@ -647,6 +651,7 @@ const GestioneTornei: React.FC = () => {
                                                         <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Atleta</th>
                                                         <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Telefono</th>
                                                         <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Turno</th>
+                                                        <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest text-amber-600">Sede</th>
                                                         <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Stato</th>
                                                         <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Data</th>
                                                         <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Azioni</th>
@@ -710,6 +715,13 @@ const GestioneTornei: React.FC = () => {
                                                                         </select>
                                                                     )}
                                                                 </div>
+                                                            </td>
+
+                                                            {/* Sede */}
+                                                            <td className="px-4 py-3">
+                                                                <span className="text-[10px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100">
+                                                                    {iscr.sede?.nome || '-'}
+                                                                </span>
                                                             </td>
 
                                                             {/* Stato */}
