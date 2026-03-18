@@ -14,7 +14,31 @@ import { API_BASE_URL } from '../config';
 interface DashboardData {
     statsPerCategoria: { categoria: string; count: number }[];
     prossimiTornei: any[];
-    ultimiTornei: any[];
+    ultimiTornei: {
+        id: string;
+        nome: string;
+        tipologia: string;
+        dataInizio: string;
+        stagione: { nome: string };
+        risultati: {
+            id: string;
+            posizione: number;
+            partiteGiocate: number;
+            totaleBirilli: number;
+            totaleBirilliSquadra?: number;
+            divisione?: string | null;
+            isRiserva: boolean;
+            giocatore: {
+                nome: string;
+                cognome: string;
+                sesso: string;
+                categoria: string;
+            };
+            partite: {
+                birilli: number;
+            }[];
+        }[];
+    }[];
     certificatiInScadenza: any[];
 }
 
@@ -316,103 +340,143 @@ const Dashboard: React.FC = () => {
                                             {torneo.tipologia}
                                         </div>
                                     </div>
-                                    <div className="overflow-x-auto max-w-xl mx-auto">
+                                    <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
-                                                <tr className="bg-gray-50 border-b border-gray-100">
-                                                    <th className="px-2 py-2 text-[10px] font-black uppercase text-gray-400 tracking-widest w-10 text-center">Pos</th>
-                                                    <th className="px-2 py-2 text-[10px] font-black uppercase text-gray-400 tracking-widest">Atleta</th>
-                                                    <th className="px-2 py-2 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center w-12">Part.</th>
-                                                    <th className="px-2 py-2 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center w-12">Birilli</th>
-                                                    {torneo.tipologia === 'TEAM' && (
-                                                        <th className="px-2 py-2 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center w-16">Tot. Sq.</th>
+                                                <tr className="bg-gray-50/50 border-b border-gray-100">
+                                                    <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Pos</th>
+                                                    <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest">Atleta</th>
+                                                    <th className="px-4 py-3 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Partite</th>
+                                                    <th className="px-4 py-3 text-center text-[10px] font-black text-primary uppercase tracking-widest">Media</th>
+                                                    <th className="px-4 py-3 text-center text-[10px] font-black text-dark uppercase tracking-widest">Total</th>
+                                                    {torneo.tipologia !== 'SINGOLO' && (
+                                                        <th className="px-4 py-3 text-center text-[10px] font-black text-secondary uppercase tracking-widest">Team</th>
                                                     )}
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {(() => {
-                                                    // 1. Raggruppa per Divisione
-                                                    const divisions = torneo.risultati.reduce((acc: any, ris: any) => {
-                                                        const div = ris.divisione || 'Generale';
-                                                        if (!acc[div]) acc[div] = [];
-                                                        acc[div].push(ris);
+                                                    const isTeam = torneo.tipologia !== 'SINGOLO';
+                                                    // 1. Raggruppa i risultati in "Squadre" (Teams)
+                                                    const groupedTeams = torneo.risultati.reduce((acc: any, ris: any) => {
+                                                        const teamId = torneo.tipologia === 'SINGOLO' ? ris.id : ris.posizione;
+                                                        if (!acc[teamId]) acc[teamId] = [];
+                                                        acc[teamId].push(ris);
                                                         return acc;
                                                     }, {});
 
-                                                    return Object.entries(divisions)
-                                                        .sort(([a], [b]) => a.localeCompare(b))
-                                                        .map(([divName, divResults]: [string, any]) => {
-                                                            // 2. Raggruppa per Posizione dentro la divisione
-                                                            const groupedByPos = divResults.reduce((acc: any, ris: any) => {
-                                                                const pos = ris.posizione;
-                                                                if (!acc[pos]) acc[pos] = [];
-                                                                acc[pos].push(ris);
-                                                                return acc;
-                                                            }, {});
+                                                    // 2. Calcola la Categoria FISB per ogni Squadra
+                                                    const divisions: Record<string, any[]> = {};
 
-                                                            return (
-                                                                <React.Fragment key={divName}>
-                                                                    {/* Header Divisione */}
-                                                                    <tr className="bg-gray-50/80">
-                                                                        <td colSpan={torneo.tipologia === 'TEAM' ? 5 : 4} className="px-2 py-1 border-y border-gray-100">
-                                                                            <span className="text-[9px] font-black uppercase tracking-widest text-primary/70">
-                                                                                {divName}
-                                                                            </span>
-                                                                        </td>
-                                                                    </tr>
+                                                    Object.values(groupedTeams).forEach((team: any) => {
+                                                        const p1 = team[0];
+                                                        let divName = p1.divisione || 'Generale';
 
-                                                                    {Object.entries(groupedByPos).map(([, members]: [string, any], groupIdx) => {
-                                                                        const totalSquadra = members.reduce((sum: number, m: any) => sum + m.totaleBirilli, 0);
+                                                        if (torneo.tipologia === 'SINGOLO' && p1.giocatore?.sesso && p1.giocatore?.categoria) {
+                                                            divName = `${p1.giocatore.sesso}/${p1.giocatore.categoria}`;
+                                                        } else if (torneo.tipologia === 'DOPPIO' || torneo.tipologia === 'TRIS') {
+                                                            const hasEccellenza = team.some((m: any) => ['A', 'B'].includes(m.giocatore?.categoria));
+                                                            const allFemale = team.every((m: any) => m.giocatore?.sesso === 'F');
+                                                            const genere = allFemale ? 'Femminile' : 'Maschile';
+                                                            const livello = hasEccellenza ? 'Eccellenza' : 'Cadetti';
+                                                            divName = `${livello} ${genere}`;
+                                                        } else if (torneo.tipologia === 'SQUADRA_4' || torneo.tipologia === 'SQUADRA') {
+                                                            const hasEccellenza = team.some((m: any) => ['A', 'B'].includes(m.giocatore?.categoria));
+                                                            divName = hasEccellenza ? 'Eccellenza' : 'Cadetti';
+                                                        }
 
-                                                                        return members.map((ris: any, memberIdx: number) => {
-                                                                            const isFirstInGroup = memberIdx === 0;
-                                                                            const isLastInGroup = memberIdx === members.length - 1;
+                                                        if (!divisions[divName]) divisions[divName] = [];
+                                                        divisions[divName].push(team);
+                                                    });
 
-                                                                            return (
-                                                                                <tr key={`${divName}-${groupIdx}-${memberIdx}`}
-                                                                                    className={`border-b transition-colors ${isLastInGroup ? 'border-gray-200' : 'border-gray-50'
-                                                                                        } hover:bg-gray-50/50`}>
-                                                                                    <td className="px-2 py-1.5 text-center align-middle">
-                                                                                        {isFirstInGroup && (
-                                                                                            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black ${ris.posizione === 1 ? 'bg-amber-400 text-white shadow-sm' :
-                                                                                                ris.posizione === 2 ? 'bg-slate-300 text-white' :
-                                                                                                    ris.posizione === 3 ? 'bg-amber-600/30 text-amber-700' :
-                                                                                                        'text-gray-400'
+                                                    // 3. Ordina le divisioni alfabeticamente
+                                                    const sortedDivisionNames = Object.keys(divisions).sort((a, b) => a.localeCompare(b));
+
+                                                    return sortedDivisionNames.map((divName) => {
+                                                        const teamsInDiv = divisions[divName];
+                                                        // 4. Ordina i team per posizione crescente
+                                                        const sortedTeams = teamsInDiv.sort((a, b) => a[0].posizione - b[0].posizione);
+
+                                                        return (
+                                                            <React.Fragment key={divName}>
+                                                                <tr className="bg-primary/5">
+                                                                    <td colSpan={isTeam ? 6 : 5} className="px-4 py-1.5 border-y border-primary/10">
+                                                                        <span className="text-[9px] font-black uppercase tracking-widest text-primary">
+                                                                            Categoria {divName}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+
+                                                                {sortedTeams.map((members: any) => {
+                                                                    const teamTotal = members[0].totaleBirilliSquadra || members.reduce((sum: number, m: any) => sum + m.totaleBirilli, 0);
+
+                                                                    return members.map((r: any, memberIdx: number) => {
+                                                                        const isFirstInGroup = memberIdx === 0;
+                                                                        const isLastInGroup = memberIdx === members.length - 1;
+
+                                                                        return (
+                                                                            <tr key={r.id} className={`transition-colors ${r.isRiserva ? 'opacity-60 bg-gray-50/30' : ''} ${isLastInGroup ? 'border-b border-gray-100' : 'border-b border-gray-50'} hover:bg-gray-50/50`}>
+                                                                                <td className="px-2 py-2 text-center align-middle">
+                                                                                    {isFirstInGroup && (
+                                                                                        r.isRiserva ? (
+                                                                                            <span className="text-[9px] font-black text-gray-300 uppercase leading-none">RIS</span>
+                                                                                        ) : (
+                                                                                            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black ${r.posizione === 1 ? 'bg-amber-400 text-white shadow-sm' :
+                                                                                                r.posizione === 2 ? 'bg-slate-300 text-white' :
+                                                                                                    r.posizione === 3 ? 'bg-amber-600/30 text-amber-700' : 'text-gray-400'
                                                                                                 }`}>
-                                                                                                {ris.posizione}
+                                                                                                {r.posizione}
                                                                                             </span>
+                                                                                        )
+                                                                                    )}
+                                                                                </td>
+                                                                                <td className="px-2 py-2">
+                                                                                    <div className="flex flex-col">
+                                                                                        <span className="text-[12px] font-bold text-dark leading-tight">
+                                                                                            {r.giocatore.cognome} {r.giocatore.nome}
+                                                                                        </span>
+                                                                                        <span className="text-[9px] font-black text-primary uppercase">
+                                                                                            {r.giocatore.sesso}/{r.giocatore.categoria}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="px-1 py-2">
+                                                                                    <div className="flex flex-wrap justify-center gap-0.5">
+                                                                                        {r.partite && r.partite.length > 0 ? (
+                                                                                            r.partite.map((p: any, idx: number) => (
+                                                                                                <span key={idx} className="text-[9px] font-bold text-dark/70 bg-gray-50 px-1 rounded border border-gray-100 min-w-[20px] text-center">
+                                                                                                    {p.birilli}
+                                                                                                </span>
+                                                                                            ))
+                                                                                        ) : (
+                                                                                            <span className="text-[9px] text-gray-300 italic">{r.partiteGiocate} p.</span>
                                                                                         )}
-                                                                                    </td>
-                                                                                    <td className="px-2 py-1.5">
-                                                                                        <div className="flex items-center gap-2">
-                                                                                            <div className="w-[180px] lg:w-[220px] flex-shrink-0">
-                                                                                                <span className="text-sm font-bold text-dark whitespace-nowrap">
-                                                                                                    {ris.giocatore.cognome} {ris.giocatore.nome}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                            <div className="flex-shrink-0">
-                                                                                                <span className="inline-block text-[10px] font-black text-white bg-primary px-1.5 py-0.5 rounded uppercase min-w-[34px] text-center shadow-sm">
-                                                                                                    {(ris.giocatore.sesso || 'M')}/{ris.giocatore.categoria}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td className="px-2 py-1.5 text-center text-sm font-bold text-gray-600">{ris.partiteGiocate}</td>
-                                                                                    <td className="px-2 py-1.5 text-center text-sm font-black text-primary">{ris.totaleBirilli}</td>
-                                                                                    <td className="px-2 py-1.5 text-center align-middle">
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="px-2 py-2 text-center">
+                                                                                    <span className="text-[10px] font-black text-primary">
+                                                                                        {r.partiteGiocate > 0 ? (r.totaleBirilli / r.partiteGiocate).toFixed(1) : '0.0'}
+                                                                                    </span>
+                                                                                </td>
+                                                                                <td className="px-2 py-2 text-center text-[12px] font-black text-dark">
+                                                                                    {r.totaleBirilli}
+                                                                                </td>
+                                                                                {isTeam && (
+                                                                                    <td className="px-2 py-2 text-center align-middle">
                                                                                         {isFirstInGroup && (
-                                                                                            <span className="text-sm font-black text-secondary">
-                                                                                                {totalSquadra}
+                                                                                            <span className="text-[12px] font-black text-secondary">
+                                                                                                {teamTotal || '-'}
                                                                                             </span>
                                                                                         )}
                                                                                     </td>
-                                                                                </tr>
-                                                                            );
-                                                                        });
-                                                                    })}
-                                                                </React.Fragment>
-                                                            );
-                                                        });
+                                                                                )}
+                                                                            </tr>
+                                                                        );
+                                                                    });
+                                                                })}
+                                                            </React.Fragment>
+                                                        );
+                                                    });
                                                 })()}
                                             </tbody>
                                         </table>

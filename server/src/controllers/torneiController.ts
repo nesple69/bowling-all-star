@@ -415,7 +415,10 @@ export const getClassifiche = async (_req: Request, res: Response) => {
                 risultati: {
                     include: {
                         giocatore: {
-                            select: { nome: true, cognome: true, categoria: true }
+                            select: { nome: true, cognome: true, sesso: true, categoria: true }
+                        },
+                        partite: {
+                            orderBy: { numeroPartita: 'asc' }
                         }
                     },
                     orderBy: [
