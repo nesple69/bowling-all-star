@@ -401,7 +401,7 @@ const Dashboard: React.FC = () => {
                                                             <React.Fragment key={divName}>
                                                                 <tr className="bg-primary/5">
                                                                     <td colSpan={isTeam ? 6 : 5} className="px-4 py-1.5 border-y border-primary/10">
-                                                                        <span className="text-[9px] font-black uppercase tracking-widest text-primary">
+                                                                        <span className="text-[11px] font-black uppercase tracking-widest text-primary">
                                                                             Categoria {divName}
                                                                         </span>
                                                                     </td>
@@ -444,17 +444,17 @@ const Dashboard: React.FC = () => {
                                                                                     <div className="flex flex-wrap justify-center gap-0.5">
                                                                                         {r.partite && r.partite.length > 0 ? (
                                                                                             r.partite.map((p: any, idx: number) => (
-                                                                                                <span key={idx} className="text-[9px] font-bold text-dark/70 bg-gray-50 px-1 rounded border border-gray-100 min-w-[20px] text-center">
+                                                                                                <span key={idx} className="text-[10px] font-bold text-dark/70 bg-gray-50 px-1 rounded border border-gray-100 min-w-[20px] text-center">
                                                                                                     {p.birilli}
                                                                                                 </span>
                                                                                             ))
                                                                                         ) : (
-                                                                                            <span className="text-[9px] text-gray-300 italic">{r.partiteGiocate} p.</span>
+                                                                                            <span className="text-[11px] text-gray-400 italic font-bold">{r.partiteGiocate} p.</span>
                                                                                         )}
                                                                                     </div>
                                                                                 </td>
                                                                                 <td className="px-2 py-2 text-center">
-                                                                                    <span className="text-[10px] font-black text-primary">
+                                                                                    <span className="text-[13px] font-black text-primary">
                                                                                         {r.partiteGiocate > 0 ? (r.totaleBirilli / r.partiteGiocate).toFixed(1) : '0.0'}
                                                                                     </span>
                                                                                 </td>
