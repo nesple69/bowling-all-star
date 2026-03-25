@@ -47,7 +47,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
         fetchData();
     }, [giocatore.id]);
 
-    const handleAction = async (data: { importo: number; tipo: string; descrizione: string }) => {
+    const handleAction = async (data: { importo: number; tipo: string; descrizione: string; data: string }) => {
         setIsActionLoading(true);
         try {
             const endpoint = showForm === 'ricarica' ? 'ricarica' : 'addebito';

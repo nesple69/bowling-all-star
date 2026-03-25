@@ -29,7 +29,7 @@ export const getBorsellinoGiocatore = async (req: Request, res: Response) => {
 
 // POST /api/contabilita/ricarica
 export const ricaricaBorsellino = async (req: Request, res: Response) => {
-    const { giocatoreId, importo, descrizione } = req.body;
+    const { giocatoreId, importo, descrizione, data: customData } = req.body;
     const adminId = (req as any).user?.id; // Presunto dall'autenticazione
 
     if (!importo || parseFloat(importo) <= 0) {
@@ -45,7 +45,8 @@ export const ricaricaBorsellino = async (req: Request, res: Response) => {
                     importo: parseFloat(importo),
                     tipo: TipoMovimento.RICARICA,
                     descrizione: descrizione || 'Ricarica manuale admin',
-                    adminId
+                    adminId,
+                    data: customData ? new Date(customData) : undefined
                 }
             });
 
@@ -73,7 +74,7 @@ export const ricaricaBorsellino = async (req: Request, res: Response) => {
 
 // POST /api/contabilita/addebito
 export const addebitoManuale = async (req: Request, res: Response) => {
-    const { giocatoreId, importo, descrizione } = req.body;
+    const { giocatoreId, importo, descrizione, data: customData } = req.body;
     const adminId = (req as any).user?.id;
 
     if (!importo || parseFloat(importo) <= 0) {
@@ -105,7 +106,8 @@ export const addebitoManuale = async (req: Request, res: Response) => {
                     importo: parseFloat(importo), // Lo salviamo come valore positivo, il tipo ADDEBITO indica la sottrazione
                     tipo: TipoMovimento.ADDEBITO_MANUALE,
                     descrizione: descrizione || 'Addebito manuale admin',
-                    adminId
+                    adminId,
+                    data: customData ? new Date(customData) : undefined
                 }
             });
 

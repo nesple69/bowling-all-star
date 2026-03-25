@@ -3,7 +3,7 @@ import { X, Plus, Minus, Loader2 } from 'lucide-react';
 
 interface FormMovimentoProps {
     onClose: () => void;
-    onSubmit: (data: { importo: number; tipo: string; descrizione: string }) => Promise<void>;
+    onSubmit: (data: { importo: number; tipo: string; descrizione: string; data: string }) => Promise<void>;
     type: 'ricarica' | 'addebito';
     isLoading: boolean;
 }
@@ -12,6 +12,7 @@ const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, 
     const [importo, setImporto] = useState('');
     const [descrizione, setDescrizione] = useState('');
     const [tipoMovimento, setTipoMovimento] = useState(type === 'ricarica' ? 'RICARICA' : 'ADDEBITO_MANUALE');
+    const [data, setData] = useState(new Date().toISOString().split('T')[0]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,7 +23,8 @@ const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, 
         await onSubmit({
             importo: parseFloat(importo),
             tipo: tipoMovimento,
-            descrizione: descrizione
+            descrizione: descrizione,
+            data: data
         });
     };
 
@@ -42,6 +44,17 @@ const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, 
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Data Movimento</label>
+                    <input
+                        type="date"
+                        className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-xl focus:border-primary focus:ring-0 outline-none transition-all font-bold text-sm"
+                        value={data}
+                        onChange={(e) => setData(e.target.value)}
+                        required
+                    />
+                </div>
+
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Importo (€)</label>
                     <input
