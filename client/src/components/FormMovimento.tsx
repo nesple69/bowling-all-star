@@ -6,13 +6,19 @@ interface FormMovimentoProps {
     onSubmit: (data: { importo: number; tipo: string; descrizione: string; data: string }) => Promise<void>;
     type: 'ricarica' | 'addebito';
     isLoading: boolean;
+    initialData?: {
+        importo: number;
+        tipo: string;
+        descrizione: string;
+        data: string;
+    };
 }
 
-const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, isLoading }) => {
-    const [importo, setImporto] = useState('');
-    const [descrizione, setDescrizione] = useState('');
-    const [tipoMovimento, setTipoMovimento] = useState(type === 'ricarica' ? 'RICARICA' : 'ADDEBITO_MANUALE');
-    const [data, setData] = useState(new Date().toISOString().split('T')[0]);
+const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, isLoading, initialData }) => {
+    const [importo, setImporto] = useState(initialData ? initialData.importo.toString() : '');
+    const [descrizione, setDescrizione] = useState(initialData ? (initialData.descrizione || '') : '');
+    const [tipoMovimento, setTipoMovimento] = useState(initialData ? initialData.tipo : (type === 'ricarica' ? 'RICARICA' : 'ADDEBITO_MANUALE'));
+    const [data, setData] = useState(initialData ? initialData.data.split('T')[0] : new Date().toISOString().split('T')[0]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,7 +38,9 @@ const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, 
         <div className="bg-gray-50 p-6 rounded-2xl border-2 border-primary/10 mt-4 animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-sm font-black uppercase tracking-widest text-dark flex items-center gap-2">
-                    {type === 'ricarica' ? (
+                    {initialData ? (
+                        <>Modifica Movimento</>
+                    ) : type === 'ricarica' ? (
                         <><Plus className="w-4 h-4 text-green-600" /> Nuova Ricarica</>
                     ) : (
                         <><Minus className="w-4 h-4 text-red-600" /> Nuovo Addebito Manuale</>
@@ -108,7 +116,7 @@ const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, 
                             Elaborazione...
                         </>
                     ) : (
-                        'Conferma Operazione'
+                        initialData ? 'Salva Modifiche' : 'Conferma Operazione'
                     )}
                 </button>
             </form>

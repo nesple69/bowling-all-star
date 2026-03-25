@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import {
     X, CreditCard, ArrowUpCircle, ArrowDownCircle,
-    History, Plus, Minus, Loader2
+    History, Plus, Minus, Loader2, Edit2, Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import FormMovimento from './FormMovimento';
@@ -25,7 +25,8 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
     const [saldo, setSaldo] = useState<number | null>(null);
     const [movimenti, setMovimenti] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [showForm, setShowForm] = useState<'ricarica' | 'addebito' | null>(null);
+    const [showForm, setShowForm] = useState<'ricarica' | 'addebito' | 'modifica' | null>(null);
+    const [editingMovimento, setEditingMovimento] = useState<any | null>(null);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
     const fetchData = async () => {
@@ -50,15 +51,22 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
     const handleAction = async (data: { importo: number; tipo: string; descrizione: string; data: string }) => {
         setIsActionLoading(true);
         try {
-            const endpoint = showForm === 'ricarica' ? 'ricarica' : 'addebito';
-            await axios.post(`${API_BASE_URL}/api/contabilita/${endpoint}`, {
-                giocatoreId: giocatore.id,
-                ...data
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            if (showForm === 'modifica' && editingMovimento) {
+                await axios.put(`${API_BASE_URL}/api/contabilita/movimenti/${editingMovimento.id}`, data, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } else {
+                const endpoint = showForm === 'ricarica' ? 'ricarica' : 'addebito';
+                await axios.post(`${API_BASE_URL}/api/contabilita/${endpoint}`, {
+                    giocatoreId: giocatore.id,
+                    ...data
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            }
 
             setShowForm(null);
+            setEditingMovimento(null);
             await fetchData();
             onUpdate(); // Notifica la pagina principale del cambiamento
         } catch (error) {
@@ -67,6 +75,31 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
         } finally {
             setIsActionLoading(false);
         }
+    };
+
+    const handleDeleteMovimento = async (id: string) => {
+        if (!window.confirm('Sei sicuro di voler eliminare questo movimento? Il saldo verrà ricalcolato.')) {
+            return;
+        }
+
+        setIsActionLoading(true);
+        try {
+            await axios.delete(`${API_BASE_URL}/api/contabilita/movimenti/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            await fetchData();
+            onUpdate();
+        } catch (error) {
+            console.error('Errore eliminazione movimento:', error);
+            alert('Errore durante l\'eliminazione del movimento.');
+        } finally {
+            setIsActionLoading(false);
+        }
+    };
+
+    const handleEditMovimento = (movimento: any) => {
+        setEditingMovimento(movimento);
+        setShowForm('modifica');
     };
 
     const formatValuta = (valore: number | string) => {
@@ -132,8 +165,17 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
                     {/* Form Movimento */}
                     {showForm && (
                         <FormMovimento
-                            type={showForm}
-                            onClose={() => setShowForm(null)}
+                            type={showForm === 'modifica' ? (editingMovimento?.tipo === 'RICARICA' ? 'ricarica' : 'addebito') : showForm}
+                            initialData={editingMovimento ? {
+                                importo: Number(editingMovimento.importo),
+                                tipo: editingMovimento.tipo,
+                                descrizione: editingMovimento.descrizione,
+                                data: editingMovimento.data
+                            } : undefined}
+                            onClose={() => {
+                                setShowForm(null);
+                                setEditingMovimento(null);
+                            }}
                             onSubmit={handleAction}
                             isLoading={isActionLoading}
                         />
@@ -158,6 +200,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
                                             <th className="px-4 py-3 text-[9px] font-black uppercase text-gray-400">Data</th>
                                             <th className="px-4 py-3 text-[9px] font-black uppercase text-gray-400">Tipo</th>
                                             <th className="px-4 py-3 text-[9px] font-black uppercase text-gray-400 text-right">Importo</th>
+                                            <th className="px-4 py-3 text-[9px] font-black uppercase text-gray-400 text-center">Azioni</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
@@ -191,6 +234,24 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
                                                             <span className={`text-xs font-black ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
                                                                 {isPositive ? '+' : '-'}{formatValuta(m.importo)}
                                                             </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-4">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleEditMovimento(m); }}
+                                                                className="p-1.5 hover:bg-primary/10 text-gray-400 hover:text-primary transition-colors rounded-lg"
+                                                                title="Modifica"
+                                                            >
+                                                                <Edit2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleDeleteMovimento(m.id); }}
+                                                                className="p-1.5 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors rounded-lg"
+                                                                title="Elimina"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>

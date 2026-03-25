@@ -8,6 +8,7 @@ import {
     AlertTriangle, ChevronRight, Wallet
 } from 'lucide-react';
 import DettaglioBorsellino from '../components/DettaglioBorsellino';
+import { format } from 'date-fns';
 
 // Icona WhatsApp Custom SVG
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -26,8 +27,8 @@ interface SaldoGiocatore {
 }
 
 const Contabilita: React.FC = () => {
-    const [searchTerm, setSearchTerm] = useState('');
     const [selectedGiocatore, setSelectedGiocatore] = useState<SaldoGiocatore | null>(null);
+    const [loadingWA, setLoadingWA] = useState<string | null>(null);
     const { token } = useAuth();
     const fetchSaldiData = async () => {
         const res = await axios.get(`${API_BASE_URL}/api/contabilita/saldi`, {
@@ -51,20 +52,46 @@ const Contabilita: React.FC = () => {
         return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(valore));
     };
 
-    const handleWhatsApp = (e: React.MouseEvent, giocatore: SaldoGiocatore) => {
+    const handleWhatsApp = async (e: React.MouseEvent, giocatore: SaldoGiocatore) => {
         e.stopPropagation(); // Evita di aprire la modale
         if (!giocatore.telefono) {
             alert('Numero di telefono non disponibile per questo giocatore.');
             return;
         }
 
-        const telefonoPulito = giocatore.telefono.replace(/\D/g, '');
-        const telefonoFormattato = telefonoPulito.startsWith('39') ? telefonoPulito : `39${telefonoPulito}`;
+        setLoadingWA(giocatore.id);
+        try {
+            // Recupera tutti i movimenti della stagione corrente
+            const res = await axios.get(`${API_BASE_URL}/api/giocatori/${giocatore.id}/borsellino?soloAttiva=true`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
-        const messaggio = `Ciao ${giocatore.nome}, il tuo credito è sceso sotto i 15€ ricaricalo per poter continuare la tua attività agonistica.`;
-        const url = `https://wa.me/${telefonoFormattato}?text=${encodeURIComponent(messaggio)}`;
+            const movimenti = res.data.movimenti || [];
+            const telefonoPulito = giocatore.telefono.replace(/\D/g, '');
+            const telefonoFormattato = telefonoPulito.startsWith('39') ? telefonoPulito : `39${telefonoPulito}`;
 
-        window.open(url, '_blank');
+            let estrattoConto = '';
+            if (movimenti.length > 0) {
+                estrattoConto = '\n\n*ESTRATTO CONTO STAGIONE CORRENTE:*\n';
+                movimenti.forEach((m: any) => {
+                    const dataFmt = format(new Date(m.data), 'dd/MM/yy');
+                    const segno = m.tipo === 'RICARICA' ? '+' : '-';
+                    const importoFmt = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(m.importo));
+                    const desc = m.descrizione ? ` (${m.descrizione})` : '';
+                    estrattoConto += `• ${dataFmt}: ${segno}${importoFmt}${desc}\n`;
+                });
+            }
+
+            const messaggio = `Ciao ${giocatore.nome}, il tuo credito è di ${formatValuta(giocatore.saldoAttuale)}. Ti chiediamo cortesemente di ricaricarlo per poter continuare la tua attività agonistica.${estrattoConto}\nGrazie!`;
+            const url = `https://wa.me/${telefonoFormattato}?text=${encodeURIComponent(messaggio)}`;
+
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Errore durante il recupero dell\'estratto conto:', error);
+            alert('Errore durante il recupero dell\'estratto conto.');
+        } finally {
+            setLoadingWA(null);
+        }
     };
 
     if (isLoading) {
@@ -184,10 +211,15 @@ const Contabilita: React.FC = () => {
                                                 {isLowBalance && (
                                                     <button
                                                         onClick={(e) => handleWhatsApp(e, s)}
+                                                        disabled={loadingWA === s.id}
                                                         title="Invia sollecito WhatsApp"
-                                                        className="p-2 bg-green-100 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm group/wa"
+                                                        className="p-2 bg-green-100 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm group/wa disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        <WhatsAppIcon className="w-5 h-5" />
+                                                        {loadingWA === s.id ? (
+                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                        ) : (
+                                                            <WhatsAppIcon className="w-5 h-5" />
+                                                        )}
                                                     </button>
                                                 )}
                                             </div>

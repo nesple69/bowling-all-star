@@ -14,5 +14,7 @@ router.post('/contabilita/ricarica', authenticateToken, isAdmin, contabilitaCont
 router.post('/contabilita/addebito', authenticateToken, isAdmin, contabilitaController.addebitoManuale);
 router.get('/contabilita/movimenti', authenticateToken, isAdmin, contabilitaController.getAllMovimenti);
 router.get('/contabilita/saldi', authenticateToken, isAdmin, contabilitaController.getAllSaldi);
+router.put('/contabilita/movimenti/:id', authenticateToken, isAdmin, contabilitaController.updateMovimento);
+router.delete('/contabilita/movimenti/:id', authenticateToken, isAdmin, contabilitaController.deleteMovimento);
 
 export default router;

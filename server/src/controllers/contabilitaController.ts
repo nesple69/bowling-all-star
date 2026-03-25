@@ -1,20 +1,35 @@
 import { Request, Response } from 'express';
-import { TipoMovimento } from '@prisma/client';
+import { TipoMovimento, Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 
 // GET /api/giocatori/:id/borsellino
 export const getBorsellinoGiocatore = async (req: Request, res: Response) => {
     const id = req.params.id as string;
+    const soloAttiva = req.query.soloAttiva === 'true' || req.query.soloAttiva === '1';
 
     try {
         const saldo = await prisma.saldoBorsellino.findUnique({
             where: { giocatoreId: id }
         });
 
+        let whereClause: any = { giocatoreId: id };
+
+        if (soloAttiva) {
+            const stagioneAttiva = await prisma.stagione.findFirst({
+                where: { attiva: true }
+            });
+            if (stagioneAttiva) {
+                whereClause.data = {
+                    gte: stagioneAttiva.dataInizio,
+                    lte: stagioneAttiva.dataFine
+                };
+            }
+        }
+
         const movimenti = await prisma.movimentoContabile.findMany({
-            where: { giocatoreId: id },
+            where: whereClause,
             orderBy: { data: 'desc' },
-            take: 50
+            take: soloAttiva ? undefined : 50
         });
 
         res.json({
@@ -195,5 +210,111 @@ export const getAllSaldi = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Errore recupero saldi:', error);
         res.status(500).json({ message: 'Errore nel recupero dei saldi dei giocatori' });
+    }
+};
+
+// Helper per ricalcolare il saldo di un giocatore basandosi sui movimenti
+const recalculateSaldo = async (giocatoreId: string, tx: Prisma.TransactionClient) => {
+    // Sommiamo tutti i movimenti: RICARICA è +, gli altri sono -
+    const movimenti = await tx.movimentoContabile.findMany({
+        where: { giocatoreId }
+    });
+
+    const nuovoSaldo = movimenti.reduce((acc, m) => {
+        const importo = Number(m.importo);
+        if (m.tipo === TipoMovimento.RICARICA) {
+            return acc + importo;
+        } else {
+            return acc - importo;
+        }
+    }, 0);
+
+    await tx.saldoBorsellino.upsert({
+        where: { giocatoreId },
+        update: { saldoAttuale: nuovoSaldo },
+        create: { giocatoreId, saldoAttuale: nuovoSaldo }
+    });
+
+    return nuovoSaldo;
+};
+
+// PUT /api/contabilita/movimenti/:id
+export const updateMovimento = async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const { importo, tipo, descrizione, data } = req.body;
+
+    try {
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Trova il movimento esistente per sapere di chi è
+            const movimentoEsistente = await tx.movimentoContabile.findUnique({
+                where: { id }
+            });
+
+            if (!movimentoEsistente) {
+                throw new Error('Movimento non trovato');
+            }
+
+            // 2. Aggiorna il movimento
+            const movimentoAggiornato = await tx.movimentoContabile.update({
+                where: { id },
+                data: {
+                    importo: importo !== undefined ? parseFloat(importo) : undefined,
+                    tipo: tipo || undefined,
+                    descrizione: descrizione || undefined,
+                    data: data ? new Date(data) : undefined
+                }
+            });
+
+            // 3. Ricalcola il saldo per quel giocatore
+            const nuovoSaldo = await recalculateSaldo(movimentoEsistente.giocatoreId, tx);
+
+            return { movimento: movimentoAggiornato, saldo: nuovoSaldo };
+        });
+
+        res.json(result);
+    } catch (error: any) {
+        console.error('Errore aggiornamento movimento:', error);
+        if (error.message === 'Movimento non trovato') {
+            return res.status(404).json({ message: error.message });
+        }
+        res.status(500).json({ message: 'Errore durante l\'aggiornamento del movimento' });
+    }
+};
+
+// DELETE /api/contabilita/movimenti/:id
+export const deleteMovimento = async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+
+    try {
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Trova il movimento esistente
+            const movimentoEsistente = await tx.movimentoContabile.findUnique({
+                where: { id }
+            });
+
+            if (!movimentoEsistente) {
+                throw new Error('Movimento non trovato');
+            }
+
+            const giocatoreId = movimentoEsistente.giocatoreId;
+
+            // 2. Elimina il movimento
+            await tx.movimentoContabile.delete({
+                where: { id }
+            });
+
+            // 3. Ricalcola il saldo
+            const nuovoSaldo = await recalculateSaldo(giocatoreId, tx);
+
+            return { success: true, saldo: nuovoSaldo };
+        });
+
+        res.json(result);
+    } catch (error: any) {
+        console.error('Errore eliminazione movimento:', error);
+        if (error.message === 'Movimento non trovato') {
+            return res.status(404).json({ message: error.message });
+        }
+        res.status(500).json({ message: 'Errore durante l\'eliminazione del movimento' });
     }
 };
