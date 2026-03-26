@@ -5,10 +5,12 @@ import { API_BASE_URL } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import {
     Search, User, Loader2, ArrowLeftRight,
-    AlertTriangle, ChevronRight, Wallet
+    AlertTriangle, ChevronRight, Wallet, FileDown
 } from 'lucide-react';
 import DettaglioBorsellino from '../components/DettaglioBorsellino';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // Icona WhatsApp Custom SVG
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -29,6 +31,8 @@ interface SaldoGiocatore {
 const Contabilita: React.FC = () => {
     const [selectedGiocatore, setSelectedGiocatore] = useState<SaldoGiocatore | null>(null);
     const [loadingWA, setLoadingWA] = useState<string | null>(null);
+    const [loadingPDF, setLoadingPDF] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
     const { token } = useAuth();
     const fetchSaldiData = async () => {
         const res = await axios.get(`${API_BASE_URL}/api/contabilita/saldi`, {
@@ -50,6 +54,73 @@ const Contabilita: React.FC = () => {
 
     const formatValuta = (valore: string | number) => {
         return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(valore));
+    };
+
+    const handleDownloadPDF = async (e: React.MouseEvent, giocatore: SaldoGiocatore) => {
+        e.stopPropagation();
+        setLoadingPDF(giocatore.id);
+        
+        try {
+            const res = await axios.get(`${API_BASE_URL}/api/giocatori/${giocatore.id}/borsellino?soloAttiva=true`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const movimenti = res.data.movimenti || [];
+
+            const doc = new jsPDF();
+            doc.setFontSize(22);
+            doc.setTextColor(40);
+            doc.text('Estratto Conto', 14, 22);
+            
+            doc.setFontSize(14);
+            doc.text(`Giocatore: ${giocatore.cognome} ${giocatore.nome}`, 14, 32);
+            doc.text(`Tessera: ${giocatore.numeroTessera || 'N/D'}`, 14, 40);
+            
+            const dataOdierna = format(new Date(), 'dd/MM/yyyy');
+            doc.setFontSize(10);
+            doc.text(`Data di emissione: ${dataOdierna}`, 14, 48);
+
+            if (movimenti.length > 0) {
+                const tableColumn = ["Data", "Tipo", "Descrizione", "Importo"];
+                const tableRows = movimenti.map((m: any) => {
+                    const dataFmt = format(new Date(m.data), 'dd/MM/yy');
+                    const tipoFmt = m.tipo.replace('_', ' ');
+                    const descFmt = m.descrizione || '-';
+                    const isPositive = m.tipo === 'RICARICA';
+                    const segno = isPositive ? '+' : '-';
+                    const importoFmt = `${segno}${new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(m.importo))}`;
+                    return [dataFmt, tipoFmt, descFmt, importoFmt];
+                });
+
+                autoTable(doc, {
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 55,
+                    theme: 'striped',
+                    headStyles: { fillColor: [41, 128, 185] }
+                });
+            }
+
+            const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY : 55;
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            
+            if (giocatore.saldoAttuale < 0) {
+                doc.setTextColor(220, 38, 38);
+            } else {
+                doc.setTextColor(22, 163, 74);
+            }
+            doc.text(`Saldo Corrente: ${formatValuta(giocatore.saldoAttuale)}`, 14, finalY + 15);
+
+            const safeCognome = giocatore.cognome.replace(/\s+/g, '_');
+            const safeNome = giocatore.nome.replace(/\s+/g, '_');
+            doc.save(`Estratto_Conto_${safeCognome}_${safeNome}.pdf`);
+        } catch (error) {
+            console.error('Errore durante il recupero dell\'estratto conto per PDF:', error);
+            alert('Errore durante la generazione del PDF.');
+        } finally {
+            setLoadingPDF(null);
+        }
     };
 
     const handleWhatsApp = async (e: React.MouseEvent, giocatore: SaldoGiocatore) => {
@@ -207,20 +278,35 @@ const Contabilita: React.FC = () => {
                                                     </span>
                                                 )}
 
-                                                {/* Pulsante WhatsApp per sollecito */}
+                                                {/* Azioni Sollecito / Download PDF */}
                                                 {isLowBalance && (
-                                                    <button
-                                                        onClick={(e) => handleWhatsApp(e, s)}
-                                                        disabled={loadingWA === s.id}
-                                                        title="Invia sollecito WhatsApp"
-                                                        className="p-2 bg-green-100 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm group/wa disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    >
-                                                        {loadingWA === s.id ? (
-                                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                                        ) : (
-                                                            <WhatsAppIcon className="w-5 h-5" />
-                                                        )}
-                                                    </button>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={(e) => handleDownloadPDF(e, s)}
+                                                            disabled={loadingPDF === s.id}
+                                                            title="Scarica Estratto Conto PDF"
+                                                            className="p-2 bg-blue-100 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm group/pdf disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            {loadingPDF === s.id ? (
+                                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                            ) : (
+                                                                <FileDown className="w-5 h-5" />
+                                                            )}
+                                                        </button>
+
+                                                        <button
+                                                            onClick={(e) => handleWhatsApp(e, s)}
+                                                            disabled={loadingWA === s.id}
+                                                            title="Invia sollecito WhatsApp"
+                                                            className="p-2 bg-green-100 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm group/wa disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            {loadingWA === s.id ? (
+                                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                            ) : (
+                                                                <WhatsAppIcon className="w-5 h-5" />
+                                                            )}
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         </td>
