@@ -296,7 +296,7 @@ const Giocatori: React.FC = () => {
                                             <>
                                                 <td className="px-2 py-2 text-xs font-semibold text-dark text-center whitespace-nowrap">{g.telefono || '-'}</td>
                                                 <td className="px-2 py-2 text-center">
-                                                    <div className={`text-[10px] font-bold ${isCertificatoScaduto ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>
+                                                    <div className={`text-xs font-bold ${isCertificatoScaduto ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>
                                                         {g.certificatoMedicoScadenza ? new Date(g.certificatoMedicoScadenza).toLocaleDateString('it-IT') : 'NO'}
                                                     </div>
                                                 </td>
