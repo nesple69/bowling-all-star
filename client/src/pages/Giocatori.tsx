@@ -228,8 +228,6 @@ const Giocatori: React.FC = () => {
                                 {isAdmin() && (
                                     <>
                                         <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Telefono</th>
-                                        <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider">Email</th>
-                                        <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Nascita</th>
                                         <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Certificato</th>
                                     </>
                                 )}
@@ -297,10 +295,6 @@ const Giocatori: React.FC = () => {
                                         {isAdmin() && (
                                             <>
                                                 <td className="px-2 py-2 text-xs font-semibold text-dark text-center whitespace-nowrap">{g.telefono || '-'}</td>
-                                                <td className="px-2 py-2 text-xs font-medium text-gray-700 max-w-[120px] truncate" title={g.user?.email}>{g.user?.email || '-'}</td>
-                                                <td className="px-2 py-2 text-[10px] text-gray-600 text-center">
-                                                    {g.dataNascita ? new Date(g.dataNascita).toLocaleDateString('it-IT') : '-'}
-                                                </td>
                                                 <td className="px-2 py-2 text-center">
                                                     <div className={`text-[10px] font-bold ${isCertificatoScaduto ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>
                                                         {g.certificatoMedicoScadenza ? new Date(g.certificatoMedicoScadenza).toLocaleDateString('it-IT') : 'NO'}
