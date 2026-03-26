@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,6 +28,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
     const [showForm, setShowForm] = useState<'ricarica' | 'addebito' | 'modifica' | null>(null);
     const [editingMovimento, setEditingMovimento] = useState<any | null>(null);
     const [isActionLoading, setIsActionLoading] = useState(false);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -100,6 +101,9 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
     const handleEditMovimento = (movimento: any) => {
         setEditingMovimento(movimento);
         setShowForm('modifica');
+        setTimeout(() => {
+            scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 50);
     };
 
     const formatValuta = (valore: number | string) => {
@@ -126,7 +130,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
 
                     {/* Saldo Attuale */}
                     <div className="text-center bg-gradient-to-br from-dark to-gray-800 p-8 rounded-3xl text-white shadow-xl">
