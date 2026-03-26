@@ -216,21 +216,21 @@ const Giocatori: React.FC = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center w-12">Status</th>
-                                <th className="px-4 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">Nome e Cognome</th>
-                                <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Cat</th>
-                                <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Senior</th>
-                                <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Az</th>
-                                <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Tornei</th>
-                                <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Partite</th>
-                                <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Media</th>
-                                <th className="px-4 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">Tessera</th>
+                                <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center w-8">St</th>
+                                <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider">Atleta</th>
+                                <th className="px-1 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Cat</th>
+                                <th className="px-1 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Sen</th>
+                                <th className="px-1 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Az</th>
+                                <th className="px-1 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Trn</th>
+                                <th className="px-1 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Prt</th>
+                                <th className="px-1 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Med</th>
+                                <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider">Tessera</th>
                                 {isAdmin() && (
                                     <>
-                                        <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Telefono</th>
-                                        <th className="px-4 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">Email</th>
-                                        <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Nascita</th>
-                                        <th className="px-3 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Certificato</th>
+                                        <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Telefono</th>
+                                        <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider">Email</th>
+                                        <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Nascita</th>
+                                        <th className="px-2 py-3 text-[9px] font-black uppercase text-gray-400 tracking-wider text-center">Certificato</th>
                                     </>
                                 )}
                             </tr>
@@ -247,63 +247,63 @@ const Giocatori: React.FC = () => {
                                         onClick={() => setSelectedGiocatore(g)}
                                         className="hover:bg-primary/5 transition-colors cursor-pointer group"
                                     >
-                                        <td className="px-3 py-4 text-center">
+                                        <td className="px-2 py-2 text-center">
                                             <div className="flex justify-center">
                                                 {g.mediaAttuale >= 200 && (
-                                                    <div className="p-1.5 bg-secondary/10 text-secondary rounded-lg" title="Top Player">
-                                                        <Star className="w-4 h-4 fill-current" />
+                                                    <div className="p-1 bg-secondary/10 text-secondary rounded-lg" title="Top Player">
+                                                        <Star className="w-3 h-3 fill-current" />
                                                     </div>
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4">
-                                            <p className="font-bold text-dark group-hover:text-primary transition-colors whitespace-nowrap">{g.cognome} {g.nome}</p>
+                                        <td className="px-2 py-2">
+                                            <p className="text-sm font-bold text-dark group-hover:text-primary transition-colors whitespace-nowrap">{g.cognome} {g.nome}</p>
                                         </td>
-                                        <td className="px-3 py-4 text-center">
-                                            <span className={`px-2 py-0.5 border-2 rounded-md text-[10px] font-black uppercase tracking-tight ${CATEGORY_COLORS[g.categoria] || 'text-gray-500 border-gray-400'}`}>
+                                        <td className="px-1 py-2 text-center">
+                                            <span className={`px-1 py-0.5 border rounded text-[9px] font-black uppercase tracking-tight ${CATEGORY_COLORS[g.categoria] || 'text-gray-500 border-gray-400'}`}>
                                                 {g.sesso}/{g.categoria}
                                             </span>
                                         </td>
-                                        <td className="px-3 py-4 text-center">
+                                        <td className="px-1 py-2 text-center">
                                             {g.isSenior ? (
-                                                <span className="px-2 py-0.5 border-2 border-secondary bg-secondary text-white rounded-md text-[10px] font-black uppercase tracking-tight shadow-sm">
+                                                <span className="px-1 py-0.5 border border-secondary bg-secondary text-white rounded text-[9px] font-black uppercase tracking-tight shadow-sm">
                                                     {g.fasciaSenior}
                                                 </span>
                                             ) : (
-                                                <span className="text-[10px] font-bold text-gray-300 uppercase">NO</span>
+                                                <span className="text-[9px] font-bold text-gray-300 uppercase">NO</span>
                                             )}
                                         </td>
-                                        <td className="px-3 py-4 text-center text-xs">
+                                        <td className="px-1 py-2 text-center text-[10px]">
                                             {g.isAziendale ? (
-                                                <span className="font-bold text-gray-600 truncate max-w-[80px] inline-block" title={g.aziendaAffiliata}>
+                                                <span className="font-bold text-gray-600 truncate max-w-[60px] inline-block" title={g.aziendaAffiliata}>
                                                     {g.aziendaAffiliata || 'Sì'}
                                                 </span>
                                             ) : (
-                                                <span className="text-[10px] font-bold text-gray-300 uppercase">NO</span>
+                                                <span className="text-[9px] font-bold text-gray-300 uppercase">NO</span>
                                             )}
                                         </td>
-                                        <td className="px-3 py-4 text-center">
-                                            <p className="font-bold text-gray-600">{g.torneiGiocati || 0}</p>
+                                        <td className="px-1 py-2 text-center">
+                                            <p className="text-xs font-bold text-gray-600">{g.torneiGiocati || 0}</p>
                                         </td>
-                                        <td className="px-3 py-4 text-center">
-                                            <p className="font-bold text-gray-600">{g.partiteGiocate || 0}</p>
+                                        <td className="px-1 py-2 text-center">
+                                            <p className="text-xs font-bold text-gray-600">{g.partiteGiocate || 0}</p>
                                         </td>
-                                        <td className="px-3 py-4 text-center">
-                                            <p className="font-bold text-primary">{g.mediaAttuale?.toFixed(1) || '0.0'}</p>
+                                        <td className="px-1 py-2 text-center">
+                                            <p className="text-xs font-bold text-primary">{g.mediaAttuale?.toFixed(1) || '0.0'}</p>
                                         </td>
-                                        <td className="px-4 py-4">
-                                            <p className="text-sm font-bold text-dark font-mono">{g.numeroTessera || 'N/A'}</p>
+                                        <td className="px-2 py-2">
+                                            <p className="text-xs font-bold text-dark font-mono">{g.numeroTessera || '-'}</p>
                                         </td>
                                         {isAdmin() && (
                                             <>
-                                                <td className="px-3 py-4 text-sm font-semibold text-dark text-center whitespace-nowrap">{g.telefono || '-'}</td>
-                                                <td className="px-4 py-4 text-sm font-medium text-gray-700 max-w-[200px] truncate">{g.user?.email || '-'}</td>
-                                                <td className="px-3 py-4 text-[11px] text-gray-600 text-center">
+                                                <td className="px-2 py-2 text-xs font-semibold text-dark text-center whitespace-nowrap">{g.telefono || '-'}</td>
+                                                <td className="px-2 py-2 text-xs font-medium text-gray-700 max-w-[120px] truncate" title={g.user?.email}>{g.user?.email || '-'}</td>
+                                                <td className="px-2 py-2 text-[10px] text-gray-600 text-center">
                                                     {g.dataNascita ? new Date(g.dataNascita).toLocaleDateString('it-IT') : '-'}
                                                 </td>
-                                                <td className="px-3 py-4 text-center">
-                                                    <div className={`text-[11px] font-bold ${isCertificatoScaduto ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>
-                                                        {g.certificatoMedicoScadenza ? new Date(g.certificatoMedicoScadenza).toLocaleDateString('it-IT') : 'Mancante'}
+                                                <td className="px-2 py-2 text-center">
+                                                    <div className={`text-[10px] font-bold ${isCertificatoScaduto ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>
+                                                        {g.certificatoMedicoScadenza ? new Date(g.certificatoMedicoScadenza).toLocaleDateString('it-IT') : 'NO'}
                                                     </div>
                                                 </td>
                                             </>
