@@ -162,7 +162,8 @@ export const importTorneoData = async (req: Request, res: Response) => {
 
                     // Aggiorna statistiche giocatore
                     const tuttiRisultati = await tx.risultatoTorneo.findMany({
-                        where: { giocatoreId: resData.giocatoreId }
+                        where: { giocatoreId: resData.giocatoreId },
+                        include: { partite: true }
                     });
 
                     // Dato che ora r.totaleBirilli è già NETTO, la somma è diretta
@@ -170,11 +171,18 @@ export const importTorneoData = async (req: Request, res: Response) => {
                     const totalePartiteReali = tuttiRisultati.reduce((sum, r) => sum + r.partiteGiocate, 0);
                     const mediaAttuale = totalePartiteReali > 0 ? totaleBirilliNetto / totalePartiteReali : 0;
 
+                    // Calcolo miglior partita ESCLUDENDO i riporti
+                    const tuttePartiteReali = tuttiRisultati.flatMap(r => 
+                        r.partite.filter(p => !p.isRiporto).map(p => p.birilli)
+                    );
+                    const migliorPartita = tuttePartiteReali.length > 0 ? Math.max(...tuttePartiteReali) : 0;
+
                     await tx.giocatore.update({
                         where: { id: resData.giocatoreId },
                         data: {
                             totaleBirilli: totaleBirilliNetto,
-                            mediaAttuale
+                            mediaAttuale,
+                            migliorPartita
                         }
                     });
                 }

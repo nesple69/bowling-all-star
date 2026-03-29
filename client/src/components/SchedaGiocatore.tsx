@@ -103,9 +103,9 @@ const SchedaGiocatore: React.FC<Props> = ({ giocatore, onClose, onEdit, onDelete
         }
     };
 
-    // Calcola la miglior partita dai risultati
+    // Calcola la miglior partita dai risultati (ESCLUDENDO i riporti)
     const migliorPartita = results.length > 0
-        ? Math.max(...results.flatMap(r => r.partite?.map((p: any) => p.birilli) || [0]))
+        ? Math.max(...results.flatMap(r => r.partite?.filter((p: any) => !p.isRiporto).map((p: any) => p.birilli) || [0]))
         : 0;
 
     // Data per il grafico basata sui risultati reali
@@ -394,12 +394,14 @@ const SchedaGiocatore: React.FC<Props> = ({ giocatore, onClose, onEdit, onDelete
 
                                                             {/* Partite e Statistiche */}
                                                             <div className="flex flex-wrap items-center gap-3 bg-gray-50/50 p-2 rounded-lg border border-dashed border-gray-100">
-                                                                {/* Lista Partite */}
+                                                                {/* Lista Partite (Filtrata: solo partite reali) */}
                                                                 <div className="flex gap-2 border-r border-gray-200 pr-3">
                                                                     {res.partite && res.partite.length > 0 ? (
-                                                                        res.partite.map((p: any) => (
-                                                                            <span key={p.id} className="text-xs font-bold text-dark w-7 text-center">{p.birilli}</span>
-                                                                        ))
+                                                                        res.partite
+                                                                            .filter((p: any) => !p.isRiporto)
+                                                                            .map((p: any) => (
+                                                                                <span key={p.id} className="text-xs font-bold text-dark w-7 text-center">{p.birilli}</span>
+                                                                            ))
                                                                     ) : (
                                                                         <span className="text-[9px] text-gray-300 italic">No games</span>
                                                                     )}
