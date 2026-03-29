@@ -44,6 +44,7 @@ interface Torneo {
     stagione: { nome: string };
     risultati: Risultato[];
     turni: any[];
+    mostraBottoneIscrizione: boolean;
     costoIscrizione: number;
     sedi: { id: string, nome: string, categorie: string[] }[];
 }
@@ -174,7 +175,7 @@ const DettaglioTorneo: React.FC = () => {
                                         Scarica Locandina
                                     </a>
                                 )}
-                                {!torneo.completato && !isScaduto2Giorni && (
+                                {torneo.mostraBottoneIscrizione && !torneo.completato && !isScaduto2Giorni && (
                                     <Link
                                         to={`/tornei/${id}/iscrizione`}
                                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-3 bg-secondary text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-secondary/20 hover:scale-105 transition-all"
@@ -460,21 +461,23 @@ const DettaglioTorneo: React.FC = () => {
                                                     </div>
                                                 </div>
 
-                                                {userGiocatore ? (
-                                                    <button
-                                                        disabled={isEsaurito || isRegistering}
-                                                        onClick={() => handleIscrizione(t.id)}
-                                                        className={`w-full py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${isEsaurito ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95'}`}
-                                                    >
-                                                        {isRegistering ? 'Elaborazione...' : isEsaurito ? 'Turno Esaurito' : 'Iscriviti al Turno'}
-                                                    </button>
-                                                ) : (
-                                                    <Link
-                                                        to="/login"
-                                                        className="w-full py-3 bg-gray-50 text-gray-400 border border-gray-100 rounded-2xl font-black uppercase text-[10px] tracking-widest text-center hover:bg-gray-100 transition-all"
-                                                    >
-                                                        Accedi per Iscriverti
-                                                    </Link>
+                                                {torneo.mostraBottoneIscrizione && (
+                                                    userGiocatore ? (
+                                                        <button
+                                                            disabled={isEsaurito || isRegistering}
+                                                            onClick={() => handleIscrizione(t.id)}
+                                                            className={`w-full py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${isEsaurito ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95'}`}
+                                                        >
+                                                            {isRegistering ? 'Elaborazione...' : isEsaurito ? 'Turno Esaurito' : 'Iscriviti al Turno'}
+                                                        </button>
+                                                    ) : (
+                                                        <Link
+                                                            to="/login"
+                                                            className="w-full py-3 bg-gray-50 text-gray-400 border border-gray-100 rounded-2xl font-black uppercase text-[10px] tracking-widest text-center hover:bg-gray-100 transition-all"
+                                                        >
+                                                            Accedi per Iscriverti
+                                                        </Link>
+                                                    )
                                                 )}
                                             </div>
                                         );

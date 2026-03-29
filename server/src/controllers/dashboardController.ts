@@ -20,10 +20,16 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             }
         });
 
-        // 2. Prossimi Impegni (Tutti i tornei non ancora completati)
+        // 2. Prossimi Impegni (Tutti i tornei non ancora completati - ma solo recenti o futuri)
+        const fourteenDaysAgo = new Date();
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
         const prossimiTornei = await prisma.torneo.findMany({
             where: {
-                completato: false
+                completato: false,
+                dataInizio: {
+                    gte: fourteenDaysAgo
+                }
             },
             take: 20,
             orderBy: {

@@ -19,3 +19,6 @@ localhost    http://localhost:5173
 ikn questa apgina c'è la struttura Prisma 
 http://localhost:5555/
 
+
+DATABASE URL
+postgres://postgres:Ari@1Nico@5@db.abcdefghijklmnopqrst.supabase.co:6543/postgres

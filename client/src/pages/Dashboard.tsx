@@ -247,13 +247,15 @@ const Dashboard: React.FC = () => {
                                                     Locandina
                                                 </span>
                                             )}
-                                            <a
-                                                href={torneo.linkIscrizione || `/tornei/${torneo.id}/iscrizione`}
-                                                className="flex items-center justify-center gap-2 py-2 px-3 bg-secondary text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:shadow-lg transition-all"
-                                            >
-                                                <ExternalLink className="w-3 h-3" />
-                                                Iscriviti
-                                            </a>
+                                            {torneo.mostraBottoneIscrizione && !torneo.completato && (
+                                                <a
+                                                    href={torneo.linkIscrizione || `/tornei/${torneo.id}/iscrizione`}
+                                                    className="flex items-center justify-center gap-2 py-2 px-3 bg-secondary text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:shadow-lg transition-all"
+                                                >
+                                                    <ExternalLink className="w-3 h-3" />
+                                                    Iscriviti
+                                                </a>
+                                            )}
                                         </div>
                                         <button
                                             onClick={() => fetchIscritti(torneo.id)}

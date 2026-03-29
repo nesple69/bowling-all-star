@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 
+dotenv.config();
+
 import authRoutes from './routes/auth';
 import giocatoriRoutes from './routes/giocatori';
 import torneiRoutes from './routes/tornei';
@@ -13,8 +15,6 @@ import importRoutes from './routes/import';
 import partiteRoutes from './routes/partite';
 import backupRoutes from './routes/backup';
 import usersRoutes from './routes/users';
-
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;

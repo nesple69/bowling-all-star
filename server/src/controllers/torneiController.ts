@@ -205,7 +205,7 @@ export const createTorneo = async (req: Request, res: Response) => {
                 costoIscrizione: costoIscrizione ? parseFloat(costoIscrizione) : 0,
                 dataInizio: dataInizioParsed,
                 dataFine: dataFineParsed,
-                mostraBottoneIscrizione: mostraBottoneIscrizione === 'false' || mostraBottoneIscrizione === false ? false : true,
+                mostraBottoneIscrizione: (String(mostraBottoneIscrizione) === 'true' || mostraBottoneIscrizione === true),
                 sedi: {
                     create: sediData.map((s: any) => ({
                         nome: s.nome,
@@ -293,7 +293,7 @@ export const updateTorneo = async (req: Request, res: Response) => {
             linkIscrizione,
             costoIscrizione: costoIscrizione !== undefined ? (parseFloat(costoIscrizione) || 0) : undefined,
             completato: completato === 'true' || completato === true,
-            mostraBottoneIscrizione: mostraBottoneIscrizione === 'false' || mostraBottoneIscrizione === false ? false : true
+            mostraBottoneIscrizione: (String(mostraBottoneIscrizione) === 'true' || mostraBottoneIscrizione === true)
         };
         if (locandina) updateData.locandina = locandina;
 
