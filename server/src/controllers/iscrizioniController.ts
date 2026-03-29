@@ -12,6 +12,7 @@ export const lookupTessera = async (req: Request, res: Response) => {
                 nome: true,
                 cognome: true,
                 categoria: true,
+                sesso: true,
                 telefono: true,
                 certificatoMedicoScadenza: true,
                 saldo: { select: { saldoAttuale: true } },

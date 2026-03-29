@@ -38,6 +38,7 @@ interface GiocatoreLookup {
     nome: string;
     cognome: string;
     categoria: string;
+    sesso: 'M' | 'F';
     telefono: string | null;
     certificatoMedicoScadenza: string | null;
     saldo: { saldoAttuale: number } | null;
@@ -330,7 +331,12 @@ const IscrizioneTorneo: React.FC = () => {
                     <p className="text-sm text-gray-500 mb-6 font-bold italic">Seleziona in quale bowling center giocherai le tue partite (filtrate per la categoria {giocatore.categoria}).</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {torneo.sedi.filter(s => s.categorie.includes(giocatore.categoria)).map((s) => {
+                        {torneo.sedi.filter(s => {
+                            const catGiocatore = giocatore.categoria;
+                            const sessoGiocatore = giocatore.sesso; // Assumendo che giocatore.sesso sia 'M' o 'F'
+                            return s.categorie.includes(catGiocatore) || 
+                                   s.categorie.includes(`${sessoGiocatore}/${catGiocatore}`);
+                        }).map((s) => {
                             const isSelected = selectedSede === s.id;
                             
                             return (
@@ -366,7 +372,12 @@ const IscrizioneTorneo: React.FC = () => {
                                 </button>
                             );
                         })}
-                        {torneo.sedi.filter(s => s.categorie.includes(giocatore.categoria)).length === 0 && (
+                        {torneo.sedi.filter(s => {
+                            const catGiocatore = giocatore.categoria;
+                            const sessoGiocatore = giocatore.sesso;
+                            return s.categorie.includes(catGiocatore) || 
+                                   s.categorie.includes(`${sessoGiocatore}/${catGiocatore}`);
+                        }).length === 0 && (
                             <div className="md:col-span-2 p-8 bg-red-50 rounded-2xl border border-red-100 text-center">
                                 <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
                                 <p className="text-sm text-red-600 font-black uppercase">Nessuna sede disponibile per la tua categoria ({giocatore.categoria})</p>
