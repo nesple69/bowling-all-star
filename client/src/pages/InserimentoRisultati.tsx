@@ -264,8 +264,8 @@ const InserimentoRisultati: React.FC = () => {
                                                             
                                                             updateLocalResultField(r.giocatoreId, 'partite' as any, pArr);
                                                             
-                                                            // Auto-update totale e conteggio
-                                                            const nuovoTotale = pArr.reduce((sum, p) => sum + p!.birilli, 0);
+                                                            // Auto-update totale e conteggio (Solo partite REALI)
+                                                            const nuovoTotale = pArr.filter(p => !p!.isRiporto).reduce((sum, p) => sum + p!.birilli, 0);
                                                             const nuovePartiteReali = pArr.filter(p => !p!.isRiporto).length;
                                                             updateLocalResultField(r.giocatoreId, 'totaleBirilli', nuovoTotale);
                                                             updateLocalResultField(r.giocatoreId, 'partiteGiocate', nuovePartiteReali);

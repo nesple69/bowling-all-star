@@ -515,12 +515,13 @@ export const upsertRisultato = async (req: Request, res: Response) => {
                 }
             }
 
-            // AGGIORNAMENTO STATISTICHE GIOCATORE (COERENTE CON IMPORT)
+            // AGGIORNAMENTO STATISTICHE GIOCATORE (COERENTE CON IL TOTALE NETTO)
             const tuttiRisultati = await tx.risultatoTorneo.findMany({
                 where: { giocatoreId }
             });
 
-            const totaleBirilliNetto = tuttiRisultati.reduce((sum, r) => sum + (r.totaleBirilli - (r.riporto || 0)), 0);
+            // Ora r.totaleBirilli è già NETTO, la somma è diretta
+            const totaleBirilliNetto = tuttiRisultati.reduce((sum, r) => sum + r.totaleBirilli, 0);
             const totalePartiteReali = tuttiRisultati.reduce((sum, r) => sum + r.partiteGiocate, 0);
             const mediaAttuale = totalePartiteReali > 0 ? totaleBirilliNetto / totalePartiteReali : 0;
 

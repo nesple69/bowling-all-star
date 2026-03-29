@@ -403,14 +403,16 @@ const DettaglioTorneo: React.FC = () => {
                                                                     </td>
                                                                     <td className="px-4 py-3 text-center">
                                                                         <span className="text-[13px] font-black text-primary bg-primary/5 px-2 py-1 rounded-lg">
-                                                                            {r.partiteGiocate > 0 ? ((r.totaleBirilli - (r.riporto || 0)) / r.partiteGiocate).toFixed(2) : '0.00'}
+                                                                            {r.partiteGiocate > 0 ? (r.totaleBirilli / r.partiteGiocate).toFixed(2) : '0.00'}
                                                                         </span>
                                                                     </td>
                                                                     <td className="px-4 py-3 text-center">
                                                                         <div className="flex flex-col items-center">
-                                                                            <span className="font-black text-sm text-dark">{r.totaleBirilli}</span>
+                                                                            <span className="font-black text-sm text-dark">{r.totaleBirilli + (r.riporto || 0)}</span>
                                                                             {r.riporto > 0 && (
-                                                                                <span className="text-[8px] font-black text-red-500 uppercase">Incl. {r.riporto} RIP</span>
+                                                                                <span className="text-[9px] font-black text-secondary">
+                                                                                    {r.totaleBirilli} + {r.riporto} RIP
+                                                                                </span>
                                                                             )}
                                                                         </div>
                                                                     </td>

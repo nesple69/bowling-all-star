@@ -290,7 +290,28 @@ const ImportDati: React.FC = () => {
                                                             </select>
                                                         )}
                                                     </td>
-                                                    <td className="px-5 py-4 text-center font-black text-primary text-xs">{item.birilli}</td>
+                                                    <td className="px-5 py-4 text-center">
+                                                        {(() => {
+                                                            const allScores = item.punteggiPartite || [];
+                                                            const ripIndices = manualRiporti[item.atleta] || (allScores[0] > 300 ? [0] : []);
+                                                            const netScores = allScores.filter((_: number, idx: number) => !ripIndices.includes(idx));
+                                                            const ripScores = allScores.filter((_: number, idx: number) => ripIndices.includes(idx));
+                                                            const netTotal = netScores.reduce((a: number, b: number) => a + b, 0);
+                                                            const ripTotal = ripScores.reduce((a: number, b: number) => a + b, 0);
+                                                            const netPartite = netScores.length;
+                                                            const netMedia = netPartite > 0 ? (netTotal / netPartite).toFixed(2) : '0.00';
+
+                                                            return (
+                                                                <div className="flex flex-col items-center">
+                                                                    <span className="font-black text-primary text-xs">{netTotal}</span>
+                                                                    {ripTotal > 0 && (
+                                                                        <span className="text-[8px] text-red-500 font-bold">+{ripTotal} RIP</span>
+                                                                    )}
+                                                                    <span className="text-[10px] text-gray-400 font-medium mt-1">Media: {netMedia}</span>
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                    </td>
                                                 </tr>
                                             );
                                         })}

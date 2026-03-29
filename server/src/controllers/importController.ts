@@ -118,7 +118,7 @@ export const importTorneoData = async (req: Request, res: Response) => {
                     giocatoreId,
                     posizione: item.posizione,
                     partiteGiocate: realPartiteCount,
-                    totaleBirilli: item.birilli,
+                    totaleBirilli: item.birilli - calculatedRiporto, // Salviamo il NETTO
                     totaleBirilliSquadra: item.totaleBirilliSquadra || null,
                     partite: processedPartite,
                     divisione: divisioneVal,
@@ -160,13 +160,13 @@ export const importTorneoData = async (req: Request, res: Response) => {
                         });
                     }
 
-                    // Aggiorna statistiche giocatore escludendo i riporti
+                    // Aggiorna statistiche giocatore
                     const tuttiRisultati = await tx.risultatoTorneo.findMany({
                         where: { giocatoreId: resData.giocatoreId }
                     });
 
-                    // Totale birilli pulito (senza doppie conteggi da riporti)
-                    const totaleBirilliNetto = tuttiRisultati.reduce((sum, r) => sum + (r.totaleBirilli - r.riporto), 0);
+                    // Dato che ora r.totaleBirilli è già NETTO, la somma è diretta
+                    const totaleBirilliNetto = tuttiRisultati.reduce((sum, r) => sum + r.totaleBirilli, 0);
                     const totalePartiteReali = tuttiRisultati.reduce((sum, r) => sum + r.partiteGiocate, 0);
                     const mediaAttuale = totalePartiteReali > 0 ? totaleBirilliNetto / totalePartiteReali : 0;
 
