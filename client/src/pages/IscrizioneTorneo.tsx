@@ -331,59 +331,72 @@ const IscrizioneTorneo: React.FC = () => {
                     <p className="text-sm text-gray-500 mb-6 font-bold italic">Seleziona in quale bowling center giocherai le tue partite (filtrate per la categoria {giocatore.categoria}).</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {torneo.sedi.filter(s => {
-                            const catGiocatore = giocatore.categoria;
-                            const sessoGiocatore = giocatore.sesso; // Assumendo che giocatore.sesso sia 'M' o 'F'
-                            return s.categorie.includes(catGiocatore) || 
-                                   s.categorie.includes(`${sessoGiocatore}/${catGiocatore}`);
-                        }).map((s) => {
-                            const isSelected = selectedSede === s.id;
-                            
-                            return (
-                                <button
-                                    key={s.id}
-                                    onClick={() => {
-                                        setSelectedSede(s.id);
-                                        setSelectedTurno(''); // Reset turno se cambio sede
-                                    }}
-                                    className={`p-6 rounded-2xl border-2 text-left transition-all relative group ${
-                                        isSelected 
-                                            ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' 
-                                            : 'border-gray-100 hover:border-primary/30 bg-white'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-primary' : 'border-gray-200'}`}>
-                                            {isSelected && <div className="w-3 h-3 bg-primary rounded-full" />}
+                        {(() => {
+                            // Se non ci sono sedi multiple, usiamo i dati del torneo come "sede virtuale"
+                            const sediEffettive = torneo.sedi && torneo.sedi.length > 0 
+                                ? torneo.sedi 
+                                : [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
+
+                            return sediEffettive.filter(s => {
+                                const catGiocatore = giocatore.categoria?.toUpperCase();
+                                const sessoGiocatore = giocatore.sesso?.toUpperCase();
+                                const categorieSede = s.categorie.map(c => c.toUpperCase());
+
+                                return categorieSede.includes(catGiocatore) || 
+                                       categorieSede.includes(`${sessoGiocatore}/${catGiocatore}`) ||
+                                       categorieSede.some(c => c.endsWith(`/${catGiocatore}`));
+                            }).map((s) => {
+                                const isSelected = selectedSede === s.id;
+                                
+                                return (
+                                    <button
+                                        key={s.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedSede(s.id);
+                                            setSelectedTurno(''); // Reset turno se cambio sede
+                                        }}
+                                        className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-4 text-center group ${
+                                            isSelected 
+                                                ? 'bg-primary/5 border-primary shadow-xl shadow-primary/10' 
+                                                : 'bg-white border-gray-100 hover:border-primary/30 hover:shadow-lg'
+                                        }`}
+                                    >
+                                        <div className={`p-4 rounded-2xl transition-colors ${isSelected ? 'bg-primary text-white' : 'bg-gray-50 text-gray-400 group-hover:bg-primary/10 group-hover:text-primary'}`}>
+                                            <MapPin className="w-8 h-8" />
                                         </div>
                                         <div>
-                                            <p className="font-black uppercase text-sm leading-tight mb-1">{s.nome}</p>
-                                            <div className="flex flex-wrap gap-1">
-                                                {s.categorie.map(c => (
-                                                    <span key={c} className={`text-[8px] font-black px-1.5 py-0.5 rounded border ${
-                                                        c === giocatore.categoria ? 'bg-amber-100 border-amber-200 text-amber-700' : 'bg-gray-50 border-gray-100 text-gray-400'
-                                                    }`}>
-                                                        {c}
-                                                    </span>
-                                                ))}
-                                            </div>
+                                            <h4 className="font-black uppercase tracking-tight text-lg">{s.id === 'main' ? s.nome || 'Sede di Gara' : s.nome}</h4>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Sede verificata per la tua categoria</p>
                                         </div>
-                                    </div>
-                                </button>
+                                        {isSelected && <CheckCircle2 className="w-6 h-6 text-primary" />}
+                                    </button>
+                                );
+                            });
+                        })()}
+                        {(() => {
+                            const sediEffettive = torneo.sedi && torneo.sedi.length > 0 
+                                ? torneo.sedi 
+                                : [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
+
+                            const sediValide = sediEffettive.filter(s => {
+                                const catGiocatore = giocatore.categoria?.toUpperCase();
+                                const sessoGiocatore = giocatore.sesso?.toUpperCase();
+                                const categorieSede = (s.categorie || []).map(c => c.toUpperCase());
+
+                                return categorieSede.includes(catGiocatore) || 
+                                       categorieSede.includes(`${sessoGiocatore}/${catGiocatore}`) ||
+                                       categorieSede.some(c => c.endsWith(`/${catGiocatore}`));
+                            });
+
+                            return sediValide.length === 0 && (
+                                <div className="md:col-span-2 p-8 bg-red-50 rounded-2xl border border-red-100 text-center">
+                                    <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
+                                    <p className="text-sm text-red-600 font-black uppercase">Nessuna sede disponibile per la tua categoria ({giocatore.categoria})</p>
+                                    <p className="text-[10px] text-red-400 mt-2 font-bold uppercase">Contatta la segreteria per maggiori informazioni.</p>
+                                </div>
                             );
-                        })}
-                        {torneo.sedi.filter(s => {
-                            const catGiocatore = giocatore.categoria;
-                            const sessoGiocatore = giocatore.sesso;
-                            return s.categorie.includes(catGiocatore) || 
-                                   s.categorie.includes(`${sessoGiocatore}/${catGiocatore}`);
-                        }).length === 0 && (
-                            <div className="md:col-span-2 p-8 bg-red-50 rounded-2xl border border-red-100 text-center">
-                                <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
-                                <p className="text-sm text-red-600 font-black uppercase">Nessuna sede disponibile per la tua categoria ({giocatore.categoria})</p>
-                                <p className="text-xs text-red-400 font-bold mt-1">Contatta la segreteria per maggiori informazioni.</p>
-                            </div>
-                        )}
+                        })()}
                     </div>
                 </div>
             )}
