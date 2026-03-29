@@ -5,6 +5,7 @@ import { subDays, addDays } from 'date-fns';
 export const getDashboardStats = async (req: Request, res: Response) => {
     try {
         const oggi = new Date();
+        oggi.setHours(0, 0, 0, 0);
 
         // 0. Trova la stagione attiva
         const stagioneAttiva = await prisma.stagione.findFirst({
@@ -19,17 +20,12 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             }
         });
 
-        // 2. Prossimi 5 impegni (tornei in corso o futuri non completati della stagione attiva)
+        // 2. Prossimi Impegni (Tutti i tornei non ancora completati)
         const prossimiTornei = await prisma.torneo.findMany({
             where: {
-                completato: false,
-                stagioneId: stagioneAttiva?.id,
-                OR: [
-                    { dataFine: { gte: oggi } },
-                    { AND: [{ dataFine: null }, { dataInizio: { gte: subDays(oggi, 7) } }] }
-                ]
+                completato: false
             },
-            take: 5,
+            take: 20,
             orderBy: {
                 dataInizio: 'asc'
             },
