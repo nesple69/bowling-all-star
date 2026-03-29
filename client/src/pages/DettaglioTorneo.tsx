@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../config';
 import {
     Trophy, Calendar, MapPin, Download,
     ExternalLink, ChevronLeft, Info, Users,
-    Star, Medal, Target, CheckCircle2, AlertCircle
+    Star, Medal, Target, CheckCircle2, AlertCircle, FileText
 } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -46,7 +46,7 @@ interface Torneo {
     turni: any[];
     mostraBottoneIscrizione: boolean;
     costoIscrizione: number;
-    sedi: { id: string, nome: string, categorie: string[] }[];
+    sedi: { id: string, nome: string, categorie: string[], locandina?: string | null }[];
 }
 
 interface Disponibilita {
@@ -235,7 +235,21 @@ const DettaglioTorneo: React.FC = () => {
                                     <div className="space-y-2 mt-1">
                                         {torneo.sedi.map((s, idx) => (
                                             <div key={idx} className="flex flex-col">
-                                                <span className="font-black text-gray-700 uppercase text-sm leading-tight">{s.nome}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-black text-gray-700 uppercase text-sm leading-tight">{s.nome}</span>
+                                                    {s.locandina && (
+                                                        <a 
+                                                            href={s.locandina.startsWith('http') ? s.locandina : `${API_BASE_URL}${s.locandina}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="p-1 px-2 bg-amber-50 text-amber-600 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors flex items-center gap-1.5 group/loc"
+                                                            title="Scarica Locandina Sede"
+                                                        >
+                                                            <FileText className="w-3 h-3 group-hover/loc:scale-110 transition-transform" />
+                                                            <span className="text-[8px] font-black uppercase tracking-tighter">Locandina</span>
+                                                        </a>
+                                                    )}
+                                                </div>
                                                 <div className="flex flex-wrap gap-1 mt-0.5">
                                                     {s.categorie.map(c => (
                                                         <span key={c} className="text-[8px] font-black px-1.5 py-0.5 bg-primary/5 border border-primary/10 text-primary rounded-full uppercase tracking-tighter">

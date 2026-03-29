@@ -26,7 +26,8 @@ const FormTorneo: React.FC = () => {
         linkIscrizione: '',
         costoIscrizione: '0',
         completato: false,
-        mostraBottoneIscrizione: true
+        mostraBottoneIscrizione: true,
+        categorie: [] as string[]
     });
 
     const [turni, setTurni] = useState<any[]>([]);
@@ -35,7 +36,7 @@ const FormTorneo: React.FC = () => {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [locandinaMode, setLocandinaMode] = useState<'upload' | 'url'>('upload');
     const [locandinaUrl, setLocandinaUrl] = useState('');
-    const [sedi, setSedi] = useState<any[]>([]); // { nome: string, categorie: string[] }
+    const [sedi, setSedi] = useState<any[]>([]); // { nome: string, categorie: string[], locandina?: string, file?: File | null, previewUrl?: string | null }
 
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
@@ -64,10 +65,14 @@ const FormTorneo: React.FC = () => {
                         linkIscrizione: t.linkIscrizione || '',
                         costoIscrizione: t.costoIscrizione?.toString() || '0',
                         completato: t.completato,
-                        mostraBottoneIscrizione: t.mostraBottoneIscrizione !== false
+                        mostraBottoneIscrizione: t.mostraBottoneIscrizione !== false,
+                        categorie: t.categorie || []
                     });
                     setTurni(t.turni || []);
-                    setSedi(t.sedi || []);
+                    setSedi(t.sedi?.map((s: any) => ({
+                        ...s,
+                        previewUrl: s.locandina ? (s.locandina.startsWith('http') ? s.locandina : `${API_BASE_URL}${s.locandina}`) : null
+                    })) || []);
                     if (t.locandina) {
                         const fullUrl = t.locandina.startsWith('http') ? t.locandina : `${API_BASE_URL}${t.locandina}`;
                         // Se la locandina è un URL esterno (http/https)
@@ -157,19 +162,32 @@ const FormTorneo: React.FC = () => {
         const data = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
             if (value !== null && value !== undefined) {
-                data.append(key, value.toString());
+                if (key === 'categorie') {
+                    data.append(key, JSON.stringify(value));
+                } else {
+                    data.append(key, value.toString());
+                }
             }
         });
         if (selectedFile) {
             console.log(`[CLIENT] Allegatando file: ${selectedFile.name} (${selectedFile.size} bytes)`);
             data.append('locandina', selectedFile);
+            data.append('locandina_main', selectedFile);
         } else if (locandinaMode === 'url' && locandinaUrl.trim()) {
             console.log(`[CLIENT] Utilizzando URL locandina: ${locandinaUrl}`);
             data.append('locandinaUrl', locandinaUrl.trim());
         }
 
-        // Aggiungi sedi come stringa JSON
-        data.append('sedi', JSON.stringify(sedi));
+        // Aggiungi sedi come stringa JSON (escludendo file e previewUrl)
+        const sediProcessed = sedi.map(({ file, previewUrl, ...rest }) => rest);
+        data.append('sedi', JSON.stringify(sediProcessed));
+
+        // Aggiungi files delle sedi
+        sedi.forEach((s, idx) => {
+            if (s.file) {
+                data.append(`sede_locandina_${idx}`, s.file);
+            }
+        });
 
         try {
             console.log('Inviando dati torneo (FormData keys):', Array.from(data.keys()));
@@ -280,7 +298,7 @@ const FormTorneo: React.FC = () => {
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">SEDE DI GARA (Principale)</label>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Sede di Gara (Principale)</label>
                                     <div className="relative">
                                         <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5" />
                                         <input
@@ -290,6 +308,37 @@ const FormTorneo: React.FC = () => {
                                             onChange={e => setFormData({ ...formData, sede: e.target.value })}
                                             placeholder="Indirizzo o Bowling Center principale"
                                         />
+                                    </div>
+                                </div>
+
+                                <div className="md:col-span-2 space-y-4 p-6 bg-primary/5 rounded-3xl border border-primary/10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Info className="w-5 h-5 text-primary" />
+                                        <label className="block text-xs font-black text-primary uppercase tracking-widest">Configurazione Categorie Torneo</label>
+                                    </div>
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tight mb-3">Seleziona tutte le categorie ammesse a questo torneo (verranno mostrate nelle classifiche e nei filtri)</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['M/A', 'M/B', 'M/C', 'M/D', 'F/A', 'F/B', 'F/C', 'F/D'].map(cat => (
+                                            <button
+                                                key={cat}
+                                                type="button"
+                                                onClick={() => {
+                                                    const currentCats = formData.categorie || [];
+                                                    if (currentCats.includes(cat)) {
+                                                        setFormData({ ...formData, categorie: currentCats.filter(c => c !== cat) });
+                                                    } else {
+                                                        setFormData({ ...formData, categorie: [...currentCats, cat] });
+                                                    }
+                                                }}
+                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
+                                                    formData.categorie?.includes(cat)
+                                                        ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105'
+                                                        : 'bg-white border-gray-100 text-gray-400 hover:border-primary/30'
+                                                }`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
@@ -311,54 +360,122 @@ const FormTorneo: React.FC = () => {
                                         {sedi.map((s, idx) => (
                                             <div key={idx} className="p-5 bg-gray-50/50 border border-gray-100 rounded-3xl space-y-4 animate-fade-in relative group/sede">
                                                 <div className="flex gap-4">
-                                                    <div className="flex-1 relative">
-                                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-                                                        <input
-                                                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                                                            placeholder="Nome Sede (es. Bowling di Roma)"
-                                                            value={s.nome}
-                                                            onChange={e => {
-                                                                const newSedi = [...sedi];
-                                                                newSedi[idx].nome = e.target.value;
-                                                                setSedi(newSedi);
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setSedi(sedi.filter((_, i) => i !== idx))}
-                                                        className="p-2 text-gray-300 hover:text-red-500 transition-colors"
-                                                    >
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
-                                                </div>
+                                                    <div className="flex-1 space-y-4">
+                                                        <div className="relative">
+                                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                                                            <input
+                                                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                                                                placeholder="Nome Sede (es. Bowling di Roma)"
+                                                                value={s.nome}
+                                                                onChange={e => {
+                                                                    const newSedi = [...sedi];
+                                                                    newSedi[idx].nome = e.target.value;
+                                                                    setSedi(newSedi);
+                                                                }}
+                                                            />
+                                                        </div>
 
-                                                <div className="space-y-2">
-                                                    <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Categorie assegnate a questa sede</label>
-                                                    <div className="flex flex-wrap gap-1.5">
-                                                        {['M/A', 'M/B', 'M/C', 'M/D', 'F/A', 'F/B', 'F/C', 'F/D'].map(cat => (
+                                                        <div className="space-y-2">
+                                                            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Categorie assegnate a questa sede</label>
+                                                            <div className="flex flex-wrap gap-1.5">
+                                                                {['M/A', 'M/B', 'M/C', 'M/D', 'F/A', 'F/B', 'F/C', 'F/D'].map(cat => (
+                                                                    <button
+                                                                        key={cat}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const newSedi = [...sedi];
+                                                                            const currentCats = newSedi[idx].categorie || [];
+                                                                            if (currentCats.includes(cat)) {
+                                                                                newSedi[idx].categorie = currentCats.filter((c: string) => c !== cat);
+                                                                            } else {
+                                                                                newSedi[idx].categorie = [...currentCats, cat];
+                                                                            }
+                                                                            setSedi(newSedi);
+                                                                        }}
+                                                                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all border ${
+                                                                            s.categorie?.includes(cat)
+                                                                                ? 'bg-primary border-primary text-white shadow-sm'
+                                                                                : 'bg-white border-gray-100 text-gray-400 hover:border-primary/30'
+                                                                        }`}
+                                                                    >
+                                                                        {cat}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const input = document.createElement('input');
+                                                                input.type = 'file';
+                                                                input.accept = 'image/*,application/pdf';
+                                                                input.onchange = (e: any) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) {
+                                                                        const newSedi = [...sedi];
+                                                                        newSedi[idx].file = file;
+                                                                        newSedi[idx].previewUrl = URL.createObjectURL(file);
+                                                                        setSedi(newSedi);
+                                                                    }
+                                                                };
+                                                                input.click();
+                                                            }}
+                                                            className={`w-32 h-32 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all overflow-hidden relative group shadow-sm ${
+                                                                s.previewUrl ? 'border-primary/50 bg-white ring-4 ring-primary/5' : 'border-gray-200 bg-white hover:border-primary/30 hover:bg-gray-50'
+                                                            }`}
+                                                        >
+                                                            {s.previewUrl ? (
+                                                                (s.file?.type === 'application/pdf' || (typeof s.previewUrl === 'string' && s.previewUrl.toLowerCase().endsWith('.pdf'))) ? (
+                                                                    <div className="flex flex-col items-center gap-1">
+                                                                       <FileText className="w-10 h-10 text-red-500" />
+                                                                       <span className="text-[8px] font-black uppercase text-gray-400">PDF PRONTO</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                       <img src={s.previewUrl} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Sede" />
+                                                                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                           <Upload className="w-6 h-6 text-white" />
+                                                                       </div>
+                                                                    </>
+                                                                )
+                                                            ) : (
+                                                                <>
+                                                                    <div className="p-3 bg-gray-50 rounded-2xl group-hover:bg-primary/10 transition-colors">
+                                                                       <Plus className="w-6 h-6 text-gray-300 group-hover:text-primary" />
+                                                                    </div>
+                                                                    <span className="text-[9px] font-black text-gray-400 uppercase text-center px-1 tracking-widest">Carica Locandina</span>
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                        
+                                                        {s.previewUrl && (
                                                             <button
-                                                                key={cat}
                                                                 type="button"
                                                                 onClick={() => {
                                                                     const newSedi = [...sedi];
-                                                                    const currentCats = newSedi[idx].categorie || [];
-                                                                    if (currentCats.includes(cat)) {
-                                                                        newSedi[idx].categorie = currentCats.filter((c: string) => c !== cat);
-                                                                    } else {
-                                                                        newSedi[idx].categorie = [...currentCats, cat];
-                                                                    }
+                                                                    newSedi[idx].file = null;
+                                                                    newSedi[idx].previewUrl = null;
+                                                                    newSedi[idx].locandina = null;
                                                                     setSedi(newSedi);
                                                                 }}
-                                                                className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all border ${
-                                                                    s.categorie?.includes(cat)
-                                                                        ? 'bg-primary border-primary text-white shadow-sm'
-                                                                        : 'bg-white border-gray-100 text-gray-400 hover:border-primary/30'
-                                                                }`}
+                                                                className="text-[8px] font-black text-red-400 uppercase tracking-widest flex items-center gap-1"
                                                             >
-                                                                {cat}
+                                                                <Trash2 className="w-3 h-3" />
+                                                                Rimuovi
                                                             </button>
-                                                        ))}
+                                                        )}
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSedi(sedi.filter((_, i) => i !== idx))}
+                                                            className="mt-auto p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                                            title="Elimina Sede"
+                                                        >
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -741,4 +858,3 @@ const FormTorneo: React.FC = () => {
 };
 
 export default FormTorneo;
-

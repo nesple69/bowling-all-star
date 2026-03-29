@@ -37,6 +37,31 @@ export const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
+const uploadToSupabase = async (file: Express.Multer.File): Promise<string> => {
+    if (!supabase) {
+        throw new Error('Configurazione Supabase mancante sul server.');
+    }
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const fileName = `locandina-${uniqueSuffix}${path.extname(file.originalname)}`;
+    
+    const { data, error } = await supabase.storage
+        .from('locandine')
+        .upload(fileName, file.buffer, {
+            contentType: file.mimetype,
+            upsert: true
+        });
+
+    if (error) {
+        throw new Error(`Errore Supabase: ${error.message}`);
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+        .from('locandine')
+        .getPublicUrl(fileName);
+    
+    return publicUrl;
+};
+
 // GET /api/tornei/public
 export const getTorneiPublici = async (_req: Request, res: Response) => {
     try {
@@ -140,13 +165,9 @@ export const getTorneoById = async (req: Request, res: Response) => {
 // POST /api/tornei (crea torneo)
 export const createTorneo = async (req: Request, res: Response) => {
     console.log('--- CREATE TORNEO START ---');
-    console.log('Body:', req.body);
-    console.log('File:', req.file);
-
-    const { nome, tipologia, sede, stagioneId, dataInizio, dataFine, linkIscrizione, costoIscrizione, mostraBottoneIscrizione, locandinaUrl, sedi } = req.body;
+    const { nome, tipologia, sede, stagioneId, dataInizio, dataFine, linkIscrizione, costoIscrizione, mostraBottoneIscrizione, locandinaUrl, sedi, categorie } = req.body;
+    
     let locandina = locandinaUrl || null;
-
-    // Parse sedi if provided as JSON string
     let sediData = [];
     if (sedi) {
         try {
@@ -156,37 +177,32 @@ export const createTorneo = async (req: Request, res: Response) => {
         }
     }
 
+    let categorieData = [];
+    if (categorie) {
+        try {
+            categorieData = typeof categorie === 'string' ? JSON.parse(categorie) : categorie;
+        } catch (e) {
+            console.error('Errore parsing categorie:', e);
+        }
+    }
+
     try {
-        // Gestione caricamento su Supabase Storage se presente un file
-        if (req.file) {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-            const fileName = `locandina-${uniqueSuffix}${path.extname(req.file.originalname)}`;
+        const files = req.files as Express.Multer.File[] || [];
+        
+        // Cerca locandina principale
+        const mainFile = files.find(f => f.fieldname === 'locandina_main' || f.fieldname === 'locandina');
+        if (mainFile) {
+            locandina = await uploadToSupabase(mainFile);
+        }
 
-            console.log(`[SUPABASE] Caricamento file: ${fileName}`);
-
-            if (!supabase) {
-                console.error('[SUPABASE] Errore: Tentativo di upload senza client configurato!');
-                throw new Error('Configurazione Supabase mancante sul server.');
-            }
-
-            const { data, error } = await supabase.storage
-                .from('locandine')
-                .upload(fileName, req.file.buffer, {
-                    contentType: req.file.mimetype,
-                    upsert: true
-                });
-
-            if (data && !error) {
-                const { data: { publicUrl } } = supabase.storage
-                    .from('locandine')
-                    .getPublicUrl(fileName);
-                locandina = publicUrl;
-                console.log(`[SUPABASE] Caricamento completato: ${locandina}`);
-            } else {
-                console.error('[SUPABASE ERROR] Errore caricamento storage:', error);
-                throw new Error(`Errore Supabase: ${error.message} (Status: ${error.status || 'N/A'})`);
+        // Cerca locandine per le sedi
+        for (let i = 0; i < sediData.length; i++) {
+            const sedeFile = files.find(f => f.fieldname === `sede_locandina_${i}`);
+            if (sedeFile) {
+                sediData[i].locandina = await uploadToSupabase(sedeFile);
             }
         }
+
         const dataInizioParsed = dataInizio ? new Date(dataInizio) : null;
         if (!dataInizioParsed || isNaN(dataInizioParsed.getTime())) {
             throw new Error('Data inizio non valida');
@@ -206,10 +222,12 @@ export const createTorneo = async (req: Request, res: Response) => {
                 dataInizio: dataInizioParsed,
                 dataFine: dataFineParsed,
                 mostraBottoneIscrizione: (String(mostraBottoneIscrizione) === 'true' || mostraBottoneIscrizione === true),
+                categorie: categorieData,
                 sedi: {
                     create: sediData.map((s: any) => ({
                         nome: s.nome,
-                        categorie: s.categorie || []
+                        categorie: s.categorie || [],
+                        locandina: s.locandina || null
                     }))
                 }
             }
@@ -229,13 +247,9 @@ export const createTorneo = async (req: Request, res: Response) => {
 export const updateTorneo = async (req: Request, res: Response) => {
     const id = req.params.id as string;
     console.log(`--- UPDATE TORNEO START (ID: ${id}) ---`);
-    console.log('Body:', req.body);
-    console.log('File:', req.file);
-
-    const { nome, tipologia, sede, stagioneId, dataInizio, dataFine, linkIscrizione, completato, costoIscrizione, mostraBottoneIscrizione, locandinaUrl, sedi } = req.body;
+    const { nome, tipologia, sede, stagioneId, dataInizio, dataFine, linkIscrizione, completato, costoIscrizione, mostraBottoneIscrizione, locandinaUrl, sedi, categorie } = req.body;
+    
     let locandina = locandinaUrl || undefined;
-
-    // Parse sedi if provided
     let sediData = [];
     if (sedi) {
         try {
@@ -245,37 +259,32 @@ export const updateTorneo = async (req: Request, res: Response) => {
         }
     }
 
+    let categorieData = undefined;
+    if (categorie) {
+        try {
+            categorieData = typeof categorie === 'string' ? JSON.parse(categorie) : categorie;
+        } catch (e) {
+            console.error('Errore parsing categorie:', e);
+        }
+    }
+
     try {
-        // Gestione caricamento su Supabase Storage se presente un file
-        if (req.file) {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-            const fileName = `locandina-${uniqueSuffix}${path.extname(req.file.originalname)}`;
+        const files = req.files as Express.Multer.File[] || [];
+        
+        // Cerca locandina principale
+        const mainFile = files.find(f => f.fieldname === 'locandina_main' || f.fieldname === 'locandina');
+        if (mainFile) {
+            locandina = await uploadToSupabase(mainFile);
+        }
 
-            console.log(`[SUPABASE] Aggiornamento file: ${fileName}`);
-
-            if (!supabase) {
-                console.error('[SUPABASE] Errore: Tentativo di upload senza client configurato!');
-                throw new Error('Configurazione Supabase mancante sul server.');
-            }
-
-            const { data, error } = await supabase.storage
-                .from('locandine')
-                .upload(fileName, req.file.buffer, {
-                    contentType: req.file.mimetype,
-                    upsert: true
-                });
-
-            if (data && !error) {
-                const { data: { publicUrl } } = supabase.storage
-                    .from('locandine')
-                    .getPublicUrl(fileName);
-                locandina = publicUrl;
-                console.log(`[SUPABASE] Caricamento completato: ${locandina}`);
-            } else {
-                console.error('[SUPABASE ERROR] Errore caricamento storage:', error);
-                throw new Error(`Errore Supabase: ${error.message} (Status: ${error.status || 'N/A'})`);
+        // Cerca locandine per le sedi
+        for (let i = 0; i < sediData.length; i++) {
+            const sedeFile = files.find(f => f.fieldname === `sede_locandina_${i}`);
+            if (sedeFile) {
+                sediData[i].locandina = await uploadToSupabase(sedeFile);
             }
         }
+
         const dataInizioParsed = dataInizio ? new Date(dataInizio) : undefined;
         if (dataInizioParsed !== undefined && isNaN(dataInizioParsed.getTime())) {
             throw new Error('Data inizio non valida');
@@ -293,29 +302,27 @@ export const updateTorneo = async (req: Request, res: Response) => {
             linkIscrizione,
             costoIscrizione: costoIscrizione !== undefined ? (parseFloat(costoIscrizione) || 0) : undefined,
             completato: completato === 'true' || completato === true,
-            mostraBottoneIscrizione: (String(mostraBottoneIscrizione) === 'true' || mostraBottoneIscrizione === true)
+            mostraBottoneIscrizione: (String(mostraBottoneIscrizione) === 'true' || mostraBottoneIscrizione === true),
+            categorie: categorieData
         };
         if (locandina) updateData.locandina = locandina;
 
         const torneoAggiornato = await prisma.$transaction(async (tx) => {
-            // Aggiorna dati principali
             const updated = await tx.torneo.update({
                 where: { id },
                 data: updateData
             });
 
-            // Gestione sedi se fornite
             if (sedi) {
-                // Rimuovi vecchie sedi
                 await tx.sedeTorneo.deleteMany({ where: { torneoId: id } });
                 
-                // Crea nuove sedi
                 if (sediData.length > 0) {
                     await tx.sedeTorneo.createMany({
                         data: sediData.map((s: any) => ({
                             torneoId: id,
                             nome: s.nome,
-                            categorie: s.categorie || []
+                            categorie: s.categorie || [],
+                            locandina: s.locandina || null
                         }))
                     });
                 }

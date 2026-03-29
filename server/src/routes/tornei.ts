@@ -21,14 +21,14 @@ router.get('/:id', authenticateToken, isAdmin, torneiController.getTorneoById);
 router.post('/',
     authenticateToken,
     isAdmin,
-    torneiController.upload.single('locandina'),
+    torneiController.upload.any(),
     torneiController.createTorneo
 );
 
 router.put('/:id',
     authenticateToken,
     isAdmin,
-    torneiController.upload.single('locandina'),
+    torneiController.upload.any(),
     torneiController.updateTorneo
 );
 

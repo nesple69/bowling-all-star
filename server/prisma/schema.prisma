@@ -68,6 +68,7 @@ model Torneo {
   partitePreviste Int                 @default(6)
   completato     Boolean             @default(false)
   mostraBottoneIscrizione Boolean    @default(true)
+  categorie               String[]
   turni          GiorniOrariTorneo[]
   iscrizioni     IscrizioneTorneo[]
   risultati      RisultatoTorneo[]
@@ -142,6 +143,7 @@ model SedeTorneo {
   torneoId   String
   nome       String
   categorie  String[]
+  locandina  String?
   torneo     Torneo             @relation(fields: [torneoId], references: [id], onDelete: Cascade)
   iscrizioni IscrizioneTorneo[]
 }
