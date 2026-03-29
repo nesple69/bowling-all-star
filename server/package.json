@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^6.19.2",
     "@supabase/supabase-js": "^2.97.0",
     "@types/multer": "^2.0.0",
     "@types/pdfkit": "^0.17.5",
@@ -29,17 +29,18 @@
     "fuse.js": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
-    "pdfkit": "^0.17.2"
-  },
-  "devDependencies": {
+    "pdfkit": "^0.17.2",
     "@types/bcrypt": "^5.0.2",
     "@types/cheerio": "^0.22.35",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^22.13.1",
-    "prisma": "^5.22.0",
+    "@types/node": "^22.13.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.2",
+    "@types/bcrypt": "^5.0.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.7.3"
   }
