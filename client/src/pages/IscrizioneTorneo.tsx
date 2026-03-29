@@ -19,6 +19,7 @@ interface Torneo {
     dataFine: string | null;
     costoIscrizione: number;
     stagione: { nome: string };
+    categorie?: string[];
     sedi: { id: string, nome: string, categorie: string[] }[];
 }
 
@@ -338,13 +339,18 @@ const IscrizioneTorneo: React.FC = () => {
                                 : [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
 
                             return sediEffettive.filter(s => {
-                                const catGiocatore = giocatore.categoria?.toUpperCase();
-                                const sessoGiocatore = giocatore.sesso?.toUpperCase();
-                                const categorieSede = s.categorie.map(c => c.toUpperCase());
+                                const catGiocatore = (giocatore.categoria || '').toUpperCase().trim();
+                                const sessoGiocatore = (giocatore.sesso || '').toUpperCase().trim();
+                                const categorieSede = (s.categorie || []).map(c => c.toUpperCase().trim());
 
-                                return categorieSede.includes(catGiocatore) || 
-                                       categorieSede.includes(`${sessoGiocatore}/${catGiocatore}`) ||
-                                       categorieSede.some(c => c.endsWith(`/${catGiocatore}`));
+                                // Se l'atleta ha una categoria estesa (es: "M/B ECCELLENZA")
+                                // e la sede ha "M/B", dobbiamo trovare un match.
+                                return categorieSede.some(c => 
+                                    c === catGiocatore || 
+                                    catGiocatore.includes(c) || 
+                                    c.includes(catGiocatore) ||
+                                    (sessoGiocatore && c === `${sessoGiocatore}/${catGiocatore}`)
+                                );
                             }).map((s) => {
                                 const isSelected = selectedSede === s.id;
                                 
@@ -380,13 +386,16 @@ const IscrizioneTorneo: React.FC = () => {
                                 : [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
 
                             const sediValide = sediEffettive.filter(s => {
-                                const catGiocatore = giocatore.categoria?.toUpperCase();
-                                const sessoGiocatore = giocatore.sesso?.toUpperCase();
-                                const categorieSede = (s.categorie || []).map(c => c.toUpperCase());
+                                const catGiocatore = (giocatore.categoria || '').toUpperCase().trim();
+                                const sessoGiocatore = (giocatore.sesso || '').toUpperCase().trim();
+                                const categorieSede = (s.categorie || []).map(c => c.toUpperCase().trim());
 
-                                return categorieSede.includes(catGiocatore) || 
-                                       categorieSede.includes(`${sessoGiocatore}/${catGiocatore}`) ||
-                                       categorieSede.some(c => c.endsWith(`/${catGiocatore}`));
+                                return categorieSede.some(c => 
+                                    c === catGiocatore || 
+                                    catGiocatore.includes(c) || 
+                                    c.includes(catGiocatore) ||
+                                    (sessoGiocatore && c === `${sessoGiocatore}/${catGiocatore}`)
+                                );
                             });
 
                             return sediValide.length === 0 && (
