@@ -650,6 +650,21 @@ const FormTorneo: React.FC = () => {
                                                             onChange={e => setEditingTurno({ ...editingTurno, postiDisponibili: e.target.value })}
                                                         />
                                                     </div>
+                                                    {sedi.length > 0 && (
+                                                        <div className="md:col-span-2 lg:col-span-4">
+                                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Sede di Gara</label>
+                                                            <select
+                                                                className="w-full px-4 py-2 bg-white border border-gray-100 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                                                                value={editingTurno.sedeId || ""}
+                                                                onChange={e => setEditingTurno({ ...editingTurno, sedeId: e.target.value })}
+                                                            >
+                                                                <option value="">Sede Principale ({formData.sede})</option>
+                                                                {sedi.map(s => (
+                                                                    <option key={s.id} value={s.id}>{s.nome}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="flex justify-end gap-2 pt-2">
                                                     <button
@@ -689,6 +704,22 @@ const FormTorneo: React.FC = () => {
                                                         {turno.postiDisponibili}
                                                     </span>
                                                 </div>
+                                                {turno.sede && (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Sede</span>
+                                                        <span className="text-[10px] font-black px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-full uppercase tracking-widest">
+                                                            {turno.sede.nome}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {!turno.sede && sedi.length > 0 && (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Sede</span>
+                                                        <span className="text-[10px] font-black px-2 py-0.5 bg-gray-100 text-gray-400 border border-gray-200 rounded-full uppercase tracking-widest">
+                                                            Principale
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <button

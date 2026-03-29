@@ -57,6 +57,7 @@ interface Disponibilita {
     postiTotali: number;
     postiOccupati: number;
     postiRimanenti: number;
+    sede?: { id: string, nome: string } | null;
 }
 
 const DettaglioTorneo: React.FC = () => {
@@ -469,43 +470,60 @@ const DettaglioTorneo: React.FC = () => {
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {disponibilita.map((t) => {
-                                        const isEsaurito = t.postiRimanenti <= 0;
-                                        return (
-                                            <div key={t.id} className={`p-5 rounded-3xl border transition-all flex flex-col justify-between gap-4 ${isEsaurito ? 'bg-gray-50 border-gray-100 opacity-80' : 'bg-white border-gray-100 hover:border-primary/30 hover:shadow-md'}`}>
-                                                <div className="flex justify-between items-start">
-                                                    <div className="space-y-1">
-                                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{format(new Date(t.giorno), 'EEEE dd MMMM', { locale: it })}</p>
-                                                        <p className="font-black text-sm">{format(new Date(t.orarioInizio), 'HH:mm')}{t.orarioFine ? ` - ${format(new Date(t.orarioFine), 'HH:mm')}` : ''}</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Disponibili</p>
-                                                        <p className={`font-black ${isEsaurito ? 'text-red-500' : 'text-secondary'}`}>{t.postiRimanenti} / {t.postiTotali}</p>
-                                                    </div>
-                                                </div>
+                                <div className="space-y-8">
+                                    {(Array.from(new Set(disponibilita.map(d => d.sede?.id || 'principale'))).map(sedeId => {
+                                        const sedeTurni = disponibilita.filter(d => (d.sede?.id || 'principale') === sedeId);
+                                        const sedeNome = sedeId === 'principale' ? (torneo?.sede || 'Principale') : sedeTurni[0].sede?.nome;
 
-                                                {torneo.mostraBottoneIscrizione && (
-                                                    userGiocatore ? (
-                                                        <button
-                                                            disabled={isEsaurito || isRegistering}
-                                                            onClick={() => handleIscrizione(t.id)}
-                                                            className={`w-full py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${isEsaurito ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95'}`}
-                                                        >
-                                                            {isRegistering ? 'Elaborazione...' : isEsaurito ? 'Turno Esaurito' : 'Iscriviti al Turno'}
-                                                        </button>
-                                                    ) : (
-                                                        <Link
-                                                            to="/login"
-                                                            className="w-full py-3 bg-gray-50 text-gray-400 border border-gray-100 rounded-2xl font-black uppercase text-[10px] tracking-widest text-center hover:bg-gray-100 transition-all"
-                                                        >
-                                                            Accedi per Iscriverti
-                                                        </Link>
-                                                    )
-                                                )}
+                                        return (
+                                            <div key={sedeId} className="space-y-4">
+                                                <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+                                                    <MapPin className="w-4 h-4 text-primary/50" />
+                                                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-500">
+                                                        Sede: {sedeNome}
+                                                    </h3>
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    {sedeTurni.map((t) => {
+                                                        const isEsaurito = t.postiRimanenti <= 0;
+                                                        return (
+                                                            <div key={t.id} className={`p-5 rounded-3xl border transition-all flex flex-col justify-between gap-4 ${isEsaurito ? 'bg-gray-50 border-gray-100 opacity-80' : 'bg-white border-gray-100 hover:border-primary/30 hover:shadow-md'}`}>
+                                                                <div className="flex justify-between items-start">
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{format(new Date(t.giorno), 'EEEE dd MMMM', { locale: it })}</p>
+                                                                        <p className="font-black text-sm">{format(new Date(t.orarioInizio), 'HH:mm')}{t.orarioFine ? ` - ${format(new Date(t.orarioFine), 'HH:mm')}` : ''}</p>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Disponibili</p>
+                                                                        <p className={`font-black ${isEsaurito ? 'text-red-500' : 'text-secondary'}`}>{t.postiRimanenti} / {t.postiTotali}</p>
+                                                                    </div>
+                                                                </div>
+
+                                                                {torneo.mostraBottoneIscrizione && (
+                                                                    userGiocatore ? (
+                                                                        <button
+                                                                            disabled={isEsaurito || isRegistering}
+                                                                            onClick={() => handleIscrizione(t.id)}
+                                                                            className={`w-full py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${isEsaurito ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95'}`}
+                                                                        >
+                                                                            {isRegistering ? 'Elaborazione...' : isEsaurito ? 'Turno Esaurito' : 'Iscriviti al Turno'}
+                                                                        </button>
+                                                                    ) : (
+                                                                        <Link
+                                                                            to="/login"
+                                                                            className="w-full py-3 bg-gray-50 text-gray-400 border border-gray-100 rounded-2xl font-black uppercase text-[10px] tracking-widest text-center hover:bg-gray-100 transition-all"
+                                                                        >
+                                                                            Accedi per Iscriverti
+                                                                        </Link>
+                                                                    )
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         );
-                                    })}
+                                    }))}
                                 </div>
                             </div>
 

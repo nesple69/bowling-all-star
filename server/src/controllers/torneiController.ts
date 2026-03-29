@@ -149,6 +149,7 @@ export const getTorneoById = async (req: Request, res: Response) => {
             where: { id },
             include: {
                 turni: {
+                    include: { sede: true },
                     orderBy: { giorno: 'asc' }
                 },
                 sedi: true,
@@ -361,12 +362,13 @@ export const deleteTorneo = async (req: Request, res: Response) => {
 // POST /api/tornei/:id/giorni (aggiungi giorno/orario disponibile)
 export const addGiornoTorneo = async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const { giorno, orarioInizio, orarioFine, postiDisponibili } = req.body;
+    const { giorno, orarioInizio, orarioFine, postiDisponibili, sedeId } = req.body;
 
     try {
         const nuovoGiorno = await prisma.giorniOrariTorneo.create({
             data: {
                 torneoId: id,
+                sedeId: sedeId || null,
                 giorno: new Date(giorno),
                 orarioInizio: new Date(orarioInizio),
                 orarioFine: new Date(orarioFine),
@@ -382,7 +384,7 @@ export const addGiornoTorneo = async (req: Request, res: Response) => {
 // PUT /api/tornei/:id/giorni/:giornoId (solo ADMIN)
 export const updateGiornoTorneo = async (req: Request, res: Response) => {
     const giornoId = req.params.giornoId as string;
-    const { giorno, orarioInizio, orarioFine, postiDisponibili } = req.body;
+    const { giorno, orarioInizio, orarioFine, postiDisponibili, sedeId } = req.body;
 
     try {
         const giornoAggiornato = await prisma.giorniOrariTorneo.update({
@@ -391,7 +393,8 @@ export const updateGiornoTorneo = async (req: Request, res: Response) => {
                 giorno: new Date(giorno),
                 orarioInizio: new Date(orarioInizio),
                 orarioFine: new Date(orarioFine),
-                postiDisponibili: parseInt(postiDisponibili)
+                postiDisponibili: parseInt(postiDisponibili),
+                sedeId: sedeId || null
             }
         });
         res.json(giornoAggiornato);

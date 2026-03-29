@@ -136,6 +136,7 @@ export const getDisponibilitaTurni = async (req: Request, res: Response) => {
         const turni = await prisma.giorniOrariTorneo.findMany({
             where: { torneoId: id },
             include: {
+                sede: true,
                 _count: {
                     select: { iscrizioni: true }
                 }
@@ -149,7 +150,8 @@ export const getDisponibilitaTurni = async (req: Request, res: Response) => {
             orarioFine: t.orarioFine || null,
             postiTotali: t.postiDisponibili,
             postiOccupati: (t as any)._count?.iscrizioni || 0,
-            postiRimanenti: t.postiDisponibili - ((t as any)._count?.iscrizioni || 0)
+            postiRimanenti: t.postiDisponibili - ((t as any)._count?.iscrizioni || 0),
+            sede: t.sede
         }));
 
         res.json(disponibilita);
@@ -252,7 +254,7 @@ export const iscriviGiocatore = async (req: Request, res: Response) => {
                     giocatoreId,
                     turnoId,
                     secondoTurnoId: secondoTurnoId || null,
-                    sedeId: sedeId || null,
+                    sedeId: sedeId || (turno as any).sedeId || null,
                     stato: 'PENDENTE'
                 }
             });

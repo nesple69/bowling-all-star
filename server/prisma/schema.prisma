@@ -79,11 +79,13 @@ model Torneo {
 model GiorniOrariTorneo {
   id                   String             @id @default(uuid())
   torneoId             String
+  sedeId               String?
   giorno               DateTime           @db.Date
   orarioInizio         DateTime
   orarioFine           DateTime
   postiDisponibili     Int
   torneo               Torneo             @relation(fields: [torneoId], references: [id])
+  sede                 SedeTorneo?        @relation(fields: [sedeId], references: [id])
   iscrizioni           IscrizioneTorneo[] @relation("TurnoPrincipale")
   iscrizioniSecondarie IscrizioneTorneo[] @relation("TurnoRiserva")
 }
@@ -146,6 +148,7 @@ model SedeTorneo {
   locandina  String?
   torneo     Torneo             @relation(fields: [torneoId], references: [id], onDelete: Cascade)
   iscrizioni IscrizioneTorneo[]
+  turni      GiorniOrariTorneo[]
 }
 
 model MovimentoContabile {

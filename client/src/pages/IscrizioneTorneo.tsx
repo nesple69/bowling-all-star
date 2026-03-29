@@ -30,6 +30,7 @@ interface Disponibilita {
     postiTotali: number;
     postiOccupati: number;
     postiRimanenti: number;
+    sede?: { id: string, nome: string } | null;
 }
 
 interface GiocatoreLookup {
@@ -326,28 +327,25 @@ const IscrizioneTorneo: React.FC = () => {
                         <MapPin className="w-5 h-5 text-primary" />
                         1.5 Scegli la Sede di Gara
                     </h2>
-                    <p className="text-sm text-gray-500 mb-6 font-bold italic">Seleziona in quale bowling center giocherai le tue partite.</p>
+                    <p className="text-sm text-gray-500 mb-6 font-bold italic">Seleziona in quale bowling center giocherai le tue partite (filtrate per la categoria {giocatore.categoria}).</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {torneo.sedi.map((s) => {
+                        {torneo.sedi.filter(s => s.categorie.includes(giocatore.categoria)).map((s) => {
                             const isSelected = selectedSede === s.id;
-                            const matchesCategory = s.categorie.includes(giocatore.categoria);
                             
                             return (
                                 <button
                                     key={s.id}
-                                    onClick={() => setSelectedSede(s.id)}
+                                    onClick={() => {
+                                        setSelectedSede(s.id);
+                                        setSelectedTurno(''); // Reset turno se cambio sede
+                                    }}
                                     className={`p-6 rounded-2xl border-2 text-left transition-all relative group ${
                                         isSelected 
                                             ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' 
                                             : 'border-gray-100 hover:border-primary/30 bg-white'
                                     }`}
                                 >
-                                    {matchesCategory && (
-                                        <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm z-10">
-                                            Suggerita per {giocatore.categoria}
-                                        </span>
-                                    )}
                                     <div className="flex items-center gap-4">
                                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-primary' : 'border-gray-200'}`}>
                                             {isSelected && <div className="w-3 h-3 bg-primary rounded-full" />}
@@ -368,123 +366,141 @@ const IscrizioneTorneo: React.FC = () => {
                                 </button>
                             );
                         })}
+                        {torneo.sedi.filter(s => s.categorie.includes(giocatore.categoria)).length === 0 && (
+                            <div className="md:col-span-2 p-8 bg-red-50 rounded-2xl border border-red-100 text-center">
+                                <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
+                                <p className="text-sm text-red-600 font-black uppercase">Nessuna sede disponibile per la tua categoria ({giocatore.categoria})</p>
+                                <p className="text-xs text-red-400 font-bold mt-1">Contatta la segreteria per maggiori informazioni.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
 
-            {/* STEP 2: Scegli Turno (solo se giocatore identificato e non già iscritto) */}
-            {giocatore && !giaIscritto && (
+            {/* STEP 2: Scegli Turno (solo se giocatore identificato, non già iscritto e sede selezionata se necessaria) */}
+            {giocatore && !giaIscritto && (torneo.sedi.length === 0 || selectedSede) && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8 animate-fade-in">
                     <h2 className="text-lg font-black uppercase tracking-tight flex items-center gap-3 mb-4">
                         <Clock className="w-5 h-5 text-primary" />
                         2. Scegli il Turno
                     </h2>
 
-                    {disponibilita.length === 0 ? (
-                        <div className="text-center py-8 text-gray-400">
-                            <Clock className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                            <p className="text-sm font-bold uppercase">Nessun turno disponibile per questo torneo</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {/* Prima Scelta */}
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Turno Preferito</label>
-                                {disponibilita.map((slot) => {
-                                    const esaurito = slot.postiRimanenti <= 0;
-                                    const isSelected = selectedTurno === slot.id;
+                    {(() => {
+                        const filteredTurni = disponibilita.filter(t => 
+                            torneo.sedi.length === 0 || 
+                            (selectedSede && (t.sede?.id === selectedSede || (!t.sede && selectedSede === 'principale')))
+                        );
 
-                                    return (
-                                        <label
-                                            key={slot.id}
-                                            className={`block p-4 rounded-xl border-2 transition-all cursor-pointer ${esaurito ? 'opacity-50 cursor-not-allowed border-gray-100 bg-gray-50' :
-                                                isSelected ? 'border-primary bg-primary/5 shadow-md shadow-primary/10' :
-                                                    'border-gray-100 hover:border-primary/30 bg-white'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <input
-                                                    type="radio"
-                                                    name="turno"
-                                                    value={slot.id}
-                                                    checked={isSelected}
-                                                    disabled={esaurito}
-                                                    onChange={() => {
-                                                        setSelectedTurno(slot.id);
-                                                        if (selectedSecondTurno === slot.id) setSelectedSecondTurno('');
-                                                    }}
-                                                    className="w-5 h-5 text-primary border-gray-300 focus:ring-primary/50 shrink-0"
-                                                />
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <div>
-                                                            <p className="font-black uppercase text-sm">
-                                                                {format(new Date(slot.giorno), 'EEEE dd MMMM yyyy', { locale: it })}
-                                                            </p>
-                                                            <p className="text-xs text-gray-400 font-bold">
-                                                                {format(new Date(slot.orarioInizio), 'HH:mm')}
-                                                                {slot.orarioFine ? ` - ${format(new Date(slot.orarioFine), 'HH:mm')}` : ''}
-                                                            </p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <span className={`text-xs font-black px-2 py-0.5 rounded uppercase ${esaurito ? 'bg-red-100 text-red-600' :
-                                                                slot.postiRimanenti <= 3 ? 'bg-amber-100 text-amber-600' :
-                                                                    'bg-green-100 text-green-600'
-                                                                }`}>
-                                                                {esaurito ? 'Esaurito' : `${slot.postiRimanenti} posti`}
-                                                            </span>
+                        if (filteredTurni.length === 0) {
+                            return (
+                                <div className="text-center py-8 text-gray-400">
+                                    <Clock className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                                    <p className="text-sm font-bold uppercase">Nessun turno disponibile per la sede selezionata</p>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div className="space-y-6">
+                                {/* Prima Scelta */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Turno Preferito</label>
+                                    {filteredTurni.map((slot) => {
+                                        const esaurito = slot.postiRimanenti <= 0;
+                                        const isSelected = selectedTurno === slot.id;
+
+                                        return (
+                                            <label
+                                                key={slot.id}
+                                                className={`block p-4 rounded-xl border-2 transition-all cursor-pointer ${esaurito ? 'opacity-50 cursor-not-allowed border-gray-100 bg-gray-50' :
+                                                    isSelected ? 'border-primary bg-primary/5 shadow-md shadow-primary/10' :
+                                                        'border-gray-100 hover:border-primary/30 bg-white'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <input
+                                                        type="radio"
+                                                        name="turno"
+                                                        value={slot.id}
+                                                        checked={isSelected}
+                                                        disabled={esaurito}
+                                                        onChange={() => {
+                                                            setSelectedTurno(slot.id);
+                                                            if (selectedSecondTurno === slot.id) setSelectedSecondTurno('');
+                                                        }}
+                                                        className="w-5 h-5 text-primary border-gray-300 focus:ring-primary/50 shrink-0"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div>
+                                                                <p className="font-black uppercase text-sm">
+                                                                    {format(new Date(slot.giorno), 'EEEE dd MMMM yyyy', { locale: it })}
+                                                                </p>
+                                                                <p className="text-xs text-gray-400 font-bold">
+                                                                    {format(new Date(slot.orarioInizio), 'HH:mm')}
+                                                                    {slot.orarioFine ? ` - ${format(new Date(slot.orarioFine), 'HH:mm')}` : ''}
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <span className={`text-xs font-black px-2 py-0.5 rounded uppercase ${esaurito ? 'bg-red-100 text-red-600' :
+                                                                    slot.postiRimanenti <= 3 ? 'bg-amber-100 text-amber-600' :
+                                                                        'bg-green-100 text-green-600'
+                                                                    }`}>
+                                                                    {esaurito ? 'Esaurito' : `${slot.postiRimanenti} posti`}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </label>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Seconda Scelta (Riserva) */}
-                            {isMultiTurno && selectedTurno && (
-                                <div className="pt-6 border-t border-gray-100 space-y-3 animate-fade-in">
-                                    <div className="flex flex-col gap-1 mb-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-primary block">Turno di Riserva (Emergenza)</label>
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase italic shadow-sm">Scegli anche una turno di riserva nel caso la tua prima scelta non fosse disponibile</p>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {disponibilita.filter(s => s.id !== selectedTurno).map((slot) => {
-                                            const isSelected = selectedSecondTurno === slot.id;
-                                            return (
-                                                <button
-                                                    key={slot.id}
-                                                    onClick={() => setSelectedSecondTurno(slot.id)}
-                                                    className={`p-3 rounded-xl border-2 text-left transition-all ${isSelected
-                                                        ? 'border-secondary bg-secondary/5 shadow-md shadow-secondary/10'
-                                                        : 'border-gray-100 hover:border-secondary/30 bg-white'
-                                                        }`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-secondary' : 'border-gray-200'}`}>
-                                                            {isSelected && <div className="w-2 h-2 bg-secondary rounded-full" />}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-black uppercase text-[10px]">
-                                                                {format(new Date(slot.giorno), 'dd MMM')} ore {format(new Date(slot.orarioInizio), 'HH:mm')}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    {!selectedSecondTurno && (
-                                        <div className="bg-amber-50 border border-amber-100 text-amber-600 p-3 rounded-xl flex items-center gap-2 text-[11px] font-black uppercase tracking-tight animate-pulse">
-                                            <AlertCircle className="w-4 h-4" />
-                                            Scegli anche una turno di riserva nel caso la tua prima scelta non fosse disponibile
-                                        </div>
-                                    )}
+                                            </label>
+                                        );
+                                    })}
                                 </div>
-                            )}
-                        </div>
-                    )}
+
+                                {/* Seconda Scelta (Riserva) */}
+                                {filteredTurni.length > 1 && selectedTurno && (
+                                    <div className="pt-6 border-t border-gray-100 space-y-3 animate-fade-in">
+                                        <div className="flex flex-col gap-1 mb-4">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-primary block">Turno di Riserva (Emergenza)</label>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase italic shadow-sm">Scegli anche una turno di riserva nel caso la tua prima scelta non fosse disponibile</p>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {filteredTurni.filter(s => s.id !== selectedTurno).map((slot) => {
+                                                const isSelected = selectedSecondTurno === slot.id;
+                                                return (
+                                                    <button
+                                                        key={slot.id}
+                                                        onClick={() => setSelectedSecondTurno(slot.id)}
+                                                        className={`p-3 rounded-xl border-2 text-left transition-all ${isSelected
+                                                            ? 'border-secondary bg-secondary/5 shadow-md shadow-secondary/10'
+                                                            : 'border-gray-100 hover:border-secondary/30 bg-white'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-secondary' : 'border-gray-200'}`}>
+                                                                {isSelected && <div className="w-2 h-2 bg-secondary rounded-full" />}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-black uppercase text-[10px]">
+                                                                    {format(new Date(slot.giorno), 'dd MMM')} ore {format(new Date(slot.orarioInizio), 'HH:mm')}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {!selectedSecondTurno && (
+                                            <div className="bg-amber-50 border border-amber-100 text-amber-600 p-3 rounded-xl flex items-center gap-2 text-[11px] font-black uppercase tracking-tight animate-pulse">
+                                                <AlertCircle className="w-4 h-4" />
+                                                Scegli anche una turno di riserva nel caso la tua prima scelta non fosse disponibile
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
 
