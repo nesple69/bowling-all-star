@@ -466,6 +466,12 @@ export const upsertRisultato = async (req: Request, res: Response) => {
 
     try {
         const result = await prisma.$transaction(async (tx) => {
+            // Calcolo riporto dai dati delle partite se presenti
+            let calculatedRiporto = 0;
+            if (partite && Array.isArray(partite)) {
+                calculatedRiporto = partite.reduce((sum, p) => sum + (p.isRiporto ? (p.birilli || 0) : 0), 0);
+            }
+
             const risultato = await tx.risultatoTorneo.upsert({
                 where: {
                     id: req.body.id || 'new-id'
@@ -475,7 +481,8 @@ export const upsertRisultato = async (req: Request, res: Response) => {
                     partiteGiocate: parseInt(partiteGiocate),
                     totaleBirilli: parseInt(totaleBirilli),
                     totaleBirilliSquadra: totaleBirilliSquadra ? parseInt(totaleBirilliSquadra) : null,
-                    isRiserva: isRiserva === true || isRiserva === 'true'
+                    isRiserva: isRiserva === true || isRiserva === 'true',
+                    riporto: calculatedRiporto
                 },
                 create: {
                     torneoId,
@@ -484,29 +491,46 @@ export const upsertRisultato = async (req: Request, res: Response) => {
                     partiteGiocate: parseInt(partiteGiocate),
                     totaleBirilli: parseInt(totaleBirilli),
                     totaleBirilliSquadra: totaleBirilliSquadra ? parseInt(totaleBirilliSquadra) : null,
-                    isRiserva: isRiserva === true || isRiserva === 'true'
+                    isRiserva: isRiserva === true || isRiserva === 'true',
+                    riporto: calculatedRiporto
                 }
             });
 
             // Gestione partite se fornite
             if (partite && Array.isArray(partite)) {
-                // Rimuovi vecchie partite per questo risultato
                 await tx.partitaTorneo.deleteMany({
                     where: { risultatoTorneoId: risultato.id }
                 });
 
-                // Inserisci nuove partite
                 if (partite.length > 0) {
                     await tx.partitaTorneo.createMany({
-                        data: partite.map((p: number, index: number) => ({
+                        data: partite.map((p: any, index: number) => ({
                             risultatoTorneoId: risultato.id,
                             numeroPartita: index + 1,
-                            birilli: p,
+                            birilli: typeof p === 'object' ? p.birilli : p,
+                            isRiporto: typeof p === 'object' ? !!p.isRiporto : false,
                             data: new Date()
                         }))
                     });
                 }
             }
+
+            // AGGIORNAMENTO STATISTICHE GIOCATORE (COERENTE CON IMPORT)
+            const tuttiRisultati = await tx.risultatoTorneo.findMany({
+                where: { giocatoreId }
+            });
+
+            const totaleBirilliNetto = tuttiRisultati.reduce((sum, r) => sum + (r.totaleBirilli - (r.riporto || 0)), 0);
+            const totalePartiteReali = tuttiRisultati.reduce((sum, r) => sum + r.partiteGiocate, 0);
+            const mediaAttuale = totalePartiteReali > 0 ? totaleBirilliNetto / totalePartiteReali : 0;
+
+            await tx.giocatore.update({
+                where: { id: giocatoreId },
+                data: {
+                    totaleBirilli: totaleBirilliNetto,
+                    mediaAttuale
+                }
+            });
 
             return risultato;
         });

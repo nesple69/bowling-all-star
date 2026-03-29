@@ -31,11 +31,14 @@ export const getPreview = async (req: Request, res: Response) => {
 };
 
 export const importTorneoData = async (req: Request, res: Response) => {
-    const { url, torneoId, matchesOverride } = req.body;
+    const { url, torneoId, matchesOverride, riportiOverride } = req.body;
 
     console.log(`🚀 Avvio importazione torneo ID: ${torneoId} da URL: ${url}`);
     if (matchesOverride) {
         console.log(`📝 Ricevute ${Object.keys(matchesOverride).length} corrispondenze manuali.`);
+    }
+    if (riportiOverride) {
+        console.log(`📝 Ricevuti override riporti per ${Object.keys(riportiOverride).length} atleti.`);
     }
 
     if (!url || !torneoId) {
@@ -54,8 +57,9 @@ export const importTorneoData = async (req: Request, res: Response) => {
             partiteGiocate: number;
             totaleBirilli: number;
             totaleBirilliSquadra?: number | null;
-            partite: number[];
+            partite: { birilli: number; isRiporto: boolean }[];
             divisione: string | null;
+            riporto: number;
         }[] = [];
         const unmatched = [];
 
@@ -69,7 +73,7 @@ export const importTorneoData = async (req: Request, res: Response) => {
 
             if (!giocatoreId) {
                 const match = matchingResults[item.atleta];
-                if (match && match.score < 0.2) { // Abbassata soglia da 0.3 per evitare false positive come Massimiliano Celli
+                if (match && match.score < 0.2) {
                     giocatoreId = match.giocatoreId;
                 }
             }
@@ -77,7 +81,6 @@ export const importTorneoData = async (req: Request, res: Response) => {
             if (giocatoreId) {
                 let divisioneVal = item.divisione || null;
 
-                // Se è un torneo Aziendale/Senior, forziamo la divisione dal DB se possibile
                 if (isAziendaleOSenior) {
                     const giocatoreDb = await prisma.giocatore.findUnique({
                         where: { id: giocatoreId },
@@ -88,37 +91,48 @@ export const importTorneoData = async (req: Request, res: Response) => {
                         const sessoStr = giocatoreDb.sesso === 'F' ? 'Femminile' : 'Maschile';
                         const fasciaStr = giocatoreDb.fasciaSenior !== 'NONE' ? ` Fascia ${giocatoreDb.fasciaSenior}` : '';
                         divisioneVal = `${sessoStr}${fasciaStr}`;
-                        console.log(`[IMPORT] Arricchita divisione per ${item.atleta}: ${divisioneVal}`);
                     }
                 }
+
+                // Gestione Riporti
+                const manualRiportiIndices = riportiOverride ? riportiOverride[item.atleta] : null;
+                let calculatedRiporto = 0;
+                let realPartiteCount = 0;
+
+                const processedPartite = item.punteggiPartite.map((p, idx) => {
+                    // Se l'indice è tra i riporti manuali, o se è > 300 e non c'è override manuale
+                    const isRiporto = manualRiportiIndices 
+                        ? manualRiportiIndices.includes(idx) 
+                        : (p > 300 && idx === 0); // Default suggerito se > 300 in prima posizione
+
+                    if (isRiporto) {
+                        calculatedRiporto += p;
+                    } else {
+                        realPartiteCount++;
+                    }
+                    return { birilli: p, isRiporto };
+                });
 
                 resultsToSave.push({
                     torneoId,
                     giocatoreId,
                     posizione: item.posizione,
-                    partiteGiocate: item.partite,
+                    partiteGiocate: realPartiteCount,
                     totaleBirilli: item.birilli,
                     totaleBirilliSquadra: item.totaleBirilliSquadra || null,
-                    partite: item.punteggiPartite,
-                    divisione: divisioneVal
+                    partite: processedPartite,
+                    divisione: divisioneVal,
+                    riporto: calculatedRiporto
                 });
             } else {
                 unmatched.push(item.atleta);
             }
         }
 
-        console.log(`📊 Risultati da salvare: ${resultsToSave.length}, Non matchati: ${unmatched.length}`);
-
-        // Utilizziamo una transazione per salvare i risultati e aggiornare le medie
         try {
             await prisma.$transaction(async (tx) => {
-                // Rimuovi vecchi risultati per questo torneo se presenti
-                console.log(`🧹 Pulizia vecchi risultati per torneo ${torneoId}...`);
-                await tx.risultatoTorneo.deleteMany({
-                    where: { torneoId }
-                });
+                await tx.risultatoTorneo.deleteMany({ where: { torneoId } });
 
-                // Marca il torneo come completato e aggiorna le date se disponibili
                 await tx.torneo.update({
                     where: { id: torneoId },
                     data: {
@@ -128,44 +142,44 @@ export const importTorneoData = async (req: Request, res: Response) => {
                     }
                 });
 
-                // Inserisci nuovi risultati
                 for (const resData of resultsToSave) {
                     const { partite, ...risultatoData } = resData;
                     const createdRisultato = await tx.risultatoTorneo.create({
                         data: risultatoData
                     });
 
-                    // Salva le singole partite
                     if (partite && partite.length > 0) {
                         await tx.partitaTorneo.createMany({
                             data: partite.map((p, index) => ({
                                 risultatoTorneoId: createdRisultato.id,
                                 numeroPartita: index + 1,
-                                birilli: p,
-                                data: new Date() // Opzionale
+                                birilli: p.birilli,
+                                isRiporto: p.isRiporto,
+                                data: new Date()
                             }))
                         });
                     }
 
-                    // Aggiorna statistiche giocatore (totale birilli e media)
+                    // Aggiorna statistiche giocatore escludendo i riporti
                     const tuttiRisultati = await tx.risultatoTorneo.findMany({
                         where: { giocatoreId: resData.giocatoreId }
                     });
 
-                    const totaleBirilli = tuttiRisultati.reduce((sum, r) => sum + r.totaleBirilli, 0);
-                    const totalePartite = tuttiRisultati.reduce((sum, r) => sum + r.partiteGiocate, 0);
-                    const mediaAttuale = totalePartite > 0 ? totaleBirilli / totalePartite : 0;
+                    // Totale birilli pulito (senza doppie conteggi da riporti)
+                    const totaleBirilliNetto = tuttiRisultati.reduce((sum, r) => sum + (r.totaleBirilli - r.riporto), 0);
+                    const totalePartiteReali = tuttiRisultati.reduce((sum, r) => sum + r.partiteGiocate, 0);
+                    const mediaAttuale = totalePartiteReali > 0 ? totaleBirilliNetto / totalePartiteReali : 0;
 
                     await tx.giocatore.update({
                         where: { id: resData.giocatoreId },
                         data: {
-                            totaleBirilli,
+                            totaleBirilli: totaleBirilliNetto,
                             mediaAttuale
                         }
                     });
                 }
             }, {
-                timeout: 30000 // 30 secondi per gestire molti risultati
+                timeout: 30000
             });
 
             console.log('✅ Importazione completata con successo!');

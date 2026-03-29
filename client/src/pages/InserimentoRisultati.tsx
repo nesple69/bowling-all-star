@@ -250,15 +250,30 @@ const InserimentoRisultati: React.FC = () => {
                                                 />
                                                 <button
                                                     onClick={() => {
-                                                        const pStr = window.prompt("Inserisci i punteggi delle partite separati da virgola (es: 180, 210, 195):", (r as any).partite?.join(', ') || "");
+                                                        const currentPartite = (r as any).partite || [];
+                                                        const defaultVal = currentPartite.map((p: any) => typeof p === 'object' ? `${p.birilli}${p.isRiporto ? 'R' : ''}` : p).join(', ');
+                                                        const pStr = window.prompt("Inserisci i punteggi separati da virgola. Aggiungi 'R' per i riporti (es: 362R, 190, 185):", defaultVal);
+                                                        
                                                         if (pStr !== null) {
-                                                            const pArr = pStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+                                                            const pArr = pStr.split(',').map(s => {
+                                                                const val = s.trim().toUpperCase();
+                                                                const isRiporto = val.endsWith('R');
+                                                                const birilli = parseInt(val.replace('R', ''));
+                                                                return isNaN(birilli) ? null : { birilli, isRiporto };
+                                                            }).filter(n => n !== null);
+                                                            
                                                             updateLocalResultField(r.giocatoreId, 'partite' as any, pArr);
+                                                            
+                                                            // Auto-update totale e conteggio
+                                                            const nuovoTotale = pArr.reduce((sum, p) => sum + p!.birilli, 0);
+                                                            const nuovePartiteReali = pArr.filter(p => !p!.isRiporto).length;
+                                                            updateLocalResultField(r.giocatoreId, 'totaleBirilli', nuovoTotale);
+                                                            updateLocalResultField(r.giocatoreId, 'partiteGiocate', nuovePartiteReali);
                                                         }
                                                     }}
                                                     className="text-[9px] font-black uppercase text-secondary hover:underline"
                                                 >
-                                                    {(r as any).partite?.length ? `${(r as any).partite.length} Partite` : "Incl. Partite"}
+                                                    {(r as any).partite?.length ? `${(r as any).partite.length} Voci (${(r as any).partite.filter((p:any)=>p.isRiporto).length} RIP)` : "Incl. Partite"}
                                                 </button>
                                             </div>
                                         </td>

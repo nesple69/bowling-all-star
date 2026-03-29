@@ -249,11 +249,9 @@ export const fetchTorneoFederazione = async (url: string): Promise<TorneoData> =
 
                 if (punteggiPartite.length === 0) return;
 
-                // Calcolo SCRATCH (Senza Handicap) per Birilli e Media
-                // Importante: usiamo la somma delle partite filtrate, NON la colonna totale del sito
                 const birilli = punteggiPartite.reduce((a, b) => a + b, 0);
                 const partiteCount = punteggiPartite.length;
-                const media = birilli / partiteCount;
+                const media = partiteCount > 0 ? birilli / partiteCount : 0;
 
                 classifica.push({
                     posizione: lastPos,
@@ -261,7 +259,7 @@ export const fetchTorneoFederazione = async (url: string): Promise<TorneoData> =
                     partite: partiteCount,
                     birilli,
                     media,
-                    punteggiPartite,
+                    punteggiPartite, // Restituiamo l'array completo per l'anteprima
                     divisione: currentDivision,
                     totaleBirilliSquadra
                 });

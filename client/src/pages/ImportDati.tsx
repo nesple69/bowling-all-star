@@ -52,6 +52,7 @@ const ImportDati: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [importing, setImporting] = useState(false);
     const [manualMatches, setManualMatches] = useState<Record<string, string>>({});
+    const [manualRiporti, setManualRiporti] = useState<Record<string, number[]>>({});
     const [importResult, setImportResult] = useState<{ salvati: number; nonMatchati: string[] } | null>(null);
     const fetchImportData = async () => {
         const token = sessionStorage.getItem('token');
@@ -100,7 +101,8 @@ const ImportDati: React.FC = () => {
             const res = await axios.post(`${API_BASE_URL}/api/import/torneo`, {
                 url,
                 torneoId: selectedTorneoId,
-                matchesOverride: manualMatches
+                matchesOverride: manualMatches,
+                riportiOverride: manualRiporti
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -219,6 +221,7 @@ const ImportDati: React.FC = () => {
                                         <tr>
                                             <th className="px-5 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest w-12 text-center">Pos</th>
                                             <th className="px-5 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest">Atleta (FISB)</th>
+                                            <th className="px-5 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest">Punteggi</th>
                                             <th className="px-5 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest">Abbinamento locale</th>
                                             <th className="px-5 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Birilli</th>
                                         </tr>
@@ -228,6 +231,7 @@ const ImportDati: React.FC = () => {
                                             const match = item.match;
                                             const isMatched = match && match.score < 0.3;
                                             const manualId = manualMatches[item.atleta];
+                                            const athleteRiporti = manualRiporti[item.atleta] || [];
 
                                             return (
                                                 <tr key={idx} className={`border-b border-gray-100 hover:bg-white transition-colors ${!isMatched && !manualId ? 'bg-amber-50/50' : ''}`}>
@@ -235,7 +239,36 @@ const ImportDati: React.FC = () => {
                                                     <td className="px-5 py-4">
                                                         <div className="flex flex-col">
                                                             <span className="font-bold text-dark text-xs uppercase">{item.atleta}</span>
-                                                            <span className="text-[10px] text-gray-400">Media: {item.media}</span>
+                                                            <span className="text-[10px] text-gray-400">Media FISB: {item.media}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-4">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {item.punteggiPartite?.map((p: number, pIdx: number) => {
+                                                                const isAutoRiporto = !manualRiporti[item.atleta] && p > 300 && pIdx === 0;
+                                                                const isManualRiporto = athleteRiporti.includes(pIdx);
+                                                                const activeRiporto = isManualRiporto || isAutoRiporto;
+
+                                                                return (
+                                                                    <button
+                                                                        key={pIdx}
+                                                                        onClick={() => {
+                                                                            const current = manualRiporti[item.atleta] || (isAutoRiporto ? [0] : []);
+                                                                            const next = current.includes(pIdx)
+                                                                                ? current.filter(i => i !== pIdx)
+                                                                                : [...current, pIdx];
+                                                                            setManualRiporti(prev => ({ ...prev, [item.atleta]: next }));
+                                                                        }}
+                                                                        className={`px-1.5 py-0.5 rounded text-[10px] font-black border transition-all ${activeRiporto
+                                                                                ? 'bg-red-500 text-white border-red-600 shadow-sm'
+                                                                                : 'bg-gray-50 text-dark border-gray-200 hover:border-primary/50'
+                                                                            }`}
+                                                                        title={activeRiporto ? "Marcato come riporto" : "Clicca per marcare come riporto"}
+                                                                    >
+                                                                        {p}
+                                                                    </button>
+                                                                );
+                                                            })}
                                                         </div>
                                                     </td>
                                                     <td className="px-5 py-4">

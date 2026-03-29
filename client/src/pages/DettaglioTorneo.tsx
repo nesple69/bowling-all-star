@@ -387,10 +387,13 @@ const DettaglioTorneo: React.FC = () => {
                                                                         <div className="flex flex-wrap justify-center gap-1 max-w-[280px] mx-auto">
                                                                             {r.partite && r.partite.length > 0 ? (
                                                                                 r.partite.map((p: any, idx: number) => (
-                                                                                    <div key={idx} className="flex flex-col items-center">
-                                                                                        <span className="text-[11px] font-black text-dark/70 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 min-w-[24px] text-center">
+                                                                                    <div key={idx} className="flex flex-col items-center relative">
+                                                                                        <span className={`${p.isRiporto ? 'text-white bg-red-500 border-red-600' : 'text-dark/70 bg-gray-50 border-gray-100'} text-[11px] font-black px-1.5 py-0.5 rounded border min-w-[24px] text-center shadow-sm`}>
                                                                                             {p.birilli}
                                                                                         </span>
+                                                                                        {p.isRiporto && (
+                                                                                            <span className="absolute -top-2 -right-1 text-[6px] font-black bg-white text-red-500 border border-red-200 px-0.5 rounded leading-none uppercase">RIP</span>
+                                                                                        )}
                                                                                     </div>
                                                                                 ))
                                                                             ) : (
@@ -400,11 +403,16 @@ const DettaglioTorneo: React.FC = () => {
                                                                     </td>
                                                                     <td className="px-4 py-3 text-center">
                                                                         <span className="text-[13px] font-black text-primary bg-primary/5 px-2 py-1 rounded-lg">
-                                                                            {r.partiteGiocate > 0 ? (r.totaleBirilli / r.partiteGiocate).toFixed(2) : '0.00'}
+                                                                            {r.partiteGiocate > 0 ? ((r.totaleBirilli - (r.riporto || 0)) / r.partiteGiocate).toFixed(2) : '0.00'}
                                                                         </span>
                                                                     </td>
                                                                     <td className="px-4 py-3 text-center">
-                                                                        <span className="font-black text-sm text-dark">{r.totaleBirilli}</span>
+                                                                        <div className="flex flex-col items-center">
+                                                                            <span className="font-black text-sm text-dark">{r.totaleBirilli}</span>
+                                                                            {r.riporto > 0 && (
+                                                                                <span className="text-[8px] font-black text-red-500 uppercase">Incl. {r.riporto} RIP</span>
+                                                                            )}
+                                                                        </div>
                                                                     </td>
                                                                     {isTeam && (
                                                                         <td className="px-4 py-3 text-center">

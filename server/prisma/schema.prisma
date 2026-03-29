@@ -117,6 +117,7 @@ model RisultatoTorneo {
   giocatore            Giocatore @relation(fields: [giocatoreId], references: [id])
   torneo               Torneo    @relation(fields: [torneoId], references: [id])
   partite              PartitaTorneo[]
+  riporto              Int       @default(0) // Totale birilli di riporto
   
   createdAt DateTime @default(now())
 }
@@ -126,12 +127,13 @@ model PartitaTorneo {
   risultatoTorneoId String   // FK a RisultatoTorneo
   risultatoTorneo   RisultatoTorneo @relation(fields: [risultatoTorneoId], references: [id], onDelete: Cascade)
   numeroPartita     Int      // 1, 2, 3, 4, 5, 6
-  birilli           Int      // Punteggio della partita (0-300)
+  birilli           Int      // Punteggio della partita (0-300 o riporto)
+  isRiporto         Boolean  @default(false) // Indica se è un riporto (es: 30% della qualificazione)
   data              DateTime? // Data/ora partita (opzionale)
   note              String?   // Note eventuali
   
   createdAt DateTime @default(now())
-  
+
   @@index([risultatoTorneoId])
 }
 
