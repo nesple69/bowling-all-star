@@ -131,14 +131,40 @@ export const importTorneoData = async (req: Request, res: Response) => {
 
         try {
             await prisma.$transaction(async (tx) => {
-                await tx.risultatoTorneo.deleteMany({ where: { torneoId } });
+                // Carichiamo il torneo per gestire correttamente le date cumulative
+                const torneoEsistente = await tx.torneo.findUnique({
+                    where: { id: torneoId },
+                    select: { dataInizio: true, dataFine: true }
+                });
+
+                // Invece di cancellare TUTTO, cancelliamo solo i risultati per i giocatori che stiamo importando ora.
+                const idsToReplace = resultsToSave.map(r => r.giocatoreId);
+                await tx.risultatoTorneo.deleteMany({
+                    where: {
+                        torneoId,
+                        giocatoreId: { in: idsToReplace }
+                    }
+                });
+
+                // Gestione cumulativa delle date (min inizio, max fine)
+                let nuovaDataInizio = scrapedData.dataInizio;
+                let nuovaDataFine = scrapedData.dataFine || scrapedData.dataInizio;
+
+                if (torneoEsistente) {
+                    if (torneoEsistente.dataInizio < nuovaDataInizio) {
+                        nuovaDataInizio = torneoEsistente.dataInizio;
+                    }
+                    if (torneoEsistente.dataFine && torneoEsistente.dataFine > nuovaDataFine) {
+                        nuovaDataFine = torneoEsistente.dataFine;
+                    }
+                }
 
                 await tx.torneo.update({
                     where: { id: torneoId },
                     data: {
                         completato: true,
-                        dataInizio: scrapedData.dataInizio,
-                        dataFine: scrapedData.dataFine || undefined
+                        dataInizio: nuovaDataInizio,
+                        dataFine: nuovaDataFine
                     }
                 });
 
