@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Torneo {
     id: string;
@@ -332,6 +334,84 @@ const GestioneTornei: React.FC = () => {
         }
     };
 
+    const handleDownloadIscrizioni = (torneo: Torneo, iscrizioni: Iscrizione[]) => {
+        const attive = iscrizioni.filter(i => i.stato !== 'RIFIUTATA');
+
+        // Group by giorno then by sede
+        const byGiorno: Record<string, Record<string, Iscrizione[]>> = {};
+        attive.forEach(iscr => {
+            const giornoRaw = iscr.turno?.giorno?.substring(0, 10) || 'Data Sconosciuta';
+            const giornoDate = new Date(giornoRaw + 'T12:00:00');
+            const giornoLabel = giornoDate.toLocaleDateString('it-IT', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+            const sedeLabel = iscr.sede?.nome || 'Sede Principale';
+            if (!byGiorno[giornoLabel]) byGiorno[giornoLabel] = {};
+            if (!byGiorno[giornoLabel][sedeLabel]) byGiorno[giornoLabel][sedeLabel] = [];
+            byGiorno[giornoLabel][sedeLabel].push(iscr);
+        });
+
+        const doc = new jsPDF();
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text(torneo.nome, 14, 20);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(120);
+        doc.text(`Prenotazioni Torneo — ${attive.length} iscritti totali — Estratto il ${format(new Date(), 'dd/MM/yyyy')}`, 14, 28);
+        doc.setTextColor(40);
+
+        let startY = 36;
+
+        Object.entries(byGiorno).forEach(([giorno, sedi]) => {
+            // Day header
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            if (startY > 270) { doc.addPage(); startY = 15; }
+            doc.setFillColor(30, 64, 175);
+            doc.roundedRect(10, startY, 190, 9, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.text(giorno.toUpperCase(), 14, startY + 6.5);
+            doc.setTextColor(40);
+            startY += 13;
+
+            Object.entries(sedi).forEach(([sede, iscrizioniGruppo]) => {
+                if (startY > 270) { doc.addPage(); startY = 15; }
+                // Sede sub-header
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(217, 119, 6);
+                doc.text(`📍 ${sede.toUpperCase()} (${iscrizioniGruppo.length} atleti)`, 14, startY);
+                doc.setTextColor(40);
+                startY += 5;
+
+                const rows = iscrizioniGruppo.map((iscr, idx) => [
+                    String(idx + 1),
+                    `${iscr.giocatore.cognome} ${iscr.giocatore.nome}`,
+                    `${iscr.giocatore.sesso}/${iscr.giocatore.categoria}`,
+                    iscr.giocatore.telefono || '-',
+                    iscr.turno?.orarioInizio?.substring(11, 16) || '-',
+                    STATO_LABELS[iscr.stato] || iscr.stato,
+                ]);
+
+                autoTable(doc, {
+                    startY,
+                    head: [['N°', 'Atleta', 'Sesso/Cat', 'Telefono', 'Orario', 'Stato']],
+                    body: rows,
+                    theme: 'striped',
+                    headStyles: { fillColor: [30, 64, 175], fontSize: 8, fontStyle: 'bold' },
+                    bodyStyles: { fontSize: 8 },
+                    columnStyles: { 0: { cellWidth: 8 }, 2: { cellWidth: 18 }, 4: { cellWidth: 16 }, 5: { cellWidth: 22 } },
+                    margin: { left: 10, right: 10 },
+                });
+
+                startY = (doc as any).lastAutoTable.finalY + 8;
+            });
+
+            startY += 4;
+        });
+
+        doc.save(`Prenotazioni_${torneo.nome.replace(/\s+/g, '_')}_${format(new Date(), 'yyyyMMdd')}.pdf`);
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -626,12 +706,24 @@ const GestioneTornei: React.FC = () => {
                                             <Users className="w-4 h-4" />
                                             Iscrizioni ({iscrizioni.length})
                                         </h4>
-                                        <button
-                                            onClick={() => setExpandedTorneo(null)}
-                                            className="text-gray-400 hover:text-dark transition-colors"
-                                        >
-                                            <ChevronUp className="w-5 h-5" />
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            {iscrizioni.length > 0 && (
+                                                <button
+                                                    onClick={() => handleDownloadIscrizioni(torneo, iscrizioni)}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all text-[10px] font-black uppercase tracking-widest"
+                                                    title="Scarica PDF Prenotazioni"
+                                                >
+                                                    <Download className="w-3.5 h-3.5" />
+                                                    PDF Prenotazioni
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => setExpandedTorneo(null)}
+                                                className="text-gray-400 hover:text-dark transition-colors"
+                                            >
+                                                <ChevronUp className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {loadingIscrizioni ? (
