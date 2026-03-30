@@ -428,10 +428,11 @@ const FormTorneo: React.FC = () => {
                                                             }`}
                                                         >
                                                             {s.previewUrl ? (
-                                                                (s.file?.type === 'application/pdf' || (typeof s.previewUrl === 'string' && s.previewUrl.toLowerCase().endsWith('.pdf'))) ? (
+                                                                (s.file?.type === 'application/pdf' || s.locandina?.toLowerCase().endsWith('.pdf') || (typeof s.previewUrl === 'string' && s.previewUrl.toLowerCase().endsWith('.pdf'))) ? (
                                                                     <div className="flex flex-col items-center gap-1">
                                                                        <FileText className="w-10 h-10 text-red-500" />
                                                                        <span className="text-[8px] font-black uppercase text-gray-400">PDF PRONTO</span>
+                                                                       {s.previewUrl && <a href={s.previewUrl} target="_blank" rel="noopener noreferrer" className="text-[8px] font-bold text-primary underline" onClick={e => e.stopPropagation()}>Apri PDF</a>}
                                                                     </div>
                                                                 ) : (
                                                                     <>
