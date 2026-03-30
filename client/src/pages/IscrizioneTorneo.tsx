@@ -160,7 +160,7 @@ const IscrizioneTorneo: React.FC = () => {
                 turnoId: selectedTurno,
                 secondoTurnoId: selectedSecondTurno || null,
                 giocatoreId: giocatore.id,
-                sedeId: selectedSede || null
+                sedeId: (selectedSede && selectedSede !== 'main') ? selectedSede : null
             });
 
             setSubmitResult({ type: 'success', message: 'Iscrizione inviata con successo! In attesa di conferma.' });
@@ -333,10 +333,17 @@ const IscrizioneTorneo: React.FC = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {(() => {
-                            // Se non ci sono sedi multiple, usiamo i dati del torneo come "sede virtuale"
-                            const sediEffettive = torneo.sedi && torneo.sedi.length > 0 
-                                ? torneo.sedi 
-                                : [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
+                            // Build the effective sedi list: specific sedi + main venue with remaining categories
+                            const buildSediEffettive = () => {
+                                if (!torneo.sedi || torneo.sedi.length === 0) {
+                                    return [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
+                                }
+                                const allAssigned = torneo.sedi.flatMap(s => s.categorie);
+                                const unassigned = (torneo.categorie || []).filter(c => !allAssigned.some(a => a.toUpperCase() === c.toUpperCase()));
+                                const mainSede = unassigned.length > 0 ? [{ id: 'main', nome: torneo.sede, categorie: unassigned }] : [];
+                                return [...torneo.sedi, ...mainSede];
+                            };
+                            const sediEffettive = buildSediEffettive();
 
                             return sediEffettive.filter(s => {
                                 const catGiocatore = (giocatore.categoria || '').toUpperCase().trim();
@@ -381,9 +388,16 @@ const IscrizioneTorneo: React.FC = () => {
                             });
                         })()}
                         {(() => {
-                            const sediEffettive = torneo.sedi && torneo.sedi.length > 0 
-                                ? torneo.sedi 
-                                : [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
+                            const buildSediEffettive2 = () => {
+                                if (!torneo.sedi || torneo.sedi.length === 0) {
+                                    return [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
+                                }
+                                const allAssigned = torneo.sedi.flatMap(s => s.categorie);
+                                const unassigned = (torneo.categorie || []).filter(c => !allAssigned.some(a => a.toUpperCase() === c.toUpperCase()));
+                                const mainSede = unassigned.length > 0 ? [{ id: 'main', nome: torneo.sede, categorie: unassigned }] : [];
+                                return [...torneo.sedi, ...mainSede];
+                            };
+                            const sediEffettive = buildSediEffettive2();
 
                             const sediValide = sediEffettive.filter(s => {
                                 const catGiocatore = (giocatore.categoria || '').toUpperCase().trim();
@@ -421,7 +435,10 @@ const IscrizioneTorneo: React.FC = () => {
                     {(() => {
                         const filteredTurni = disponibilita.filter(t => 
                             torneo.sedi.length === 0 || 
-                            (selectedSede && (t.sede?.id === selectedSede || (!t.sede && selectedSede === 'principale')))
+                            (selectedSede && (
+                                t.sede?.id === selectedSede || 
+                                (!t.sede && (selectedSede === 'main' || selectedSede === 'principale'))
+                            ))
                         );
 
                         if (filteredTurni.length === 0) {
