@@ -257,7 +257,7 @@ const Dashboard: React.FC = () => {
                                                                 className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-colors"
                                                             >
                                                                 <Download className="w-3 h-3" />
-                                                                Locandina
+                                                                {shortenSede(torneo.sede)}
                                                             </a>
                                                         )}
                                                         {sediConLoc.map((s: any) => (

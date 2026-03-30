@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, Calendar, MapPin, Search, UserPlus, Users, Loader2, AlertTriangle } from 'lucide-react';
@@ -285,7 +285,7 @@ const Tornei: React.FC = () => {
                                                         onClick={e => e.stopPropagation()}
                                                         className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
                                                     >
-                                                        📄 Locandina
+                                                        📄 {shortenSede(t.sede)}
                                                     </a>
                                                 )}
                                                 {sediConLocandina.map(s => (
