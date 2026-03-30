@@ -68,7 +68,10 @@ export const getTorneiPublici = async (_req: Request, res: Response) => {
         const tornei = await prisma.torneo.findMany({
             include: {
                 turni: true,
-                stagione: true
+                stagione: true,
+                sedi: {
+                    select: { id: true, nome: true, locandina: true }
+                }
             },
             orderBy: {
                 dataInizio: 'desc'

@@ -17,6 +17,8 @@ interface Torneo {
     completato: boolean;
     mostraBottoneIscrizione: boolean;
     stagioneId: string;
+    locandina?: string | null;
+    sedi?: { id: string; nome: string; locandina?: string | null }[];
     stagione: {
         nome: string;
     };
@@ -260,22 +262,55 @@ const Tornei: React.FC = () => {
 
                                             return (
                                                 <>
-                                                    {t.turni && t.turni.length > 0 && !isScaduto2Giorni && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                fetchIscritti(t.id);
-                                                            }}
-                                                            className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
-                                                        >
-                                                            {loadingIscritti[t.id] ? (
-                                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                            ) : (
-                                                                <Users className="w-3.5 h-3.5" />
-                                                            )}
-                                                            {openIscritti[t.id] ? 'Chiudi Atleti' : 'Vedi Iscritti'}
-                                                        </button>
-                                                    )}
+                                                    {/* Locandine: una per sede se disponibili, altrimenti quella principale */}
+                                    {(() => {
+                                        const sediConLocandina = (t.sedi || []).filter(s => s.locandina);
+                                        if (sediConLocandina.length > 0) {
+                                            return sediConLocandina.map(s => (
+                                                <a
+                                                    key={s.id}
+                                                    href={s.locandina!.startsWith('http') ? s.locandina! : `${API_BASE_URL}${s.locandina}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={e => e.stopPropagation()}
+                                                    className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                                                >
+                                                    📄 Locandina – {s.nome}
+                                                </a>
+                                            ));
+                                        } else if (t.locandina && !isScaduto2Giorni) {
+                                            return (
+                                                <a
+                                                    href={t.locandina.startsWith('http') ? t.locandina : `${API_BASE_URL}${t.locandina}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={e => e.stopPropagation()}
+                                                    className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                                                >
+                                                    📄 Locandina
+                                                </a>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+
+                                    {/* Vedi iscritti */}
+                                    {t.turni && t.turni.length > 0 && !isScaduto2Giorni && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                fetchIscritti(t.id);
+                                            }}
+                                            className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                                        >
+                                            {loadingIscritti[t.id] ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                                <Users className="w-3.5 h-3.5" />
+                                            )}
+                                            {openIscritti[t.id] ? 'Chiudi Atleti' : 'Vedi Iscritti'}
+                                        </button>
+                                    )}
 
                                                     {prenotabile && !isScaduto2Giorni && t.mostraBottoneIscrizione ? (
                                                         <button
