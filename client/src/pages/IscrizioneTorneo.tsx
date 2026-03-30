@@ -100,16 +100,17 @@ const IscrizioneTorneo: React.FC = () => {
             const player = res.data;
             setGiocatore(player);
 
-            // Suggerimento Sede in base alla categoria
+            // Auto-assegna la sede in base alla categoria del giocatore
             if (torneo && torneo.sedi && torneo.sedi.length > 0) {
-                const suggestedSede = torneo.sedi.find(s => 
-                    s.categorie.includes(player.categoria)
+                const cat = (player.categoria || '').toUpperCase().trim();
+                const sesso = (player.sesso || '').toUpperCase().trim();
+                const matchSede = torneo.sedi.find(s =>
+                    (s.categorie || []).some(c => {
+                        const cu = c.toUpperCase().trim();
+                        return cu === cat || cu === `${sesso}/${cat}` || cat.includes(cu) || cu.includes(cat);
+                    })
                 );
-                if (suggestedSede) {
-                    setSelectedSede(suggestedSede.id);
-                } else if (torneo.sedi.length === 1) {
-                    setSelectedSede(torneo.sedi[0].id);
-                }
+                setSelectedSede(matchSede ? matchSede.id : 'main');
             }
         } catch (err: any) {
             setTesseraError(err.response?.data?.message || 'Errore nella ricerca. Riprova.');
@@ -331,50 +332,23 @@ const IscrizioneTorneo: React.FC = () => {
                     </h2>
                     <p className="text-sm text-gray-500 mb-6 font-bold italic">Seleziona in quale bowling center giocherai le tue partite (filtrate per la categoria {giocatore.categoria}).</p>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {(() => {
-                            // All sedi shown to all players — player picks their venue
-                            const specificSedi = torneo.sedi || [];
-                            const allAssigned = specificSedi.flatMap(s => s.categorie);
-                            const unassigned = (torneo.categorie || []).filter(c => !allAssigned.some(a => a.toUpperCase() === c.toUpperCase()));
-                            const sediEffettive = [
-                                ...specificSedi,
-                                ...(unassigned.length > 0 || specificSedi.length === 0
-                                    ? [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }]
-                                    : [])
-                            ];
-
-                            if (sediEffettive.length === 0) return null;
-
-                            return sediEffettive.map((s) => {
-                                const isSelected = selectedSede === s.id;
-                                return (
-                                    <button
-                                        key={s.id}
-                                        type="button"
-                                        onClick={() => {
-                                            setSelectedSede(s.id);
-                                            setSelectedTurno('');
-                                        }}
-                                        className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-4 text-center group ${
-                                            isSelected 
-                                                ? 'bg-primary/5 border-primary shadow-xl shadow-primary/10' 
-                                                : 'bg-white border-gray-100 hover:border-primary/30 hover:shadow-lg'
-                                        }`}
-                                    >
-                                        <div className={`p-4 rounded-2xl transition-colors ${isSelected ? 'bg-primary text-white' : 'bg-gray-50 text-gray-400 group-hover:bg-primary/10 group-hover:text-primary'}`}>
-                                            <MapPin className="w-8 h-8" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-black uppercase tracking-tight text-lg">{s.id === 'main' ? s.nome || 'Sede di Gara' : s.nome}</h4>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Seleziona questa sede</p>
-                                        </div>
-                                        {isSelected && <CheckCircle2 className="w-6 h-6 text-primary" />}
-                                    </button>
-                                );
-                            });
-                        })()}
-                    </div>
+                    {/* Sede auto-assegnata — read only */}
+                    {(() => {
+                        const sedeNome = torneo.sedi?.find(s => s.id === selectedSede)?.nome
+                            ?? (selectedSede === 'main' ? torneo.sede : torneo.sede);
+                        return (
+                            <div className="flex items-center gap-4 p-5 bg-primary/5 border border-primary/20 rounded-2xl">
+                                <div className="p-3 rounded-2xl bg-primary text-white">
+                                    <MapPin className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Sede assegnata alla tua categoria</p>
+                                    <p className="font-black uppercase text-lg text-dark">{sedeNome}</p>
+                                </div>
+                                <CheckCircle2 className="w-6 h-6 text-primary ml-auto" />
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
 
