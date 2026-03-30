@@ -264,6 +264,14 @@ const Tornei: React.FC = () => {
                                                 <>
                                                     {/* Locandine: una per sede se disponibili, altrimenti quella principale */}
                                     {(() => {
+                                        const shortenSede = (nome: string) => {
+                                            const keywords = [' Via ', ' V.le ', ' Viale ', ' Piazza ', ' Corso ', ' Str. ', ' Strada '];
+                                            for (const kw of keywords) {
+                                                const idx = nome.toUpperCase().indexOf(kw.toUpperCase());
+                                                if (idx > 0) return nome.substring(0, idx).trim();
+                                            }
+                                            return nome.length > 22 ? nome.substring(0, 20) + '…' : nome;
+                                        };
                                         const sediConLocandina = (t.sedi || []).filter(s => s.locandina);
                                         if (sediConLocandina.length > 0) {
                                             return sediConLocandina.map(s => (
@@ -275,7 +283,7 @@ const Tornei: React.FC = () => {
                                                     onClick={e => e.stopPropagation()}
                                                     className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
                                                 >
-                                                    📄 Locandina – {s.nome}
+                                                    📄 Locandina – {shortenSede(s.nome)}
                                                 </a>
                                             ));
                                         } else if (t.locandina && !isScaduto2Giorni) {

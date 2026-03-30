@@ -230,6 +230,14 @@ const Dashboard: React.FC = () => {
                                     <div className="flex flex-col gap-2 pt-2">
                                         <div className="grid grid-cols-2 gap-3">
                                             {(() => {
+                                                const shortenSede = (nome: string) => {
+                                                    const keywords = [' Via ', ' V.le ', ' Viale ', ' Piazza ', ' Corso ', ' Str. ', ' Strada '];
+                                                    for (const kw of keywords) {
+                                                        const idx = nome.toUpperCase().indexOf(kw.toUpperCase());
+                                                        if (idx > 0) return nome.substring(0, idx).trim();
+                                                    }
+                                                    return nome.length > 22 ? nome.substring(0, 20) + '…' : nome;
+                                                };
                                                 const sediConLoc = ((torneo as any).sedi || []).filter((s: any) => s.locandina);
                                                 if (sediConLoc.length > 0) {
                                                     return sediConLoc.map((s: any) => (
@@ -241,7 +249,7 @@ const Dashboard: React.FC = () => {
                                                             className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-colors"
                                                         >
                                                             <Download className="w-3 h-3" />
-                                                            {s.nome}
+                                                            {shortenSede(s.nome)}
                                                         </a>
                                                     ));
                                                 } else if (torneo.locandina) {
