@@ -333,41 +333,28 @@ const IscrizioneTorneo: React.FC = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {(() => {
-                            // Build the effective sedi list: specific sedi + main venue with remaining categories
-                            const buildSediEffettive = () => {
-                                if (!torneo.sedi || torneo.sedi.length === 0) {
-                                    return [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
-                                }
-                                const allAssigned = torneo.sedi.flatMap(s => s.categorie);
-                                const unassigned = (torneo.categorie || []).filter(c => !allAssigned.some(a => a.toUpperCase() === c.toUpperCase()));
-                                const mainSede = unassigned.length > 0 ? [{ id: 'main', nome: torneo.sede, categorie: unassigned }] : [];
-                                return [...torneo.sedi, ...mainSede];
-                            };
-                            const sediEffettive = buildSediEffettive();
+                            // All sedi shown to all players — player picks their venue
+                            const specificSedi = torneo.sedi || [];
+                            const allAssigned = specificSedi.flatMap(s => s.categorie);
+                            const unassigned = (torneo.categorie || []).filter(c => !allAssigned.some(a => a.toUpperCase() === c.toUpperCase()));
+                            const sediEffettive = [
+                                ...specificSedi,
+                                ...(unassigned.length > 0 || specificSedi.length === 0
+                                    ? [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }]
+                                    : [])
+                            ];
 
-                            return sediEffettive.filter(s => {
-                                const catGiocatore = (giocatore.categoria || '').toUpperCase().trim();
-                                const sessoGiocatore = (giocatore.sesso || '').toUpperCase().trim();
-                                const categorieSede = (s.categorie || []).map(c => c.toUpperCase().trim());
+                            if (sediEffettive.length === 0) return null;
 
-                                // Se l'atleta ha una categoria estesa (es: "M/B ECCELLENZA")
-                                // e la sede ha "M/B", dobbiamo trovare un match.
-                                return categorieSede.some(c => 
-                                    c === catGiocatore || 
-                                    catGiocatore.includes(c) || 
-                                    c.includes(catGiocatore) ||
-                                    (sessoGiocatore && c === `${sessoGiocatore}/${catGiocatore}`)
-                                );
-                            }).map((s) => {
+                            return sediEffettive.map((s) => {
                                 const isSelected = selectedSede === s.id;
-                                
                                 return (
                                     <button
                                         key={s.id}
                                         type="button"
                                         onClick={() => {
                                             setSelectedSede(s.id);
-                                            setSelectedTurno(''); // Reset turno se cambio sede
+                                            setSelectedTurno('');
                                         }}
                                         className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-4 text-center group ${
                                             isSelected 
@@ -380,45 +367,12 @@ const IscrizioneTorneo: React.FC = () => {
                                         </div>
                                         <div>
                                             <h4 className="font-black uppercase tracking-tight text-lg">{s.id === 'main' ? s.nome || 'Sede di Gara' : s.nome}</h4>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Sede verificata per la tua categoria</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Seleziona questa sede</p>
                                         </div>
                                         {isSelected && <CheckCircle2 className="w-6 h-6 text-primary" />}
                                     </button>
                                 );
                             });
-                        })()}
-                        {(() => {
-                            const buildSediEffettive2 = () => {
-                                if (!torneo.sedi || torneo.sedi.length === 0) {
-                                    return [{ id: 'main', nome: torneo.sede, categorie: torneo.categorie || [] }];
-                                }
-                                const allAssigned = torneo.sedi.flatMap(s => s.categorie);
-                                const unassigned = (torneo.categorie || []).filter(c => !allAssigned.some(a => a.toUpperCase() === c.toUpperCase()));
-                                const mainSede = unassigned.length > 0 ? [{ id: 'main', nome: torneo.sede, categorie: unassigned }] : [];
-                                return [...torneo.sedi, ...mainSede];
-                            };
-                            const sediEffettive = buildSediEffettive2();
-
-                            const sediValide = sediEffettive.filter(s => {
-                                const catGiocatore = (giocatore.categoria || '').toUpperCase().trim();
-                                const sessoGiocatore = (giocatore.sesso || '').toUpperCase().trim();
-                                const categorieSede = (s.categorie || []).map(c => c.toUpperCase().trim());
-
-                                return categorieSede.some(c => 
-                                    c === catGiocatore || 
-                                    catGiocatore.includes(c) || 
-                                    c.includes(catGiocatore) ||
-                                    (sessoGiocatore && c === `${sessoGiocatore}/${catGiocatore}`)
-                                );
-                            });
-
-                            return sediValide.length === 0 && (
-                                <div className="md:col-span-2 p-8 bg-red-50 rounded-2xl border border-red-100 text-center">
-                                    <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-2" />
-                                    <p className="text-sm text-red-600 font-black uppercase">Nessuna sede disponibile per la tua categoria ({giocatore.categoria})</p>
-                                    <p className="text-[10px] text-red-400 mt-2 font-bold uppercase">Contatta la segreteria per maggiori informazioni.</p>
-                                </div>
-                            );
                         })()}
                     </div>
                 </div>
