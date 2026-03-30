@@ -229,24 +229,41 @@ const Dashboard: React.FC = () => {
 
                                     <div className="flex flex-col gap-2 pt-2">
                                         <div className="grid grid-cols-2 gap-3">
-                                            {torneo.locandina ? (
-                                                <a
-                                                    href={torneo.locandina.startsWith('http') ? torneo.locandina : `${API_BASE_URL}${torneo.locandina}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-colors"
-                                                >
-                                                    <Download className="w-3 h-3" />
-                                                    Locandina
-                                                </a>
-                                            ) : (
-                                                <span
-                                                    className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-300 text-[10px] font-black uppercase tracking-widest rounded-lg cursor-not-allowed opacity-50"
-                                                >
-                                                    <Download className="w-3 h-3" />
-                                                    Locandina
-                                                </span>
-                                            )}
+                                            {(() => {
+                                                const sediConLoc = ((torneo as any).sedi || []).filter((s: any) => s.locandina);
+                                                if (sediConLoc.length > 0) {
+                                                    return sediConLoc.map((s: any) => (
+                                                        <a
+                                                            key={s.id}
+                                                            href={s.locandina.startsWith('http') ? s.locandina : `${API_BASE_URL}${s.locandina}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-colors"
+                                                        >
+                                                            <Download className="w-3 h-3" />
+                                                            {s.nome}
+                                                        </a>
+                                                    ));
+                                                } else if (torneo.locandina) {
+                                                    return (
+                                                        <a
+                                                            href={torneo.locandina.startsWith('http') ? torneo.locandina : `${API_BASE_URL}${torneo.locandina}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-colors"
+                                                        >
+                                                            <Download className="w-3 h-3" />
+                                                            Locandina
+                                                        </a>
+                                                    );
+                                                }
+                                                return (
+                                                    <span className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-300 text-[10px] font-black uppercase tracking-widest rounded-lg cursor-not-allowed opacity-50">
+                                                        <Download className="w-3 h-3" />
+                                                        Locandina
+                                                    </span>
+                                                );
+                                            })()}
                                             {torneo.mostraBottoneIscrizione && !torneo.completato && (
                                                 <a
                                                     href={torneo.linkIscrizione || `/tornei/${torneo.id}/iscrizione`}

@@ -36,7 +36,10 @@ export const getDashboardStats = async (req: Request, res: Response) => {
                 dataInizio: 'asc'
             },
             include: {
-                stagione: true
+                stagione: true,
+                sedi: {
+                    select: { id: true, nome: true, locandina: true }
+                }
             }
         });
 
