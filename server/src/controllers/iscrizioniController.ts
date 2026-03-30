@@ -162,8 +162,9 @@ export const getDisponibilitaTurni = async (req: Request, res: Response) => {
 };
 
 // POST /api/tornei/iscriviti (Giocatore - Iscrizione con Borsellino)
-export const iscriviGiocatore = async (req: Request, res: Response) => {
+export const iscriviGiocatore = async (req: any, res: Response) => {
     const { torneoId, turnoId, giocatoreId, secondoTurnoId, sedeId } = req.body;
+    const isAdmin = req.user?.role === 'ADMIN';
 
     try {
         const torneo = await prisma.torneo.findUnique({
@@ -230,7 +231,9 @@ export const iscriviGiocatore = async (req: Request, res: Response) => {
         const risultato = await prisma.$transaction(async (tx) => {
             if (costo > 0) {
                 const saldo = await tx.saldoBorsellino.findUnique({ where: { giocatoreId } });
-                if (!saldo || Number(saldo.saldoAttuale) < costo) {
+                
+                // Se non è admin, controlla se il saldo è sufficiente
+                if (!isAdmin && (!saldo || Number(saldo.saldoAttuale) < costo)) {
                     throw new Error('Saldo insufficiente nel borsellino.');
                 }
 

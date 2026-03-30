@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as torneiController from '../controllers/torneiController';
 import * as iscrizioniController from '../controllers/iscrizioniController';
-import { authenticateToken, isAdmin } from '../middleware/auth';
+import { authenticateToken, isAdmin, optionalAuthenticate } from '../middleware/auth';
 
 const router = Router();
 
@@ -12,7 +12,7 @@ router.get('/public/:id/disponibilita', iscrizioniController.getDisponibilitaTur
 router.get('/public/:id/iscritti', iscrizioniController.getIscrizioniPublic);
 router.get('/classifiche', torneiController.getClassifiche);
 router.get('/lookup-tessera/:tessera', iscrizioniController.lookupTessera);
-router.post('/iscriviti', iscrizioniController.iscriviGiocatore);
+router.post('/iscriviti', optionalAuthenticate, iscrizioniController.iscriviGiocatore);
 
 // --- Endpoint Protetti (Solo ADMIN) ---
 router.get('/', authenticateToken, isAdmin, torneiController.getTorneiAdmin);

@@ -7,8 +7,9 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import {
     Trophy, Calendar, MapPin, ArrowLeft, Clock,
-    CheckCircle2, AlertCircle, CreditCard, Search, Loader2
+    CheckCircle2, AlertCircle, CreditCard, Search, Loader2, ShieldCheck
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Torneo {
     id: string;
@@ -51,6 +52,8 @@ const IscrizioneTorneo: React.FC = () => {
     const navigate = useNavigate();
     const { search } = useLocation();
     const queryClient = useQueryClient();
+    const { isAdmin, token } = useAuth();
+    const isAdministrator = isAdmin();
 
     const queryParams = new URLSearchParams(search);
     const preselectedTurnoId = queryParams.get('turnoId');
@@ -126,6 +129,7 @@ const IscrizioneTorneo: React.FC = () => {
     const costo = Number(torneo?.costoIscrizione || 0);
     const saldo = Number(giocatore?.saldo?.saldoAttuale || 0);
     const saldoSufficiente = costo === 0 || saldo >= costo;
+    const canOverrideBalance = isAdministrator;
 
     // È multi-turno?
     const isMultiTurno = disponibilita.length > 1;
@@ -145,7 +149,7 @@ const IscrizioneTorneo: React.FC = () => {
         (!isMultiTurno || selectedSecondTurno) &&
         (!torneo?.sedi || torneo.sedi.length === 0 || selectedSede) &&
         !giaIscritto &&
-        saldoSufficiente &&
+        (saldoSufficiente || canOverrideBalance) &&
         !isCertificatoScaduto &&
         !isSubmitting;
 
@@ -162,6 +166,8 @@ const IscrizioneTorneo: React.FC = () => {
                 secondoTurnoId: selectedSecondTurno || null,
                 giocatoreId: giocatore.id,
                 sedeId: (selectedSede && selectedSede !== 'main') ? selectedSede : null
+            }, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
             });
 
             setSubmitResult({ type: 'success', message: 'Iscrizione inviata con successo! In attesa di conferma.' });
@@ -534,8 +540,12 @@ const IscrizioneTorneo: React.FC = () => {
                                     <span className={`font-black ${saldoSufficiente ? 'text-green-600' : 'text-red-500'}`}>€ {saldo.toFixed(2)}</span>
                                 </div>
                                 {!saldoSufficiente && (
-                                    <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-xl flex items-center gap-2 text-sm font-bold">
-                                        <AlertCircle className="w-4 h-4 shrink-0" /> Saldo insufficiente. Ricarica il tuo borsellino in segreteria.
+                                    <div className={`p-3 rounded-xl flex items-center gap-2 text-sm font-bold ${isAdministrator ? 'bg-amber-50 border border-amber-200 text-amber-700' : 'bg-red-50 border border-red-200 text-red-600'}`}>
+                                        <AlertCircle className="w-4 h-4 shrink-0" /> 
+                                        {isAdministrator 
+                                            ? "ATTENZIONE: Saldo insufficiente. Procedi solo se autorizzato (override amministratore)." 
+                                            : "Saldo insufficiente. Ricarica il tuo borsellino in segreteria."
+                                        }
                                     </div>
                                 )}
                             </>
@@ -553,7 +563,10 @@ const IscrizioneTorneo: React.FC = () => {
                         {isSubmitting ? (
                             <><Loader2 className="w-5 h-5 animate-spin" /> Invio in corso...</>
                         ) : (
-                            <><CheckCircle2 className="w-5 h-5" /> Conferma Iscrizione</>
+                            <>
+                                {isAdministrator && !saldoSufficiente ? <ShieldCheck className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+                                {isAdministrator && !saldoSufficiente ? 'Forza Iscrizione (Admin)' : 'Conferma Iscrizione'}
+                            </>
                         )}
                     </button>
 
