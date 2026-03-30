@@ -273,33 +273,35 @@ const Tornei: React.FC = () => {
                                             return nome.length > 22 ? nome.substring(0, 20) + '…' : nome;
                                         };
                                         const sediConLocandina = (t.sedi || []).filter(s => s.locandina);
-                                        if (sediConLocandina.length > 0) {
-                                            return sediConLocandina.map(s => (
-                                                <a
-                                                    key={s.id}
-                                                    href={s.locandina!.startsWith('http') ? s.locandina! : `${API_BASE_URL}${s.locandina}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    onClick={e => e.stopPropagation()}
-                                                    className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
-                                                >
-                                                    📄 Locandina – {shortenSede(s.nome)}
-                                                </a>
-                                            ));
-                                        } else if (t.locandina && !isScaduto2Giorni) {
-                                            return (
-                                                <a
-                                                    href={t.locandina.startsWith('http') ? t.locandina : `${API_BASE_URL}${t.locandina}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    onClick={e => e.stopPropagation()}
-                                                    className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
-                                                >
-                                                    📄 Locandina
-                                                </a>
-                                            );
-                                        }
-                                        return null;
+                                        const hasMain = !!t.locandina && !isScaduto2Giorni;
+                                        if (!hasMain && sediConLocandina.length === 0) return null;
+                                        return (
+                                            <>
+                                                {hasMain && (
+                                                    <a
+                                                        href={t.locandina!.startsWith('http') ? t.locandina! : `${API_BASE_URL}${t.locandina}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={e => e.stopPropagation()}
+                                                        className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                                                    >
+                                                        📄 Locandina
+                                                    </a>
+                                                )}
+                                                {sediConLocandina.map(s => (
+                                                    <a
+                                                        key={s.id}
+                                                        href={s.locandina!.startsWith('http') ? s.locandina! : `${API_BASE_URL}${s.locandina}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={e => e.stopPropagation()}
+                                                        className="w-full py-2.5 bg-white border border-gray-100 text-gray-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                                                    >
+                                                        📄 Locandina – {shortenSede(s.nome)}
+                                                    </a>
+                                                ))}
+                                            </>
+                                        );
                                     })()}
 
                                     {/* Vedi iscritti */}

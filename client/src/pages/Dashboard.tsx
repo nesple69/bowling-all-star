@@ -239,37 +239,40 @@ const Dashboard: React.FC = () => {
                                                     return nome.length > 22 ? nome.substring(0, 20) + '…' : nome;
                                                 };
                                                 const sediConLoc = ((torneo as any).sedi || []).filter((s: any) => s.locandina);
-                                                if (sediConLoc.length > 0) {
-                                                    return sediConLoc.map((s: any) => (
-                                                        <a
-                                                            key={s.id}
-                                                            href={s.locandina.startsWith('http') ? s.locandina : `${API_BASE_URL}${s.locandina}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-colors"
-                                                        >
-                                                            <Download className="w-3 h-3" />
-                                                            {shortenSede(s.nome)}
-                                                        </a>
-                                                    ));
-                                                } else if (torneo.locandina) {
-                                                    return (
-                                                        <a
-                                                            href={torneo.locandina.startsWith('http') ? torneo.locandina : `${API_BASE_URL}${torneo.locandina}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-colors"
-                                                        >
-                                                            <Download className="w-3 h-3" />
-                                                            Locandina
-                                                        </a>
-                                                    );
-                                                }
-                                                return (
+                                                const hasMain = !!torneo.locandina;
+                                                const hasAnything = hasMain || sediConLoc.length > 0;
+                                                if (!hasAnything) return (
                                                     <span className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-300 text-[10px] font-black uppercase tracking-widest rounded-lg cursor-not-allowed opacity-50">
                                                         <Download className="w-3 h-3" />
                                                         Locandina
                                                     </span>
+                                                );
+                                                return (
+                                                    <>
+                                                        {hasMain && (
+                                                            <a
+                                                                href={torneo.locandina!.startsWith('http') ? torneo.locandina! : `${API_BASE_URL}${torneo.locandina}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-colors"
+                                                            >
+                                                                <Download className="w-3 h-3" />
+                                                                Locandina
+                                                            </a>
+                                                        )}
+                                                        {sediConLoc.map((s: any) => (
+                                                            <a
+                                                                key={s.id}
+                                                                href={s.locandina.startsWith('http') ? s.locandina : `${API_BASE_URL}${s.locandina}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center justify-center gap-2 py-2 px-3 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-200 transition-colors"
+                                                            >
+                                                                <Download className="w-3 h-3" />
+                                                                {shortenSede(s.nome)}
+                                                            </a>
+                                                        ))}
+                                                    </>
                                                 );
                                             })()}
                                             {torneo.mostraBottoneIscrizione && !torneo.completato && (
