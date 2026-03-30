@@ -4,7 +4,7 @@ import { X, Plus, Minus, Loader2 } from 'lucide-react';
 interface FormMovimentoProps {
     onClose: () => void;
     onSubmit: (data: { importo: number; tipo: string; descrizione: string; data: string }) => Promise<void>;
-    type: 'ricarica' | 'addebito';
+    type: 'ricarica' | 'addebito' | 'rimborso';
     isLoading: boolean;
     initialData?: {
         importo: number;
@@ -17,8 +17,9 @@ interface FormMovimentoProps {
 const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, isLoading, initialData }) => {
     const [importo, setImporto] = useState(initialData ? initialData.importo.toString() : '');
     const [descrizione, setDescrizione] = useState(initialData ? (initialData.descrizione || '') : '');
-    const [tipoMovimento, setTipoMovimento] = useState(initialData ? initialData.tipo : (type === 'ricarica' ? 'RICARICA' : 'ADDEBITO_MANUALE'));
+    const [tipoMovimento, setTipoMovimento] = useState(initialData ? initialData.tipo : (type === 'ricarica' ? 'RICARICA' : type === 'rimborso' ? 'RIMBORSO' : 'ADDEBITO_MANUALE'));
     const [data, setData] = useState(initialData ? initialData.data.split('T')[0] : new Date().toISOString().split('T')[0]);
+    const [destinazione, setDestinazione] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,10 +27,14 @@ const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, 
             alert('Inserisci un importo valido.');
             return;
         }
+        let finalDesc = descrizione;
+        if (type === 'rimborso' && !initialData && destinazione.trim()) {
+            finalDesc = `${descrizione.trim()} - Destinazione: ${destinazione.trim()}`;
+        }
         await onSubmit({
             importo: parseFloat(importo),
             tipo: tipoMovimento,
-            descrizione: descrizione,
+            descrizione: finalDesc,
             data: data
         });
     };
@@ -42,6 +47,8 @@ const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, 
                         <>Modifica Movimento</>
                     ) : type === 'ricarica' ? (
                         <><Plus className="w-4 h-4 text-green-600" /> Nuova Ricarica</>
+                    ) : type === 'rimborso' ? (
+                        <><Plus className="w-4 h-4 text-blue-600" /> Nuovo Rimborso Spese</>
                     ) : (
                         <><Minus className="w-4 h-4 text-red-600" /> Nuovo Addebito Manuale</>
                     )}
@@ -85,6 +92,8 @@ const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, 
                     >
                         {type === 'ricarica' ? (
                             <option value="RICARICA">Ricarica Credito</option>
+                        ) : type === 'rimborso' ? (
+                            <option value="RIMBORSO">Rimborso Trasferta / Spese</option>
                         ) : (
                             <>
                                 <option value="ADDEBITO_MANUALE">Addebito Manuale</option>
@@ -104,6 +113,19 @@ const FormMovimento: React.FC<FormMovimentoProps> = ({ onClose, onSubmit, type, 
                         onChange={(e) => setDescrizione(e.target.value)}
                     />
                 </div>
+
+                {type === 'rimborso' && !initialData && (
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Modalità di Pagamento / IBAN</label>
+                        <input
+                            type="text"
+                            placeholder="Es. Bonifico su IT..., Contanti..."
+                            className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-xl focus:border-primary focus:ring-0 outline-none transition-all font-medium text-sm"
+                            value={destinazione}
+                            onChange={(e) => setDestinazione(e.target.value)}
+                        />
+                    </div>
+                )}
 
                 <button
                     type="submit"

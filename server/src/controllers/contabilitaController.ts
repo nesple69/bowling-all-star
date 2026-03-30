@@ -151,6 +151,45 @@ export const addebitoManuale = async (req: Request, res: Response) => {
     }
 };
 
+// POST /api/contabilita/rimborso
+export const registraRimborso = async (req: Request, res: Response) => {
+    const { giocatoreId, importo, descrizione, data: customData } = req.body;
+    const adminId = (req as any).user?.id;
+
+    if (!importo || parseFloat(importo) <= 0) {
+        return res.status(400).json({ message: 'L\'importo del rimborso deve essere positivo' });
+    }
+
+    try {
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Crea il movimento
+            // NOTA: Il rimborso è un movimento di storico e non intacca il `saldoAttuale` del giocatore
+            const movimento = await tx.movimentoContabile.create({
+                data: {
+                    giocatoreId,
+                    importo: parseFloat(importo),
+                    tipo: TipoMovimento.RIMBORSO,
+                    descrizione: descrizione || 'Rimborso spese',
+                    adminId,
+                    data: customData ? new Date(customData) : undefined
+                }
+            });
+
+            // 2. Fetch the current saldo without modifying it
+            const saldo = await tx.saldoBorsellino.findUnique({
+                where: { giocatoreId }
+            });
+
+            return { movimento, saldo };
+        });
+
+        res.status(201).json(result);
+    } catch (error) {
+        console.error('Errore registrazione rimborso:', error);
+        res.status(500).json({ message: 'Errore durante la registrazione del rimborso' });
+    }
+};
+
 // GET /api/contabilita/movimenti
 export const getAllMovimenti = async (req: Request, res: Response) => {
     try {
@@ -222,7 +261,9 @@ const recalculateSaldo = async (giocatoreId: string, tx: Prisma.TransactionClien
 
     const nuovoSaldo = movimenti.reduce((acc, m) => {
         const importo = Number(m.importo);
-        if (m.tipo === TipoMovimento.RICARICA) {
+        if (m.tipo === TipoMovimento.RIMBORSO) {
+            return acc; // Rimborso non intacca il saldo virtuale
+        } else if (m.tipo === TipoMovimento.RICARICA) {
             return acc + importo;
         } else {
             return acc - importo;

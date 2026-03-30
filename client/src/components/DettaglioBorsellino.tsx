@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import {
     X, CreditCard, ArrowUpCircle, ArrowDownCircle,
-    History, Plus, Minus, Loader2, Edit2, Trash2
+    History, Plus, Minus, Loader2, Edit2, Trash2, Send
 } from 'lucide-react';
 import { format } from 'date-fns';
 import FormMovimento from './FormMovimento';
@@ -25,7 +25,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
     const [saldo, setSaldo] = useState<number | null>(null);
     const [movimenti, setMovimenti] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [showForm, setShowForm] = useState<'ricarica' | 'addebito' | 'modifica' | null>(null);
+const [showForm, setShowForm] = useState<'ricarica' | 'addebito' | 'rimborso' | 'modifica' | null>(null);
     const [editingMovimento, setEditingMovimento] = useState<any | null>(null);
     const [isActionLoading, setIsActionLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -57,7 +57,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } else {
-                const endpoint = showForm === 'ricarica' ? 'ricarica' : 'addebito';
+                const endpoint = showForm === 'ricarica' ? 'ricarica' : showForm === 'rimborso' ? 'rimborso' : 'addebito';
                 await axios.post(`${API_BASE_URL}/api/contabilita/${endpoint}`, {
                     giocatoreId: giocatore.id,
                     ...data
@@ -148,20 +148,27 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
 
                     {/* Bottoni Azione */}
                     {!showForm && (
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <button
                                 onClick={() => setShowForm('ricarica')}
-                                className="flex items-center justify-center gap-3 py-4 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-green-700 transition-all shadow-lg shadow-green-100"
+                                className="flex items-center justify-center gap-3 py-4 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-green-700 transition-all shadow-lg shadow-green-100"
                             >
                                 <Plus className="w-5 h-5" />
                                 Ricarica
                             </button>
                             <button
                                 onClick={() => setShowForm('addebito')}
-                                className="flex items-center justify-center gap-3 py-4 bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-red-600 transition-all shadow-lg shadow-red-100"
+                                className="flex items-center justify-center gap-3 py-4 bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-100"
                             >
                                 <Minus className="w-5 h-5" />
                                 Addebita
+                            </button>
+                            <button
+                                onClick={() => setShowForm('rimborso')}
+                                className="flex items-center justify-center gap-3 py-4 bg-blue-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-600 transition-all shadow-lg shadow-blue-100"
+                            >
+                                <Send className="w-5 h-5" />
+                                Rimborso Spese
                             </button>
                         </div>
                     )}
@@ -169,7 +176,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
                     {/* Form Movimento */}
                     {showForm && (
                         <FormMovimento
-                            type={showForm === 'modifica' ? (editingMovimento?.tipo === 'RICARICA' ? 'ricarica' : 'addebito') : showForm}
+                            type={showForm === 'modifica' ? (editingMovimento?.tipo === 'RICARICA' ? 'ricarica' : editingMovimento?.tipo === 'RIMBORSO' ? 'rimborso' : 'addebito') : showForm}
                             initialData={editingMovimento ? {
                                 importo: Number(editingMovimento.importo),
                                 tipo: editingMovimento.tipo,
@@ -210,6 +217,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
                                     <tbody className="divide-y divide-gray-50">
                                         {movimenti.map((m) => {
                                             const isPositive = m.tipo === 'RICARICA';
+                                            const isRimborso = m.tipo === 'RIMBORSO';
                                             return (
                                                 <tr key={m.id} className="hover:bg-gray-50/50">
                                                     <td className="px-4 py-4">
@@ -220,7 +228,7 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
                                                     </td>
                                                     <td className="px-4 py-4">
                                                         <div className="flex flex-col">
-                                                            <span className="text-[10px] font-black uppercase tracking-tighter text-gray-600">
+                                                            <span className={`text-[10px] font-black uppercase tracking-tighter ${isRimborso ? 'text-blue-600' : 'text-gray-600'}`}>
                                                                 {m.tipo.replace('_', ' ')}
                                                             </span>
                                                             <span className="text-[10px] text-gray-400 truncate max-w-[150px]">
@@ -230,13 +238,15 @@ const DettaglioBorsellino: React.FC<DettaglioBorsellinoProps> = ({ giocatore, on
                                                     </td>
                                                     <td className="px-4 py-4 text-right">
                                                         <div className="flex items-center justify-end gap-1">
-                                                            {isPositive ? (
+                                                            {isRimborso ? (
+                                                                <Send className="w-3 h-3 text-blue-500" />
+                                                            ) : isPositive ? (
                                                                 <ArrowUpCircle className="w-3 h-3 text-green-500" />
                                                             ) : (
                                                                 <ArrowDownCircle className="w-3 h-3 text-red-500" />
                                                             )}
-                                                            <span className={`text-xs font-black ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
-                                                                {isPositive ? '+' : '-'}{formatValuta(m.importo)}
+                                                            <span className={`text-xs font-black ${isRimborso ? 'text-blue-600' : isPositive ? 'text-green-600' : 'text-red-500'}`}>
+                                                                {isRimborso ? '' : isPositive ? '+' : '-'}{formatValuta(m.importo)}
                                                             </span>
                                                         </div>
                                                     </td>

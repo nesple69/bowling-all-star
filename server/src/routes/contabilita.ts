@@ -12,6 +12,7 @@ router.get('/giocatori/:id/borsellino', authenticateToken, contabilitaController
 // Questi saranno montati sotto /api/contabilita
 router.post('/contabilita/ricarica', authenticateToken, isAdmin, contabilitaController.ricaricaBorsellino);
 router.post('/contabilita/addebito', authenticateToken, isAdmin, contabilitaController.addebitoManuale);
+router.post('/contabilita/rimborso', authenticateToken, isAdmin, contabilitaController.registraRimborso);
 router.get('/contabilita/movimenti', authenticateToken, isAdmin, contabilitaController.getAllMovimenti);
 router.get('/contabilita/saldi', authenticateToken, isAdmin, contabilitaController.getAllSaldi);
 router.put('/contabilita/movimenti/:id', authenticateToken, isAdmin, contabilitaController.updateMovimento);

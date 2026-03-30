@@ -207,6 +207,7 @@ enum TipoMovimento {
   ISCRIZIONE_TORNEO
   ACQUISTO_MAGLIA
   ADDEBITO_MANUALE
+  RIMBORSO
 }
 
 enum StatoIscrizione {
