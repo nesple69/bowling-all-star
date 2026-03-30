@@ -252,6 +252,16 @@ export const getAllSaldi = async (req: Request, res: Response) => {
     }
 };
 
+export const fixDbEnum = async (req: Request, res: Response) => {
+    try {
+        await prisma.$executeRawUnsafe(`ALTER TYPE "TipoMovimento" ADD VALUE IF NOT EXISTS 'RIMBORSO';`);
+        res.json({ message: 'Enum TipoMovimento aggiornato con successo: RIMBORSO' });
+    } catch (error: any) {
+        console.error('Errore fixDbEnum:', error);
+        res.status(500).json({ message: 'Errore', error: error.message });
+    }
+};
+
 // Helper per ricalcolare il saldo di un giocatore basandosi sui movimenti
 const recalculateSaldo = async (giocatoreId: string, tx: Prisma.TransactionClient) => {
     // Sommiamo tutti i movimenti: RICARICA è +, gli altri sono -
