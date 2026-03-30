@@ -343,7 +343,7 @@ const GestioneTornei: React.FC = () => {
             const giornoRaw = iscr.turno?.giorno?.substring(0, 10) || 'Data Sconosciuta';
             const giornoDate = new Date(giornoRaw + 'T12:00:00');
             const giornoLabel = giornoDate.toLocaleDateString('it-IT', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
-            const sedeLabel = iscr.sede?.nome || 'Sede Principale';
+            const sedeLabel = iscr.sede?.nome || torneo.sede;
             if (!byGiorno[giornoLabel]) byGiorno[giornoLabel] = {};
             if (!byGiorno[giornoLabel][sedeLabel]) byGiorno[giornoLabel][sedeLabel] = [];
             byGiorno[giornoLabel][sedeLabel].push(iscr);
