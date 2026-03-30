@@ -86,8 +86,9 @@ const Contabilita: React.FC = () => {
                     const dataFmt = format(new Date(m.data), 'dd/MM/yy');
                     const tipoFmt = m.tipo.replace('_', ' ');
                     const descFmt = m.descrizione || '-';
+                    const isPositive = m.tipo === 'RICARICA';
                     const isRimborso = m.tipo === 'RIMBORSO';
-                    const segno = isRimborso ? '' : isPositive ? '+' : '-';
+                    const segno = isRimborso ? '+' : isPositive ? '+' : '-';
                     const importoFmt = `${segno}${new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(m.importo))}`;
                     return [dataFmt, tipoFmt, descFmt, importoFmt];
                 });
@@ -148,7 +149,7 @@ const Contabilita: React.FC = () => {
                     const dataFmt = format(new Date(m.data), 'dd/MM/yy');
                     const isPositive = m.tipo === 'RICARICA';
                     const isRimborso = m.tipo === 'RIMBORSO';
-                    const segno = isRimborso ? '' : isPositive ? '+' : '-';
+                    const segno = isRimborso ? '+' : isPositive ? '+' : '-';
                     const importoFmt = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(m.importo));
                     const desc = m.descrizione ? ` (${m.descrizione})` : '';
                     estrattoConto += `• ${dataFmt}: ${segno}${importoFmt}${desc}\n`;
