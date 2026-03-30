@@ -13,7 +13,8 @@
     "server": "npm run dev --workspace=server",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
     "build": "npm run build --workspace=server && npm run build --workspace=client && rm -rf public && mkdir public && cp -r client/dist/* public/",
-    "install-all": "npm install"
+    "install-all": "npm install",
+    "postinstall": "cd server && prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
